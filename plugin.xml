@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+         point="org.eclipse.imp.runtime.languageDescription">
+      <language
+            description="Monto Plugin for Eclipse"
+            extensions="monto"
+            language="Monto">
+      </language>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.parser">
+      <parser
+            class="de.tudarmstadt.stg.monto.MontoParseController"
+            language="Monto">
+      </parser>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="de.tudarmstadt.stg.monto.sink.SinkViewer"
+            default="false"
+            id="de.tudarmstadt.stg.monto.sinkviewer"
+            name="Sink Viewer">
+      </editor>
+   </extension>
+
+</plugin>
