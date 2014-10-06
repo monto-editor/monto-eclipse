@@ -22,7 +22,7 @@ import org.eclipse.ui.PlatformUI;
 
 import de.tudarmstadt.stg.monto.client.LineSplitter;
 import de.tudarmstadt.stg.monto.client.MontoClient;
-import de.tudarmstadt.stg.monto.client.Multiplexer;
+import de.tudarmstadt.stg.monto.client.MockMontoClient;
 import de.tudarmstadt.stg.monto.client.ReverseContent;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Product;
@@ -42,10 +42,9 @@ public class MontoParseController
 	private Source source;
 
 	public MontoParseController() {
-		this(new Multiplexer());
-		Multiplexer multiplexer = (Multiplexer) client;
-		multiplexer.addClient(new ReverseContent());
-		multiplexer.addClient(new LineSplitter());
+		this(new MockMontoClient()
+				.addServer(new ReverseContent())
+				.addServer(new LineSplitter()));
 	}
 	
 	public MontoParseController(MontoClient client) {

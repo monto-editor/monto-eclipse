@@ -10,13 +10,15 @@ public abstract class AbstractMontoClient implements MontoClient {
 	protected List<ProductMessageListener> listeners = new ArrayList<>();
 
 	@Override
-	public void addProductMessageListener(ProductMessageListener listener) {
+	public MontoClient addProductMessageListener(ProductMessageListener listener) {
 		listeners.add(listener);
+		return this;
 	}
 
 	@Override
-	public void removeProductMessageListener(ProductMessageListener listener) {
+	public MontoClient removeProductMessageListener(ProductMessageListener listener) {
 		listeners.remove(listener);
+		return this;
 	}
 
 }

@@ -6,15 +6,17 @@ import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.ProductMessageListener;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
+import de.tudarmstadt.stg.monto.message.VersionMessage;
 
 public interface MontoClient {
-	public void sendVersionMessage(
+	public default MontoClient sendVersionMessage(
 			Source source,
 			Language language,
-			Contents contents,
-			Selection selection
-			);
-	
-	public void addProductMessageListener(ProductMessageListener listener);
-	public void removeProductMessageListener(ProductMessageListener listener);
+			Contents content,
+			Selection selection) {
+		return sendVersionMessage(new VersionMessage(source,language,content,selection));
+	}
+	public MontoClient sendVersionMessage(VersionMessage msg);
+	public MontoClient addProductMessageListener(ProductMessageListener listener);
+	public MontoClient removeProductMessageListener(ProductMessageListener listener);
 }

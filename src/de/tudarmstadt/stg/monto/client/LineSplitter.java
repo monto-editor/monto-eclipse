@@ -1,26 +1,19 @@
 package de.tudarmstadt.stg.monto.client;
 
-import org.eclipse.imp.language.Language;
-
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
-import de.tudarmstadt.stg.monto.message.Selection;
-import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
+import de.tudarmstadt.stg.monto.message.VersionMessage;
 
-public class LineSplitter extends AbstractMontoClient {
+public class LineSplitter implements Server {
 
-	private Product product = new Product("Splitted");
+	private final Product product = new Product("Splitted");
 
 	@Override
-	public void sendVersionMessage(Source source, Language language,
-			Contents contents, Selection selection) {
+	public ProductMessage apply(final VersionMessage version) {
+		final Contents splitted = new StringContent(version.getContent().string().replace(' ', '\n'));
 		
-		final Contents splitted = new StringContent(contents.string().replace(' ', '\n'));
-		
-		listeners.forEach((listener) -> {
-			listener.onProductMessage(new ProductMessage(source, product , language, splitted));
-		}); 
+		return new ProductMessage(version.getSource(), product, version.getLanguage(), splitted);
 	}
 }
