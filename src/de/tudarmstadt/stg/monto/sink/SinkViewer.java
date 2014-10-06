@@ -7,4 +7,24 @@ public class SinkViewer extends AbstractTextEditor {
 		setDocumentProvider(new SinkDocumentProvider());
 	}
 
+	@Override
+	public boolean isEditable() {
+		return false;
+	}
+	
+
+	@Override
+	public boolean isEditorInputModifiable() {
+	    return false;
+	}
+	
+	@Override
+	public boolean isEditorInputReadOnly() {
+		return true;
+	}
+	
+	@Override
+	public boolean isDirty() {
+	    return false;
+	}
 }
