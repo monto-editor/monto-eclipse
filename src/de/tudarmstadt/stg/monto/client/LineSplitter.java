@@ -16,4 +16,9 @@ public class LineSplitter implements Server {
 		
 		return new ProductMessage(version.getSource(), product, version.getLanguage(), splitted);
 	}
+
+	@Override
+	public Product getProduct() {
+		return product;
+	}
 }

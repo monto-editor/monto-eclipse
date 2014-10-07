@@ -2,8 +2,13 @@ package de.tudarmstadt.stg.monto.client;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.eclipse.imp.language.Language;
+
+import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 
 public class MockMontoClient extends AbstractMontoClient {
@@ -28,5 +33,10 @@ public class MockMontoClient extends AbstractMontoClient {
 	public MockMontoClient removeServer(Server server) {
 		servers.remove(server);
 		return this;
+	}
+
+	@Override
+	public Stream<Product> availableProducts(Source source, Language language) {
+		return servers.stream().map((server) -> server.getProduct());
 	}
 }

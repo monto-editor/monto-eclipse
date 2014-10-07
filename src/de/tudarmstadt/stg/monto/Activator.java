@@ -4,6 +4,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
+import de.tudarmstadt.stg.monto.client.LineSplitter;
+import de.tudarmstadt.stg.monto.client.MockMontoClient;
+import de.tudarmstadt.stg.monto.client.MontoClient;
+import de.tudarmstadt.stg.monto.client.ReverseContent;
+
 /**
  * The activator class controls the plug-in life cycle
  */
@@ -15,10 +20,15 @@ public class Activator extends AbstractUIPlugin {
 	// The shared instance
 	private static Activator plugin;
 	
+	private MontoClient client;
+	
 	/**
 	 * The constructor
 	 */
 	public Activator() {
+		client = new MockMontoClient()
+			.addServer(new ReverseContent())
+			.addServer(new LineSplitter());
 	}
 
 	/*
@@ -28,8 +38,6 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
-		
-
 	}
 
 	/*
@@ -37,6 +45,7 @@ public class Activator extends AbstractUIPlugin {
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
 	public void stop(BundleContext context) throws Exception {
+
 		plugin = null;
 		super.stop(context);
 	}
@@ -48,6 +57,10 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static Activator getDefault() {
 		return plugin;
+	}
+	
+	public MontoClient getMontoClient() {
+		return client;
 	}
 
 	public static void debug(String msg) {

@@ -1,99 +1,32 @@
 package de.tudarmstadt.stg.monto;
 
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.model.ISourceProject;
-import org.eclipse.imp.parser.IMessageHandler;
-import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.ParseControllerBase;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.PlatformUI;
 
-import de.tudarmstadt.stg.monto.client.LineSplitter;
 import de.tudarmstadt.stg.monto.client.MontoClient;
-import de.tudarmstadt.stg.monto.client.MockMontoClient;
-import de.tudarmstadt.stg.monto.client.ReverseContent;
 import de.tudarmstadt.stg.monto.message.Contents;
-import de.tudarmstadt.stg.monto.message.Product;
-import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
-import de.tudarmstadt.stg.monto.sink.Sink;
-import de.tudarmstadt.stg.monto.sink.SinkViewer;
 
-public class MontoParseController
-    extends ParseControllerBase
-	implements IParseController {
+public class MontoParseController extends ParseControllerBase {
 	
-	private MontoClient client;
-	private final Set<Product> registeredProducts = new HashSet<>();
-	private Source source;
-
+	private final MontoClient client;
+	
 	public MontoParseController() {
-		this(new MockMontoClient()
-				.addServer(new ReverseContent())
-				.addServer(new LineSplitter()));
+		this(Activator.getDefault().getMontoClient());
 	}
 	
 	public MontoParseController(MontoClient client) {
 		this.client = client;
-	}
-	
-	@Override
-	public void initialize(final IPath filePath, final ISourceProject project,
-			final IMessageHandler handler) {
-		
-		super.initialize(filePath, project, handler);
-
-		source = new Source(filePath.toString());
-		
-		// When a new product message arrives, check if the product is allready registered,
-		// else open a new editor window which receives the contents of this product.
-		client.addProductMessageListener((productMessage) -> {
-			final Product product = productMessage.getProduct();
-			
-			if(! registeredProducts.contains(product)) {
-				
-				registeredProducts.add(product);
-				final IEditorInput input = new ProductEditorInput(source, product);
-				
-				Display.getDefault().asyncExec(() -> {
-					try {
-						final SinkViewer editor = (SinkViewer) PlatformUI
-							.getWorkbench()
-							.getActiveWorkbenchWindow()
-							.getActivePage()
-							.openEditor(input, "de.tudarmstadt.stg.monto.sinkviewer");
-				
-							
-						final Sink sink = (Sink) editor.getDocumentProvider().getDocument(input);
-					
-						client.addProductMessageListener(sink);
-					
-						// The sink hasn't recieved the first product message yet.
-						sink.onProductMessage(productMessage);
-						
-					} catch (Exception e) {
-						
-						// if for whatever reason a exception occurs, the product needs to be deregistered.
-						registeredProducts.remove(product);
-						Activator.error(e);
-					}
-				});
-			}
-		});
 	}
 
 	@Override

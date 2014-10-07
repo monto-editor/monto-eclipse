@@ -19,4 +19,10 @@ public class ReverseContent implements Server {
 						).reverse().toString());
 		return new ProductMessage(version.getSource(), product, version.getLanguage(), reversed);
 	}
+
+	@Override
+	public Product getProduct() {
+		return product;
+	}
+	
 }

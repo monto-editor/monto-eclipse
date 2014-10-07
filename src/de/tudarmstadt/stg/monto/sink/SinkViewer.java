@@ -1,8 +1,9 @@
 package de.tudarmstadt.stg.monto.sink;
 
-import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.editors.text.TextEditor;
 
-public class SinkViewer extends AbstractTextEditor {
+public class SinkViewer extends TextEditor {
+	
 	public SinkViewer() {
 		setDocumentProvider(new SinkDocumentProvider());
 	}

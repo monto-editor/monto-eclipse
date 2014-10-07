@@ -25,5 +25,11 @@
             name="Sink Viewer">
       </editor>
    </extension>
-
+   <extension
+         point="org.eclipse.imp.runtime.editorActionContributions">
+      <editorActionContributor
+            class="de.tudarmstadt.stg.monto.OpenProduct"
+            language="Monto">
+      </editorActionContributor>
+   </extension>
 </plugin>

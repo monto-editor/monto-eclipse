@@ -1,5 +1,8 @@
 package de.tudarmstadt.stg.monto.sink;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.operation.IRunnableContext;
@@ -12,6 +15,24 @@ import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 
 public class SinkDocumentProvider extends AbstractDocumentProvider {
 
+	private List<DisconnectListener> disconnectListeners = new ArrayList<>();
+
+	public SinkDocumentProvider addDisconnectListener(DisconnectListener listener) {
+		disconnectListeners.add(listener);
+		return this;
+	}
+	
+	public SinkDocumentProvider removeDisconnectListener(DisconnectListener listener) {
+		disconnectListeners.remove(listener);
+		return this;
+	}
+	
+	@Override
+	protected void disconnected() {
+		disconnectListeners.forEach((listener) -> listener.onDisconnect());
+		super.disconnected();
+	}
+	
 	@Override
 	protected IDocument createDocument(Object obj) throws CoreException {
 		final ProductEditorInput input = (ProductEditorInput) obj;
