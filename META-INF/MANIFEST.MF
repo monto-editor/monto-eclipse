@@ -16,4 +16,5 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: .,
  lib/json-simple-1.1.1.jar,
- lib/jeromq-0.3.4.jar
+ lib/jeromq-0.3.4.jar,
+ lib/hamcrest-all-1.3.jar

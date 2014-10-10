@@ -1,5 +1,8 @@
 package de.tudarmstadt.stg.monto.message;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class Selection {
 	private int begin;
 	private int end;
@@ -15,5 +18,9 @@ public class Selection {
 	
 	public int getEnd() {
 		return end;
+	}
+	
+	public static List<Selection> selections(Selection ... sel) {
+		return Arrays.asList(sel);
 	}
 }

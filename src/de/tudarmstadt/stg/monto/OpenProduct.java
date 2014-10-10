@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
@@ -19,6 +17,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import de.tudarmstadt.stg.monto.client.MontoClient;
 import de.tudarmstadt.stg.monto.message.Contents;
+import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
@@ -46,7 +45,8 @@ public class OpenProduct implements ILanguageActionsContributor {
 		final MenuManager openProduct = new MenuManager("Open Monto Product");
 		
 		final Source source = new Source(editor.getEditorInput().getName());
-		final Language language = LanguageRegistry.findLanguage(editor.getEditorInput(), editor.getDocumentProvider());
+		final org.eclipse.imp.language.Language impLanguage = org.eclipse.imp.language.LanguageRegistry.findLanguage(editor.getEditorInput(), editor.getDocumentProvider());
+		final Language language = new Language(impLanguage.toString());
 		
 		client.availableProducts(source, language).forEach((product) -> {
 			final IEditorInput input = new ProductEditorInput(source, product);

@@ -2,8 +2,6 @@ package de.tudarmstadt.stg.monto.sink;
 
 import static org.junit.Assert.assertEquals;
 
-import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorInput;
@@ -13,6 +11,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.junit.Test;
 
+import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
@@ -50,7 +49,7 @@ public class SinkTest {
 	}
 	
 	private ProductMessage productMessage(Source source, Product product, String msg) {
-		Language language = LanguageRegistry.findLanguage("Monto");
+		Language language = new Language("Monto");
 		return new ProductMessage(source, product, language, new StringContent(msg));
 	}
 	

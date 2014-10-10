@@ -2,7 +2,6 @@ package de.tudarmstadt.stg.monto.message;
 
 import java.util.List;
 
-import org.eclipse.imp.language.Language;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
