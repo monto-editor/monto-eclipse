@@ -1,5 +1,6 @@
 package de.tudarmstadt.stg.monto.client;
 
+import java.util.List;
 import java.util.stream.Stream;
 
 import org.eclipse.imp.language.Language;
@@ -16,8 +17,8 @@ public interface MontoClient {
 			Source source,
 			Language language,
 			Contents content,
-			Selection selection) {
-		return sendVersionMessage(new VersionMessage(source,language,content,selection));
+			List<Selection> selections) {
+		return sendVersionMessage(new VersionMessage(source,language,content,selections));
 	}	
 	public MontoClient sendVersionMessage(VersionMessage msg);
 	

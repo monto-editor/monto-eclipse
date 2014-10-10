@@ -1,5 +1,8 @@
 package de.tudarmstadt.stg.monto;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
@@ -65,7 +68,8 @@ public class OpenProduct implements ILanguageActionsContributor {
 						sinkDocumentProvider.addDisconnectListener(() -> client.removeProductMessageListener(sink));
 						
 						final Contents contents = new StringContent(editor.getDocumentProvider().getDocument(editor.getEditorInput()).get());
-						client.sendVersionMessage(source, language, contents, new Selection());
+						final List<Selection> selections = new ArrayList<>();
+						client.sendVersionMessage(source, language, contents, selections);
 						
 					} catch (PartInitException e) {
 						Activator.error(e);

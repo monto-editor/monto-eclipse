@@ -1,6 +1,8 @@
 package de.tudarmstadt.stg.monto;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.language.Language;
@@ -35,13 +37,13 @@ public class MontoParseController extends ParseControllerBase {
 		final Source source = new Source(this.getPath().toString());;
 		final Language language = LanguageRegistry.findLanguage(getPath(), getDocument());
 		final Contents contents = new StringContent(documentText);;
-		final Selection selection = null;
+		final List<Selection> selections = new ArrayList<>();
 		
 		client.sendVersionMessage(
 				source,
 				language,
 				contents,
-				selection);
+				selections);
 		
 		return null;
 	}
