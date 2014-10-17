@@ -1,10 +1,10 @@
 package de.tudarmstadt.stg.monto;
 
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.ParseControllerBase;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
@@ -13,6 +13,7 @@ import org.eclipse.jface.text.IRegion;
 
 import de.tudarmstadt.stg.monto.client.MontoClient;
 import de.tudarmstadt.stg.monto.message.Contents;
+import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
@@ -33,15 +34,16 @@ public class MontoParseController extends ParseControllerBase {
 	public Object parse(String documentText, IProgressMonitor monitor) {
 		
 		final Source source = new Source(this.getPath().toString());;
-		final Language language = LanguageRegistry.findLanguage(getPath(), getDocument());
+		final org.eclipse.imp.language.Language impLanguage = org.eclipse.imp.language.LanguageRegistry.findLanguage(getPath(), getDocument());
+		final Language language = new Language(impLanguage.toString());
 		final Contents contents = new StringContent(documentText);;
-		final Selection selection = null;
+		final List<Selection> selections = new ArrayList<>();
 		
 		client.sendVersionMessage(
 				source,
 				language,
 				contents,
-				selection);
+				selections);
 		
 		return null;
 	}

@@ -4,10 +4,8 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
-import de.tudarmstadt.stg.monto.client.LineSplitter;
-import de.tudarmstadt.stg.monto.client.MockMontoClient;
 import de.tudarmstadt.stg.monto.client.MontoClient;
-import de.tudarmstadt.stg.monto.client.ReverseContent;
+import de.tudarmstadt.stg.monto.client.ZMQClient;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -26,9 +24,6 @@ public class Activator extends AbstractUIPlugin {
 	 * The constructor
 	 */
 	public Activator() {
-		client = new MockMontoClient()
-			.addServer(new ReverseContent())
-			.addServer(new LineSplitter());
 	}
 
 	/*
@@ -38,6 +33,10 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+
+		client = new ZMQClient();
+		client.connect();
+		client.listening();
 	}
 
 	/*
@@ -46,6 +45,8 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public void stop(BundleContext context) throws Exception {
 
+		client.close();
+		
 		plugin = null;
 		super.stop(context);
 	}
@@ -62,9 +63,9 @@ public class Activator extends AbstractUIPlugin {
 	public MontoClient getMontoClient() {
 		return client;
 	}
-
-	public static void debug(String msg) {
-		getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, msg));
+	
+	public static void debug(String msg, Object ... formatArgs) {
+		getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, String.format(msg,formatArgs)));
 	}
 
 	public static void error(Exception e) {

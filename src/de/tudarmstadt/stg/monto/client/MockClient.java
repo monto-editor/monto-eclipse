@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.eclipse.imp.language.Language;
-
+import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 
-public class MockMontoClient extends AbstractMontoClient {
+public class MockClient extends AbstractMontoClient {
 
 	private List<Server> servers = new ArrayList<>();
 
@@ -25,12 +24,12 @@ public class MockMontoClient extends AbstractMontoClient {
 		return this;
 	}
 
-	public MockMontoClient addServer(Server server) {
+	public MockClient addServer(Server server) {
 		servers.add(server);
 		return this;
 	}
 	
-	public MockMontoClient removeServer(Server server) {
+	public MockClient removeServer(Server server) {
 		servers.remove(server);
 		return this;
 	}
@@ -39,4 +38,17 @@ public class MockMontoClient extends AbstractMontoClient {
 	public Stream<Product> availableProducts(Source source, Language language) {
 		return servers.stream().map((server) -> server.getProduct());
 	}
+
+	@Override
+	public void connect() throws Exception {
+	}
+
+	@Override
+	public void listening() throws Exception {
+	}
+	
+	@Override
+	public void close() throws Exception {
+	}
+
 }

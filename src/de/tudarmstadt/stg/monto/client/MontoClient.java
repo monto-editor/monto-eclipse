@@ -1,23 +1,23 @@
 package de.tudarmstadt.stg.monto.client;
 
+import java.util.List;
 import java.util.stream.Stream;
 
-import org.eclipse.imp.language.Language;
-
 import de.tudarmstadt.stg.monto.message.Contents;
+import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessageListener;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 
-public interface MontoClient {
+public interface MontoClient extends AutoCloseable {
 	public default MontoClient sendVersionMessage(
 			Source source,
 			Language language,
 			Contents content,
-			Selection selection) {
-		return sendVersionMessage(new VersionMessage(source,language,content,selection));
+			List<Selection> selections) {
+		return sendVersionMessage(new VersionMessage(source,language,content,selections));
 	}	
 	public MontoClient sendVersionMessage(VersionMessage msg);
 	
@@ -25,4 +25,7 @@ public interface MontoClient {
 	
 	public MontoClient addProductMessageListener(ProductMessageListener listener);
 	public MontoClient removeProductMessageListener(ProductMessageListener listener);
+	
+	public void connect() throws Exception;
+	void listening() throws Exception;
 }
