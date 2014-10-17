@@ -1,5 +1,6 @@
 package de.tudarmstadt.stg.monto.message;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.json.simple.JSONArray;
@@ -12,6 +13,10 @@ public class VersionMessage {
 	private Language language;
 	private List<Selection> selections;
 
+	public VersionMessage(Source source, Language language, Contents content, Selection ... selections) {
+		this(source,language,content,Arrays.asList(selections));
+	}
+	
 	public VersionMessage(Source source, Language language, Contents content, List<Selection> selections) {
 		this.source = source;
 		this.language = language;

@@ -3,6 +3,9 @@ package de.tudarmstadt.stg.monto.client;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -41,6 +44,13 @@ public class Connection implements AutoCloseable {
 	public int getNumberOfThreads() {
 		return numThreads;
 	}
+	
+	public static Connection create() throws ConnectionParseException, IOException {
+		String home = System.getProperty("user.home");
+		Path montoConfig = FileSystems.getDefault().getPath(home, ".monto");
+		Reader reader = Files.newBufferedReader(montoConfig);
+		return create(reader);	
+	}
 
 	public static Connection create(Reader reader) throws ConnectionParseException {
 		try {
@@ -57,14 +67,24 @@ public class Connection implements AutoCloseable {
 
 	public void open() throws IOException {
 		context = ZMQ.context(getNumberOfThreads());
-		
-		fromSourceSocket = context.socket(ZMQ.REQ);
-		fromSourceSocket.connect(getFromSource());
-		
-		toSinksSocket = context.socket(ZMQ.SUB);
-		toSinksSocket.connect(getToSinks());
+		openFromSourceSocket();
+		opentoSinksSocket();
 	}
 	
+	private void openFromSourceSocket() {
+		fromSourceSocket = context.socket(ZMQ.REQ);
+		fromSourceSocket.setReceiveTimeOut(seconds(2));
+		fromSourceSocket.setLinger(seconds(2));
+		fromSourceSocket.connect(getFromSource());
+	}
+	
+	private void opentoSinksSocket() {
+		toSinksSocket = context.socket(ZMQ.SUB);
+		toSinksSocket.connect(getToSinks());
+		toSinksSocket.subscribe(new byte[]{});
+		toSinksSocket.setReceiveTimeOut(seconds(2));
+	}
+
 	@Override
 	public void close() throws IOException {
 		fromSourceSocket.close();
@@ -74,10 +94,27 @@ public class Connection implements AutoCloseable {
 
 	public void sendVersionMessage(VersionMessage message) {
 		fromSourceSocket.send(VersionMessage.encode(message).toJSONString());
+		byte[] ack = fromSourceSocket.recv();
+		
+		if(hasTimedOut(ack)) {
+			
+			// Close and reopen connection to be able to send messages the next time.
+			fromSourceSocket.close();
+			openFromSourceSocket();
+		}
+		
 	}
-	
+
+	/**
+	 * Either blocks under 2 seconds until a product message arrives
+	 * or returns null if the connection has timed out.
+	 */
 	public ProductMessage receiveProductMessage() throws ProductMessageParseException {
-		return ProductMessage.decode(new StringReader(toSinksSocket.recvStr()));
+		String response = toSinksSocket.recvStr();
+		if(hasTimedOut(response))
+			return null;
+		else
+			return ProductMessage.decode(new StringReader(response));
 	}
 	
 	@Override
@@ -86,5 +123,16 @@ public class Connection implements AutoCloseable {
 		builder.append(String.format("from source: %s\n", getFromSource()));
 		builder.append(String.format("to sinks:    %s\n", getToSinks()));
 		return builder.toString();
+	}
+	
+	
+	// Helper Methods
+
+	private static int seconds(int s) {
+		return s * 1000;
+	}
+
+	private static boolean hasTimedOut(Object ob) {
+		return ob == null;
 	}
 }

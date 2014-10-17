@@ -20,4 +20,9 @@ public class StringContent implements Contents {
 	public String string() {
 		return content;
 	}
+	
+	@Override
+	public String toString() {
+		return content;
+	}
 }

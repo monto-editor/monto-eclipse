@@ -11,7 +11,7 @@ import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 
-public interface MontoClient {
+public interface MontoClient extends AutoCloseable {
 	public default MontoClient sendVersionMessage(
 			Source source,
 			Language language,
@@ -25,4 +25,7 @@ public interface MontoClient {
 	
 	public MontoClient addProductMessageListener(ProductMessageListener listener);
 	public MontoClient removeProductMessageListener(ProductMessageListener listener);
+	
+	public void connect() throws Exception;
+	void listening() throws Exception;
 }

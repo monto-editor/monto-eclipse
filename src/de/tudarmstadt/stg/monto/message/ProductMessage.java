@@ -35,4 +35,9 @@ public class ProductMessage {
 			throw new ProductMessageParseException(e);
 		}
 	}
+	
+	@Override
+	public String toString() {
+		return String.format("{ source: %s, product: %s, language: %s, contents: %s }", source, product, language, contents);
+	}
 }
