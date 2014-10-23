@@ -21,7 +21,7 @@ public class ProductMessageTest {
 		assertEquals("file.txt", message.getSource().toString());
 		assertEquals("length",   message.getProduct().toString());
 		assertEquals("number",   message.getLanguage().toString());
-		assertEquals("18",       message.getContents().string());
+		assertEquals("18",       message.getContents().toString());
 	}
 
 }

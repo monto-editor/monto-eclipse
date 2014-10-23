@@ -11,7 +11,7 @@ public class Language {
 	public boolean equals(Object obj) {
 		if(obj != null && obj.hashCode() == this.hashCode() && obj instanceof Language) {
 			Language other = (Language) obj;
-			return this.language.equals(other);
+			return this.language.equals(other.language);
 		} else {
 			return false;
 		}

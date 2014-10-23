@@ -2,12 +2,7 @@ package de.tudarmstadt.stg.monto.client;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
-import de.tudarmstadt.stg.monto.message.Language;
-import de.tudarmstadt.stg.monto.message.Product;
-import de.tudarmstadt.stg.monto.message.ProductMessage;
-import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 
 public class MockClient extends AbstractMontoClient {
@@ -16,11 +11,12 @@ public class MockClient extends AbstractMontoClient {
 
 	@Override
 	public MontoClient sendVersionMessage(VersionMessage msg) {
-		servers.forEach((Server server) -> {
-			final ProductMessage productMsg = server.apply(msg);
-
-			listeners.forEach((listener) -> listener.onProductMessage(productMsg));
-		});
+		servers.forEach((Server server) ->
+			server.apply(msg).ifPresent((productMsg) -> {
+				registerProduct(msg.getSource(), productMsg.getProduct());
+				listeners.forEach((listener) -> listener.onProductMessage(productMsg));
+			})
+		);
 		return this;
 	}
 
@@ -32,11 +28,6 @@ public class MockClient extends AbstractMontoClient {
 	public MockClient removeServer(Server server) {
 		servers.remove(server);
 		return this;
-	}
-
-	@Override
-	public Stream<Product> availableProducts(Source source, Language language) {
-		return servers.stream().map((server) -> server.getProduct());
 	}
 
 	@Override

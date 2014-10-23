@@ -11,6 +11,7 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -27,28 +28,27 @@ import de.tudarmstadt.stg.monto.sink.SinkDocumentProvider;
 
 
 
-public class OpenProduct implements ILanguageActionsContributor {
+public class EditorContribution implements ILanguageActionsContributor {
 
 	private final MontoClient client;
 
 	
-	public OpenProduct() {
+	public EditorContribution() {
 		this(Activator.getDefault().getMontoClient());
 	}
 	
-	public OpenProduct(MontoClient client) {
+	public EditorContribution(MontoClient client) {
 		this.client = client;
 	}
 	
 	@Override
 	public void contributeToEditorMenu(final UniversalEditor editor, final IMenuManager menuManager) {
 		final MenuManager openProduct = new MenuManager("Open Monto Product");
-		
-		final Source source = new Source(editor.getEditorInput().getName());
+		final Source source = new Source(getPath(editor.getEditorInput()));
 		final org.eclipse.imp.language.Language impLanguage = org.eclipse.imp.language.LanguageRegistry.findLanguage(editor.getEditorInput(), editor.getDocumentProvider());
 		final Language language = new Language(impLanguage.toString());
 		
-		client.availableProducts(source, language).forEach((product) -> {
+		client.availableProducts(source).forEach((product) -> {
 			final IEditorInput input = new ProductEditorInput(source, product);
 			
 			openProduct.add(new Action(product.toString()) {				
@@ -81,9 +81,28 @@ public class OpenProduct implements ILanguageActionsContributor {
 		menuManager.appendToGroup("group.open", openProduct);
 	}
 
+	private static String getPath(IEditorInput editorInput) {
+		try {
+			return ((IStorageEditorInput) editorInput).getStorage().getFullPath().toPortableString();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Override
 	public void contributeToMenuBar(UniversalEditor editor, IMenuManager menuManager) {
-		
+		final MenuManager monto = new MenuManager("Monto");
+		monto.add(new Action("reconnect") {
+			@Override
+			public void run() {
+				try {
+					client.reconnect();
+				} catch (Exception e) {
+					Activator.error(e);
+				}
+			}
+		});
+		menuManager.add(monto);
 	}
 
 	@Override

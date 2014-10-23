@@ -2,6 +2,8 @@ package de.tudarmstadt.stg.monto.message;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
 
 public class StringContent implements Contents {
 	
@@ -12,17 +14,17 @@ public class StringContent implements Contents {
 	}
 
 	@Override
-	public InputStream bytes() {
+	public InputStream getBytes() {
 		return new ByteArrayInputStream(content.getBytes());
-	}
-
-	@Override
-	public String string() {
-		return content;
 	}
 	
 	@Override
 	public String toString() {
 		return content;
+	}
+
+	@Override
+	public Reader getReader() {
+		return new StringReader(toString());
 	}
 }

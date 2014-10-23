@@ -113,8 +113,10 @@ public class Connection implements AutoCloseable {
 		String response = toSinksSocket.recvStr();
 		if(hasTimedOut(response))
 			return null;
-		else
-			return ProductMessage.decode(new StringReader(response));
+		else {
+			ProductMessage message = ProductMessage.decode(new StringReader(response));
+			return message;
+		}
 	}
 	
 	@Override

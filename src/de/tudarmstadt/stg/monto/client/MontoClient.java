@@ -1,7 +1,7 @@
 package de.tudarmstadt.stg.monto.client;
 
 import java.util.List;
-import java.util.stream.Stream;
+import java.util.Set;
 
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
@@ -21,11 +21,17 @@ public interface MontoClient extends AutoCloseable {
 	}	
 	public MontoClient sendVersionMessage(VersionMessage msg);
 	
-	public Stream<Product> availableProducts(Source source, Language language);
+	public Set<Product> availableProducts(Source source);
 	
 	public MontoClient addProductMessageListener(ProductMessageListener listener);
 	public MontoClient removeProductMessageListener(ProductMessageListener listener);
 	
 	public void connect() throws Exception;
 	void listening() throws Exception;
+
+	public default void reconnect() throws Exception {
+		close();
+		connect();
+		listening();
+	}
 }

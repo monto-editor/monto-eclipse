@@ -1,5 +1,7 @@
 package de.tudarmstadt.stg.monto.client;
 
+import java.util.Optional;
+
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
@@ -11,18 +13,12 @@ public class ReverseContent implements Server {
 	private final Product product = new Product("Reversed");
 
 	@Override
-	public ProductMessage apply(final VersionMessage version) {
+	public Optional<ProductMessage> apply(final VersionMessage version) {
 		final Contents reversed =
 				new StringContent(
 				new StringBuilder(
-						version.getContent().string()
+						version.getContent().toString()
 						).reverse().toString());
-		return new ProductMessage(version.getSource(), product, version.getLanguage(), reversed);
+		return Optional.of(new ProductMessage(version.getSource(), product, version.getLanguage(), reversed));
 	}
-
-	@Override
-	public Product getProduct() {
-		return product;
-	}
-	
 }

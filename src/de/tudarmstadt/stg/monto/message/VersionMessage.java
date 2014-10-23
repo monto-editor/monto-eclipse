@@ -46,7 +46,7 @@ public class VersionMessage {
 		JSONObject version = new JSONObject();
 		version.put("source", message.getSource().toString());
 		version.put("language", message.getLanguage().toString());
-		version.put("contents", message.getContent().string());
+		version.put("contents", message.getContent().toString());
 		JSONArray selections = new JSONArray();
 		for(Selection selection : message.getSelections()) {
 			JSONObject sel = new JSONObject();

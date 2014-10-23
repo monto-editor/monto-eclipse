@@ -6,6 +6,10 @@ public class ProductMessageParseException extends Exception {
 		super(e);
 	}
 
+	public ProductMessageParseException(String reason) {
+		super(reason);
+	}
+
 	private static final long serialVersionUID = -8652632901411933961L;
 
 }

@@ -33,7 +33,7 @@ public class Sink extends Document implements ProductMessageListener {
 			
 			// This needs to be in the ui thread since this causes a change to the display
 			executor.execute(
-				() -> this.set(message.getContents().string())
+				() -> this.set(message.getContents().toString())
 			);
 		}
 	}

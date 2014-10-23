@@ -1,23 +1,14 @@
 package de.tudarmstadt.stg.monto.client;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 
-import de.tudarmstadt.stg.monto.message.Language;
-import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
-import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 
-public class ZMQClient extends AbstractMontoClient implements AutoCloseable {
+public class ZMQClient extends AbstractMontoClient {
 
 	private Connection connection;
 	private Thread thread;
-	private Map<Source,Set<Product>> registeredProducts;
 
 	public ZMQClient() throws IOException, ConnectionParseException {
 		this(Connection.create());
@@ -25,27 +16,12 @@ public class ZMQClient extends AbstractMontoClient implements AutoCloseable {
 
 	public ZMQClient(Connection connection) {
 		this.connection = connection;
-		this.registeredProducts = new HashMap<>();
 	}
 	
 	@Override
 	public MontoClient sendVersionMessage(VersionMessage msg) {
 		connection.sendVersionMessage(msg);
 		return this;
-	}
-	
-	private void registerProduct(final Source source, final Product product) {
-		registeredProducts.compute(source, (_source,products) -> {
-			if(products == null)
-				products = new HashSet<>();
-			products.add(product);
-			return products;
-		});
-	}
-
-	@Override
-	public Stream<Product> availableProducts(Source source, Language language) {
-		return registeredProducts.get(source).stream();
 	}
 
 	@Override
