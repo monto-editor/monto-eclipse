@@ -12,34 +12,22 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
-import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import de.tudarmstadt.stg.monto.client.MontoClient;
+import de.tudarmstadt.stg.monto.connection.SinkConnection;
+import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
-import de.tudarmstadt.stg.monto.sink.Sink;
+import de.tudarmstadt.stg.monto.sink.DocumentSink;
 import de.tudarmstadt.stg.monto.sink.SinkDocumentProvider;
 
 
-
 public class EditorContribution implements ILanguageActionsContributor {
-
-	private final MontoClient client;
-
-	
-	public EditorContribution() {
-		this(Activator.getDefault().getMontoClient());
-	}
-	
-	public EditorContribution(MontoClient client) {
-		this.client = client;
-	}
 	
 	@Override
 	public void contributeToEditorMenu(final UniversalEditor editor, final IMenuManager menuManager) {
@@ -48,7 +36,9 @@ public class EditorContribution implements ILanguageActionsContributor {
 		final org.eclipse.imp.language.Language impLanguage = org.eclipse.imp.language.LanguageRegistry.findLanguage(editor.getEditorInput(), editor.getDocumentProvider());
 		final Language language = new Language(impLanguage.toString());
 		
-		client.availableProducts(source).forEach((product) -> {
+		SinkConnection sinkConnection = Activator.getSinkConnection();
+		SourceConnection sourceConnection = Activator.getSourceConnection();
+		sinkConnection.availableProducts(source).forEach((product) -> {
 			final IEditorInput input = new ProductEditorInput(source, product);
 			
 			openProduct.add(new Action(product.toString()) {				
@@ -63,15 +53,15 @@ public class EditorContribution implements ILanguageActionsContributor {
 						
 						final SinkDocumentProvider sinkDocumentProvider = (SinkDocumentProvider) sinkViewer.getDocumentProvider();
 						
-						final Sink sink = (Sink) sinkDocumentProvider.getDocument(input);
-						client.addProductMessageListener(sink);
-						sinkDocumentProvider.addDisconnectListener(() -> client.removeProductMessageListener(sink));
+						final DocumentSink sink = (DocumentSink) sinkDocumentProvider.getDocument(input);
+						sinkConnection.addSink(sink);
+						sinkDocumentProvider.addDisconnectListener(() -> sinkConnection.removeSink(sink));
 						
 						final Contents contents = new StringContent(editor.getDocumentProvider().getDocument(editor.getEditorInput()).get());
 						final List<Selection> selections = new ArrayList<>();
-						client.sendVersionMessage(source, language, contents, selections);
+						sourceConnection.sendVersionMessage(source, language, contents, selections);
 						
-					} catch (PartInitException e) {
+					} catch (Exception e) {
 						Activator.error(e);
 					}
 				}
@@ -91,18 +81,7 @@ public class EditorContribution implements ILanguageActionsContributor {
 
 	@Override
 	public void contributeToMenuBar(UniversalEditor editor, IMenuManager menuManager) {
-		final MenuManager monto = new MenuManager("Monto");
-		monto.add(new Action("reconnect") {
-			@Override
-			public void run() {
-				try {
-					client.reconnect();
-				} catch (Exception e) {
-					Activator.error(e);
-				}
-			}
-		});
-		menuManager.add(monto);
+		
 	}
 
 	@Override

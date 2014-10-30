@@ -36,7 +36,7 @@ public class SinkDocumentProvider extends AbstractDocumentProvider {
 	@Override
 	protected IDocument createDocument(Object obj) throws CoreException {
 		final ProductEditorInput input = (ProductEditorInput) obj;
-		return new Sink(input.getSource(), input.getProduct());
+		return new DocumentSink(input.getSource(), input.getProduct());
 	}
 
 	@Override

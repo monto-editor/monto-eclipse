@@ -3,12 +3,14 @@ package de.tudarmstadt.stg.monto;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
 
-import de.tudarmstadt.stg.monto.client.LineSplitter;
-import de.tudarmstadt.stg.monto.client.MockClient;
-import de.tudarmstadt.stg.monto.client.MontoClient;
-import de.tudarmstadt.stg.monto.client.ReverseContent;
-import de.tudarmstadt.stg.monto.token.JavaTokenizer;
+import de.tudarmstadt.stg.monto.connection.Connection;
+import de.tudarmstadt.stg.monto.connection.ServerConnection;
+import de.tudarmstadt.stg.monto.connection.SinkConnection;
+import de.tudarmstadt.stg.monto.connection.SourceConnection;
+import de.tudarmstadt.stg.monto.server.JavaTokenizer;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -20,56 +22,62 @@ public class Activator extends AbstractUIPlugin {
 
 	// The shared instance
 	private static Activator plugin;
-	
-	private MontoClient client;
-	
-	/**
-	 * The constructor
-	 */
-	public Activator() {
-	}
+
+	private SourceConnection sourceConnection;
+	private ServerConnection serverConnection;
+	private SinkConnection sinkConnection;
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#start(org.osgi.framework.BundleContext)
 	 */
-	@SuppressWarnings("resource")
-	public void start(BundleContext context) throws Exception {
-		super.start(context);
+	public void start(BundleContext bundle) throws Exception {
+		super.start(bundle);
 		plugin = this;
-
-//		client = new ZMQClient();
-		client = new MockClient()
-			.addServer(new ReverseContent())
-			.addServer(new LineSplitter())
-			.addServer(new JavaTokenizer());
-		client.connect();
-		client.listening();
+		
+		Context context = ZMQ.context(1);
+		sourceConnection = Connection.createSourceConnection(context);
+		serverConnection = Connection.createServerConnection(context);
+		sinkConnection = Connection.createSinkConnection(context);
+		
+		sourceConnection.connect();
+		serverConnection.connect();
+		sinkConnection.connect();
+		
+		serverConnection.listening();
+		sinkConnection.listening();
+		
+		serverConnection.addServer(new JavaTokenizer());
 	}
 
 	/*
 	 * (non-Javadoc)
 	 * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
 	 */
-	public void stop(BundleContext context) throws Exception {
+	public void stop(BundleContext bundle) throws Exception {
 
-		client.close();
+		sourceConnection.close();
+		serverConnection.close();
+		sinkConnection.close();
 		
 		plugin = null;
-		super.stop(context);
+		super.stop(bundle);
 	}
 
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
 	public static Activator getDefault() {
 		return plugin;
 	}
 	
-	public MontoClient getMontoClient() {
-		return client;
+	public static SourceConnection getSourceConnection() {
+		return getDefault().sourceConnection;
+	}
+
+	public static ServerConnection getServerConnection() {
+		return getDefault().serverConnection;
+	}
+
+	public static SinkConnection getSinkConnection() {
+		return getDefault().sinkConnection;
 	}
 	
 	public static void debug(String msg, Object ... formatArgs) {

@@ -28,7 +28,7 @@ public class SinkTest {
 		IEditorInput input = new ProductEditorInput(source, product);
 		
 		SinkViewer editor = openInEditor(input);
-		Sink sink = (Sink) editor.getDocumentProvider().getDocument(input);
+		DocumentSink sink = (DocumentSink) editor.getDocumentProvider().getDocument(input);
 		
 		// Change the contents of the sink synchrounously, 
 		// s.t. the contents of the sink can be queried directly

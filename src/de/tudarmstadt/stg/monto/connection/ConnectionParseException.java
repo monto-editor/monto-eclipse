@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto.client;
+package de.tudarmstadt.stg.monto.connection;
 
 public class ConnectionParseException extends Exception {
 

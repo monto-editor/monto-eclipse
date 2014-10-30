@@ -34,7 +34,7 @@ public class TokenMessage {
 			JSONObject jsonToken = new JSONObject();
 			jsonToken.put("offset", token.getOffset());
 			jsonToken.put("length", token.getLength());
-			jsonToken.put("category", token.getCategory().toString());
+			jsonToken.put("category", token.getCategory().toString().toLowerCase());
 			tokenArray.add(jsonToken);
 		}
 		return new StringContent(tokenArray.toString());
@@ -54,7 +54,7 @@ public class TokenMessage {
 				Long offset = (Long) token.get("offset");
 				Long length = (Long) token.get("length");
 				String category = (String) token.get("category");
-				tokens.add(new Token(offset.intValue(),length.intValue(),Category.fromString(category)));
+				tokens.add(new Token(offset.intValue(),length.intValue(),Category.fromString(category.toUpperCase())));
 			}
 			return tokens;
 		} catch(Exception e) {

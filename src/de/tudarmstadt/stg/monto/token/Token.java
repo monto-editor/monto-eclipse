@@ -34,7 +34,7 @@ public class Token {
 	
 	public boolean inRange(IRegion region) {
 		return getOffset() >= region.getOffset()
-		    && getOffset() + getLength() < region.getOffset() + region.getLength();
+		    && getOffset() + getLength() <= region.getOffset() + region.getLength();
 	}
 
 }

@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto.token;
+package de.tudarmstadt.stg.monto.server;
 
 import java.io.IOException;
 import java.util.List;
@@ -7,10 +7,12 @@ import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 
-import de.tudarmstadt.stg.monto.client.Server;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
+import de.tudarmstadt.stg.monto.token.Category;
+import de.tudarmstadt.stg.monto.token.Token;
+import de.tudarmstadt.stg.monto.token.TokenMessage;
 import de.tudarmstadt.stg.monto.token.java8.Java8Lexer;
 
 public class JavaTokenizer implements Server {
@@ -35,7 +37,7 @@ public class JavaTokenizer implements Server {
 
 	private Token convertToken(org.antlr.v4.runtime.Token token) {
 		int offset = token.getStartIndex();
-		int length = token.getStopIndex() - offset;
+		int length = token.getStopIndex() - offset + 1;
 		
 		Category category;
 		switch(token.getType()) {

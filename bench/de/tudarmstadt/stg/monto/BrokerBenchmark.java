@@ -1,7 +1,12 @@
 package de.tudarmstadt.stg.monto;
 
+import org.zeromq.ZMQ;
+import org.zeromq.ZMQ.Context;
+
 import de.tudarmstadt.stg.monto.broker.Broker;
-import de.tudarmstadt.stg.monto.client.Connection;
+import de.tudarmstadt.stg.monto.connection.Connection;
+import de.tudarmstadt.stg.monto.connection.SinkConnection;
+import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
@@ -32,7 +37,9 @@ public class BrokerBenchmark {
 	
     protected Broker broker;
 	protected Process reverseServer;
-	protected Connection connection;
+	protected SourceConnection sourceConnection;
+	protected SinkConnection sinkConnection;
+
 	protected static final VersionMessage message = 
 			new VersionMessage(
 					new Source("lorem ipsum"),
@@ -49,18 +56,23 @@ public class BrokerBenchmark {
 		if(reverseServerCommand == null)
 			throw new Exception("Please set the \"reverse.server\" property");
 		reverseServer = new ProcessBuilder(reverseServerCommand).start();
-
-		connection = Connection.create();
-		connection.open();
+		
+		Context context = ZMQ.context(1);
+		sourceConnection = Connection.createSourceConnection(context);
+		sinkConnection = Connection.createSinkConnection(context);
+		
+		sourceConnection.connect();
+		sinkConnection.connect();
 	}
 	
 	public void testBroker() throws Exception {
-		connection.sendVersionMessage(message);
-		connection.receiveProductMessage();
+		sourceConnection.sendVersionMessage(message);
+		sinkConnection.receiveProductMessage();
 	}
 
 	public void tearDown() throws Exception {
-		connection.close();
+		sourceConnection.close();
+		sinkConnection.close();
 		reverseServer.destroy();
 		broker.close();
 	}

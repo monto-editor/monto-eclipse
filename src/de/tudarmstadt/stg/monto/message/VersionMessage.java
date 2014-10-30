@@ -1,10 +1,14 @@
 package de.tudarmstadt.stg.monto.message;
 
+import java.io.Reader;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 
 public class VersionMessage {
 
@@ -56,5 +60,27 @@ public class VersionMessage {
 		}
 		version.put("selections", selections);
 		return version;
+	}
+
+	public static VersionMessage decode(Reader reader) throws VersionMessageParseException {
+		try {
+			JSONObject message = (JSONObject) JSONValue.parse(reader);
+			Source source = new Source((String) message.get("source"));
+			Language language = new Language((String) message.get("language"));
+			Contents contents = new StringContent((String) message.get("contents"));
+			List<Selection> selections = new ArrayList<>();
+			JSONArray selectionsArray = (JSONArray) message.get("selections");
+			@SuppressWarnings("unchecked")
+			Iterator<JSONObject> iterator = selectionsArray.iterator();
+			while(iterator.hasNext()) {
+				JSONObject selection = iterator.next();
+				Long begin = (Long) selection.get("begin");
+				Long end = (Long) selection.get("end");
+				selections.add(new Selection(begin.intValue(), end.intValue()));
+			}
+			return new VersionMessage(source, language, contents, selections);
+		} catch (Exception e) {
+			throw new VersionMessageParseException(e);
+		}
 	}
 }

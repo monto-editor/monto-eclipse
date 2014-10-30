@@ -40,4 +40,14 @@ public class ProductMessage {
 	public String toString() {
 		return String.format("{ source: %s, product: %s, language: %s, contents: %s }", source, product, language, contents);
 	}
+
+	@SuppressWarnings("unchecked")
+	public static JSONObject encode(ProductMessage msg) {
+		JSONObject jsonMessage = new JSONObject();
+		jsonMessage.put("source", msg.getSource().toString());
+		jsonMessage.put("product", msg.getProduct().toString());
+		jsonMessage.put("language", msg.getLanguage().toString());
+		jsonMessage.put("contents", msg.getContents().toString());
+		return jsonMessage;
+	}
 }

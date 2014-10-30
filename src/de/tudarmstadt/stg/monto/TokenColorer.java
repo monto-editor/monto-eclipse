@@ -40,6 +40,8 @@ public class TokenColorer implements ITokenColorer {
 	@Override
 	public TextAttribute getColoring(final IParseController controller, final Object tokenObj) {
 		Token token = (Token) tokenObj;
+		if(token == null)
+			return null;
 		Style style = styleMap.get(token.getCategory());
 		return new TextAttribute(style.getColor(), null, 0, style.getFont());
 	}

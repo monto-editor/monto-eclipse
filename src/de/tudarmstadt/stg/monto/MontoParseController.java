@@ -3,6 +3,9 @@ package de.tudarmstadt.stg.monto;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -16,39 +19,36 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 
-import de.tudarmstadt.stg.monto.client.MontoClient;
+import de.tudarmstadt.stg.monto.connection.SinkConnection;
+import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
-import de.tudarmstadt.stg.monto.message.ProductMessageListener;
-import de.tudarmstadt.stg.monto.message.ProductMessageParseException;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
+import de.tudarmstadt.stg.monto.sink.Sink;
 import de.tudarmstadt.stg.monto.token.Token;
 import de.tudarmstadt.stg.monto.token.TokenMessage;
 
-public class MontoParseController extends ParseControllerBase implements ProductMessageListener, AutoCloseable {
+public class MontoParseController extends ParseControllerBase implements Sink, AutoCloseable {
 	
-	private final MontoClient client;
-	private List<Token> tokens;
+	private final SourceConnection sourceConnection = Activator.getSourceConnection();
+	private final SinkConnection sinkConnection = Activator.getSinkConnection();
+	private BlockingQueue<List<Token>> tokens;
 	private Source source;
 	private Language language;
 	private ISourcePositionLocator sourcePositionLocator;
 	
 	public MontoParseController() {
-		this(Activator.getDefault().getMontoClient());
-	}
-	
-	public MontoParseController(MontoClient client) {
-		this.client = client;
-		this.tokens = new ArrayList<>();
+		this.tokens = new ArrayBlockingQueue<>(1);
+		tokens.add(new ArrayList<>());
 	}
 
 	@Override
 	public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
 		super.initialize(filePath, project, handler);
-		client.addProductMessageListener(this);
+		sinkConnection.addSink(this);
 		source = new Source(String.format("/%s/%s",project.getName(), filePath.toPortableString()));
 		language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 		sourcePositionLocator = new SourcePositionLocator();
@@ -56,7 +56,7 @@ public class MontoParseController extends ParseControllerBase implements Product
 
 	@Override
 	public void close() throws Exception {
-		client.removeProductMessageListener(this);
+		sinkConnection.removeSink(this);
 	}
 	
 	@Override
@@ -64,11 +64,16 @@ public class MontoParseController extends ParseControllerBase implements Product
 		final Contents contents = new StringContent(documentText);;
 		final List<Selection> selections = new ArrayList<>();
 		
-		client.sendVersionMessage(
-				source,
-				language,
-				contents,
-				selections);
+		tokens.clear();
+		try {
+			sourceConnection.sendVersionMessage(
+					source,
+					language,
+					contents,
+					selections);
+		} catch (Exception e) {
+			Activator.error(e);
+		}
 		
 		return null;
 	}
@@ -80,8 +85,9 @@ public class MontoParseController extends ParseControllerBase implements Product
 		&& message.getLanguage().equals(language)
 		&& message.getProduct().toString().equals("tokens")) {
 			try {
-				tokens = TokenMessage.decode(message);
-			} catch (ProductMessageParseException e) {
+				tokens.clear();
+				tokens.put(TokenMessage.decode(message));
+			} catch (Exception e) {
 				Activator.error(e);
 			}
 		}
@@ -99,14 +105,17 @@ public class MontoParseController extends ParseControllerBase implements Product
 
 	@Override
 	public ILanguageSyntaxProperties getSyntaxProperties() {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Iterator getTokenIterator(final IRegion region) {
-		return tokens.stream().filter((token) -> token.inRange(region)).iterator();
+		try {
+			return tokens.poll(50, TimeUnit.MILLISECONDS).stream().filter((token) -> token.inRange(region)).iterator();
+		} catch (Exception e) {
+			return null;
+		}
 	}
 
 }

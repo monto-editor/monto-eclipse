@@ -27,7 +27,7 @@ public class SourcePositionLocator implements ISourcePositionLocator {
 	@Override
 	public int getEndOffset(Object obj) {
 		Token token = ((Token) obj);
-		return token.getOffset() + token.getLength();
+		return token.getOffset() + token.getLength() - 1;
 	}
 
 	@Override
