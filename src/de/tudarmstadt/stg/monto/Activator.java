@@ -10,6 +10,7 @@ import de.tudarmstadt.stg.monto.connection.Connection;
 import de.tudarmstadt.stg.monto.connection.ServerConnection;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
+import de.tudarmstadt.stg.monto.server.JavaParser;
 import de.tudarmstadt.stg.monto.server.JavaTokenizer;
 
 /**
@@ -48,6 +49,7 @@ public class Activator extends AbstractUIPlugin {
 		sinkConnection.listening();
 		
 		serverConnection.addServer(new JavaTokenizer());
+		serverConnection.addServer(new JavaParser());
 	}
 
 	/*

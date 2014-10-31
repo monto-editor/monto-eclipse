@@ -112,7 +112,14 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 	@Override
 	public Iterator getTokenIterator(final IRegion region) {
 		try {
-			return tokens.poll(50, TimeUnit.MILLISECONDS).stream().filter((token) -> token.inRange(region)).iterator();
+			
+			// Wait for 50 milliseconds on the tokenization product.
+			// If the product doesn't arrive in time this code throws
+			// an exception and returns null.
+			return tokens.poll(50, TimeUnit.MILLISECONDS)
+						 .stream()
+						 .filter((token) -> token.inRange(region))
+						 .iterator();
 		} catch (Exception e) {
 			return null;
 		}
