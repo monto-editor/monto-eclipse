@@ -23,7 +23,7 @@ public class ProductMessage {
 	public Language getLanguage() { return language; }
 	public Contents getContents() { return contents; }
 	
-	public static ProductMessage decode(Reader reader) throws ProductMessageParseException {
+	public static ProductMessage decode(Reader reader) throws ParseException {
 		try {
 			JSONObject message = (JSONObject) JSONValue.parse(reader);
 			Source source = new Source((String) message.get("source"));
@@ -32,7 +32,7 @@ public class ProductMessage {
 			Contents contents = new StringContent((String) message.get("contents"));
 			return new ProductMessage(source, product, language, contents);
 		} catch (Exception e) {
-			throw new ProductMessageParseException(e);
+			throw new ParseException(e);
 		}
 	}
 	

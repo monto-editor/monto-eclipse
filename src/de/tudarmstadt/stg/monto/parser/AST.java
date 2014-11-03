@@ -1,5 +1,7 @@
 package de.tudarmstadt.stg.monto.parser;
 
-public interface AST {
+import de.tudarmstadt.stg.monto.region.IRegion;
+
+public interface AST extends IRegion {
 	public void accept(ASTVisitor visitor);
 }

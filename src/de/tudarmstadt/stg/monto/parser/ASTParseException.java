@@ -1,8 +1,8 @@
 package de.tudarmstadt.stg.monto.parser;
 
-public class ASTMessageParseException extends Exception {
+public class ASTParseException extends Exception {
 
-	public ASTMessageParseException(Exception e) {
+	public ASTParseException(Exception e) {
 		super(e);
 	}
 	

@@ -9,7 +9,7 @@ import org.junit.Test;
 public class ProductMessageTest {
 
 	@Test
-	public void canBeDecodedFromJSON() throws ProductMessageParseException {
+	public void canBeDecodedFromJSON() throws ParseException {
 		String json
 			= "{\n"
 			+ "  \"source\" : \"file.txt\",\n"

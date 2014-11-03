@@ -1,7 +1,6 @@
 package de.tudarmstadt.stg.monto.sink;
 
-import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
-public interface Sink {
-	public void onProductMessage(ProductMessage message);
+public interface Sink extends ProductMessageListener {
 }

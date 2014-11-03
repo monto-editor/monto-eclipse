@@ -24,7 +24,7 @@ public class OutgoingConnection {
 		socket.connect(connectionInfo);
 	}
 
-	public void sendMessage(String msg) throws Exception {
+	public synchronized void sendMessage(String msg) throws Exception {
 		socket.send(msg);
 		byte[] ack = socket.recv();
 		

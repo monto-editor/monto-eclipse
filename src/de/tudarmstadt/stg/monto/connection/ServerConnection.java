@@ -5,10 +5,11 @@ import java.util.List;
 
 import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.Server;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.server.Server;
+import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
-public class ServerConnection {
+public class ServerConnection implements ProductMessageListener {
 	
 	private IncommingConnection incomming;
 	private OutgoingConnection outgoing;
@@ -21,6 +22,12 @@ public class ServerConnection {
 
 	public void addServer(Server server) {
 		servers.add(server);
+		server.addProductMessageListener(this);
+	}
+	
+	public void removeServer(Server server) {
+		servers.remove(server);
+		server.removeProductMessageListener(this);
 	}
 	
 	public void connect() throws Exception {
@@ -37,20 +44,18 @@ public class ServerConnection {
 				Activator.error(e);
 				return;
 			}
-			servers.forEach(server ->
-				server.apply(versionMessage)
-					  .ifPresent(productMessage ->
-					  	send(ProductMessage.encode(productMessage).toJSONString())
-				)
+			servers.forEach(listener ->
+				listener.onVersionMessage(versionMessage)
 			);
 		});
 	}
 	
-	private void send(String message) {
+	@Override
+	public void onProductMessage(ProductMessage message) {
 		try {
-			outgoing.sendMessage(message);
+			outgoing.sendMessage(ProductMessage.encode(message).toJSONString());
 		} catch (Exception e) {
-			Activator.error(e);
+			Activator.debug("Could not send product message: %s,%s", message, e);
 		}
 	}
 	
@@ -58,5 +63,4 @@ public class ServerConnection {
 		incomming.close();
 		outgoing.close();
 	}
-
 }

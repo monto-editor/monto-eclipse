@@ -6,12 +6,13 @@ import org.osgi.framework.BundleContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
+import de.tudarmstadt.stg.monto.color.JavaTokenizer;
 import de.tudarmstadt.stg.monto.connection.Connection;
 import de.tudarmstadt.stg.monto.connection.ServerConnection;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
-import de.tudarmstadt.stg.monto.server.JavaParser;
-import de.tudarmstadt.stg.monto.server.JavaTokenizer;
+import de.tudarmstadt.stg.monto.outline.JavaOutliner;
+import de.tudarmstadt.stg.monto.parser.JavaParser;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -50,6 +51,9 @@ public class Activator extends AbstractUIPlugin {
 		
 		serverConnection.addServer(new JavaTokenizer());
 		serverConnection.addServer(new JavaParser());
+		JavaOutliner javaOutliner = new JavaOutliner();
+		serverConnection.addServer(javaOutliner);
+		sinkConnection.addSink(javaOutliner);
 	}
 
 	/*

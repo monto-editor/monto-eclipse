@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto;
+package de.tudarmstadt.stg.monto.color;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,14 +14,11 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.themes.ITheme;
 
-import de.tudarmstadt.stg.monto.token.Category;
-import de.tudarmstadt.stg.monto.token.Token;
-
-public class TokenColorer implements ITokenColorer {
+public class SyntaxColorer implements ITokenColorer {
 	
 	Map<Category,Style> styleMap = new HashMap<>();
 	
-	public TokenColorer() {
+	public SyntaxColorer() {
 		final ITheme theme = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme();
 		final ColorRegistry colorRegistry = theme.getColorRegistry();
 		final FontRegistry fontRegistry = theme.getFontRegistry();
@@ -39,7 +36,7 @@ public class TokenColorer implements ITokenColorer {
 	
 	@Override
 	public TextAttribute getColoring(final IParseController controller, final Object tokenObj) {
-		Token token = (Token) tokenObj;
+		Syntax token = (Syntax) tokenObj;
 		if(token == null)
 			return null;
 		Style style = styleMap.get(token.getCategory());

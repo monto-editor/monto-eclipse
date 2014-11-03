@@ -8,8 +8,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import de.tudarmstadt.stg.monto.message.Contents;
+import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
+import de.tudarmstadt.stg.monto.region.Region;
+import de.tudarmstadt.stg.monto.region.Regions;
 
 
 /**
@@ -39,7 +42,8 @@ import de.tudarmstadt.stg.monto.message.StringContent;
  * ]
  * </code>
  */
-public class ASTMessage {
+public class ASTs {
+	
 	public static Contents encode(AST ast) {
 		Encoder encoder = new Encoder();
 		ast.accept(encoder);
@@ -62,7 +66,7 @@ public class ASTMessage {
 		
 		@SuppressWarnings("unchecked")
 		@Override
-		public void visit(Node node) {
+		public void visit(NonTerminal node) {
 			JSONArray jsonNode = new JSONArray();
 			jsonNode.add(node.getName());
 			for(AST child : node.getChilds()) {
@@ -72,26 +76,22 @@ public class ASTMessage {
 			encoding = jsonNode;
 		}
 
-		@SuppressWarnings("unchecked")
 		@Override
-		public void visit(Token token) {
-			JSONObject jsonToken = new JSONObject();
-			jsonToken.put("offset", token.getOffset());
-			jsonToken.put("length", token.getLength());
-			encoding = jsonToken;
+		public void visit(Terminal token) {
+			encoding = Regions.encode(token);
 		}
 	}
 	
-	public AST decode(ProductMessage message) throws ASTMessageParseException {
+	public static AST decode(ProductMessage message) throws ASTParseException {
 		try {
 			Object json = JSONValue.parse(message.getContents().getReader());
 			return decode(json);
 		} catch(Exception e) {
-			throw new ASTMessageParseException(e);
+			throw new ASTParseException(e);
 		}
 	}
 	
-	private AST decode(Object json) {
+	private static AST decode(Object json) throws ParseException {
 		if(json instanceof JSONObject) {
 			return decode((JSONObject) json);
 		} else if (json instanceof JSONArray) {
@@ -101,20 +101,18 @@ public class ASTMessage {
 		}
 	}
 	
-	private AST decode(JSONObject jsonObject) {
-		Long offset = (Long) jsonObject.get("offset");
-		Long length = (Long) jsonObject.get("length");
-		
-		return new Token(offset.intValue(), length.intValue());
+	private static AST decode(JSONObject encoding) throws ParseException {
+		Region region = Regions.decode(encoding);
+		return new Terminal(region.getStartOffset(),region.getLength());
 	}
 	
-	private AST decode(JSONArray jsonArray) {
+	private static AST decode(JSONArray jsonArray) throws ParseException {
 		String name = (String) jsonArray.remove(0);
 		List<AST> childs = new ArrayList<>(jsonArray.size());
 		
 		for(Object object : jsonArray)
 			childs.add(decode(object));
 		
-		return new Node(name,childs);
+		return new NonTerminal(name,childs);
 	}
 }

@@ -1,41 +1,42 @@
-package de.tudarmstadt.stg.monto.server;
+package de.tudarmstadt.stg.monto.color;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.Token;
 
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.token.Category;
-import de.tudarmstadt.stg.monto.token.Token;
-import de.tudarmstadt.stg.monto.token.TokenMessage;
+import de.tudarmstadt.stg.monto.server.AbstractServer;
 import de.tudarmstadt.stg.monto.token.java8.Java8Lexer;
 
-public class JavaTokenizer implements Server {
+public class JavaTokenizer extends AbstractServer {
 	
 	private static final Product product = new Product("tokens");
-
+	
 	@Override
-	public Optional<ProductMessage> apply(VersionMessage msg) {
-		
-		if(! msg.getLanguage().toString().equals("java")) {
-			return Optional.empty();
-		} else { 
+	public void onVersionMessage(VersionMessage msg) {
+		if(msg.getLanguage().toString().equals("java")) { 
 			try {
 				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
-				List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
-				return Optional.of(new ProductMessage(msg.getSource(),product,msg.getLanguage(),TokenMessage.encode(tokens)));
-			} catch (IOException e) {
-				return Optional.empty();
+				List<Syntax> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
+				emitProductMessage(
+						new ProductMessage(
+								msg.getSource(),
+								product,
+								msg.getLanguage(),
+								new StringContent(Syntaxes.encode(tokens).toJSONString())));
+				
+			} catch (Exception e) {
+				
 			}
 		}
 	}
 
-	private Token convertToken(org.antlr.v4.runtime.Token token) {
+	private Syntax convertToken(Token token) {
 		int offset = token.getStartIndex();
 		int length = token.getStopIndex() - offset + 1;
 		
@@ -216,8 +217,6 @@ public class JavaTokenizer implements Server {
 				category = Category.UNKNOWN;
 		}
 		
-		return new Token(offset,length,category);
+		return new Syntax(offset,length,category);
 	}
-
-	
 }

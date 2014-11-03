@@ -1,6 +1,6 @@
 package de.tudarmstadt.stg.monto.parser;
 
 public interface ASTVisitor {
-	public void visit(Node node);
-	public void visit(Token token);
+	public void visit(NonTerminal node);
+	public void visit(Terminal token);
 }

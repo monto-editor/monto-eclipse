@@ -1,10 +1,9 @@
-package de.tudarmstadt.stg.monto.server;
+package de.tudarmstadt.stg.monto.parser;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -18,19 +17,16 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.parser.AST;
-import de.tudarmstadt.stg.monto.parser.ASTMessage;
-import de.tudarmstadt.stg.monto.parser.Node;
-import de.tudarmstadt.stg.monto.parser.Token;
+import de.tudarmstadt.stg.monto.server.AbstractServer;
 import de.tudarmstadt.stg.monto.token.java8.Java8Lexer;
 import de.tudarmstadt.stg.monto.token.java8.Java8Parser;
 
-public class JavaParser implements Server {
+public class JavaParser extends AbstractServer {
 
 	private final static Product ast = new Product("ast");
-	
+
 	@Override
-	public Optional<ProductMessage> apply(VersionMessage message) {
+	public void onVersionMessage(VersionMessage message) {
 		if(message.getLanguage().toString().equals("java")) {
 			try {
 				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(message.getContent().getReader()));
@@ -42,18 +38,16 @@ public class JavaParser implements Server {
 				Converter converter = new Converter();
 				walker.walk(converter, root);
 				
-				return Optional.of(
+				emitProductMessage(
 						new ProductMessage(
 								message.getSource(), 
 								ast, 
 								message.getLanguage(), 
-								ASTMessage.encode(converter.getRoot())));
+								ASTs.encode(converter.getRoot())));
 				
 			} catch (Exception e) {
-				return Optional.empty();
+				
 			}
-		} else {
-			return Optional.empty();
 		}
 	}
 	
@@ -65,7 +59,7 @@ public class JavaParser implements Server {
 		public void enterEveryRule(ParserRuleContext context) {
 			String name = Java8Parser.ruleNames[context.getRuleIndex()];
 			List<AST>childs = new ArrayList<>(context.getChildCount());
-			Node node = new Node(name, childs);
+			NonTerminal node = new NonTerminal(name, childs);
 			addChild(node);
 			nodes.push(node);
 		}
@@ -80,13 +74,13 @@ public class JavaParser implements Server {
 		@Override
 		public void visitErrorNode(ErrorNode err) {
 			Interval interval = err.getSourceInterval();
-			addChild(new Token(interval.a, interval.length()));
+			addChild(new Terminal(interval.a, interval.length()));
 		}
 
 		@Override
 		public void visitTerminal(TerminalNode terminal) {
 			org.antlr.v4.runtime.Token symbol = terminal.getSymbol();
-			Token token = new Token(symbol.getStartIndex(), symbol.getStopIndex() - symbol.getStartIndex() + 1);
+			Terminal token = new Terminal(symbol.getStartIndex(), symbol.getStopIndex() - symbol.getStartIndex() + 1);
 			if(nodes.size() == 0)
 				nodes.push(token);
 			else
@@ -94,12 +88,13 @@ public class JavaParser implements Server {
 		}
 		
 		private void addChild(AST node) {
-			if(! nodes.isEmpty() && nodes.peek() instanceof Node)
-				((Node) nodes.peek()).addChild(node);
+			if(! nodes.isEmpty() && nodes.peek() instanceof NonTerminal)
+				((NonTerminal) nodes.peek()).addChild(node);
 		}
 
 		public AST getRoot() {
 			return nodes.peek();
 		}
 	}
+
 }

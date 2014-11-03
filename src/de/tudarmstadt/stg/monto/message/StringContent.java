@@ -12,6 +12,10 @@ public class StringContent implements Contents {
 	public StringContent(String content) {
 		this.content = content;
 	}
+	
+	public StringContent(CharSequence seq) {
+		this.content = seq.toString();
+	}
 
 	@Override
 	public InputStream getBytes() {
@@ -27,4 +31,11 @@ public class StringContent implements Contents {
 	public Reader getReader() {
 		return new StringReader(toString());
 	}
+
+	@Override
+	public Contents extract(int offset, int length) {
+		return new StringContent(content.subSequence(offset, offset+length));
+	}
+	
+	
 }

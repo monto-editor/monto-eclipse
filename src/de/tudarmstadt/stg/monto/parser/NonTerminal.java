@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Node implements AST {
+public class NonTerminal implements AST {
 
 	private String name;
 	private List<AST> childs;
 	
-	public Node(String name, List<AST> childs) {
+	public NonTerminal(String name, List<AST> childs) {
 		this.name = name;
 		this.childs = childs;
 	}
 	
-	public Node(String name, AST ... childs) {
+	public NonTerminal(String name, AST ... childs) {
 		this(name, new ArrayList<AST>(Arrays.asList(childs)));
 	}
 	
@@ -27,6 +27,10 @@ public class Node implements AST {
 		return name;
 	}
 
+	public AST getChild(int i) {
+		return childs.get(i);
+	}
+	
 	public List<AST> getChilds() {
 		return childs;
 	}
@@ -34,5 +38,19 @@ public class Node implements AST {
 	public void addChild(AST a) {
 		childs.add(a);
 	}
+
+	@Override
+	public int getStartOffset() {
+		return childs.get(0).getStartOffset();
+	}
 	
+	@Override
+	public int getEndOffset() {
+		return childs.get(childs.size()-1).getEndOffset();
+	}
+	
+	@Override
+	public String toString() {
+		return name;
+	}
 }

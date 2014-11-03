@@ -6,4 +6,5 @@ import java.io.Reader;
 public interface Contents {
 	public InputStream getBytes();
 	public Reader getReader();
+	public Contents extract(int offset, int length);
 }

@@ -1,9 +1,10 @@
 package de.tudarmstadt.stg.monto;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 
-import de.tudarmstadt.stg.monto.token.Token;
+import de.tudarmstadt.stg.monto.region.IRegion;
 
 public class SourcePositionLocator implements ISourcePositionLocator {
 
@@ -21,24 +22,35 @@ public class SourcePositionLocator implements ISourcePositionLocator {
 
 	@Override
 	public int getStartOffset(Object obj) {
-		return ((Token) obj).getOffset();
+		if(obj instanceof IRegion)
+			return ((IRegion) obj).getStartOffset();
+		else if(obj instanceof ModelTreeNode)
+			return getStartOffset(((ModelTreeNode) obj).getASTNode());
+		else
+			throw new IllegalArgumentException(
+					"The argument for SourcePositionLocator.getStartOffset is neither a token nor a node: "
+					+ obj.getClass().getSimpleName());
 	}
 
 	@Override
 	public int getEndOffset(Object obj) {
-		Token token = ((Token) obj);
-		return token.getOffset() + token.getLength() - 1;
+		return getStartOffset(obj) + getLength(obj) - 1;
 	}
 
 	@Override
 	public int getLength(Object obj) {
-		return ((Token) obj).getOffset();
+		if(obj instanceof IRegion)
+			return ((IRegion) obj).getLength();
+		else if(obj instanceof ModelTreeNode)
+			return getLength(((ModelTreeNode) obj).getASTNode());
+		else
+			throw new IllegalArgumentException(
+					"The argument for SourcePositionLocator.getLength is neither a token nor a node: "
+					+ obj.getClass().getSimpleName());
 	}
 
 	@Override
 	public IPath getPath(Object node) {
-		// TODO Auto-generated method stub
 		return null;
 	}
-
 }

@@ -44,7 +44,7 @@
    <extension
          point="org.eclipse.imp.runtime.tokenColorer">
       <tokenColorer
-            class="de.tudarmstadt.stg.monto.TokenColorer"
+            class="de.tudarmstadt.stg.monto.color.SyntaxColorer"
             language="Monto">
       </tokenColorer>
    </extension>
@@ -721,5 +721,19 @@
             () [] {}, &lt; &gt; etc.
          </description>
       </fontDefinition>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.modelTreeBuilder">
+      <treeBuilder
+            class="de.tudarmstadt.stg.monto.outline.TreeModelBuilder"
+            language="Monto">
+      </treeBuilder>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.labelProvider">
+      <labelProvider
+            class="de.tudarmstadt.stg.monto.outline.LabelProvider"
+            language="Monto">
+      </labelProvider>
    </extension>
 </plugin>

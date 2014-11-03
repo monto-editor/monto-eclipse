@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto.token;
+package de.tudarmstadt.stg.monto.color;
 
 /**
  * A predefined set of categories of tokens. Derived from

@@ -8,26 +8,26 @@ import java.util.Set;
 import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
-import de.tudarmstadt.stg.monto.message.ProductMessageParseException;
+import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.ProductRegistry;
 import de.tudarmstadt.stg.monto.message.Source;
-import de.tudarmstadt.stg.monto.sink.Sink;
+import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
 public class SinkConnection {
 	
 	private IncommingConnection connection;
 	private ProductRegistry availableProducts = new ProductRegistry();
-	private List<Sink> sinks = new ArrayList<>();
+	private List<ProductMessageListener> sinks = new ArrayList<>();
 	
 	public SinkConnection(IncommingConnection connection) {
 		this.connection = connection;
 	}
 
-	public void addSink(Sink sink) {
+	public void addSink(ProductMessageListener sink) {
 		sinks.add(sink);
 	}
 	
-	public void removeSink(Sink sink) {
+	public void removeSink(ProductMessageListener sink) {
 		sinks.remove(sink);
 	}
 	
@@ -35,7 +35,7 @@ public class SinkConnection {
 		connection.connect();
 	}
 	
-	public ProductMessage receiveProductMessage() throws ProductMessageParseException {
+	public ProductMessage receiveProductMessage() throws ParseException {
 		return ProductMessage.decode(new StringReader(connection.receiveMessage()));
 	}
 	
