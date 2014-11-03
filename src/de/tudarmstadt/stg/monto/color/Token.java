@@ -3,11 +3,11 @@ package de.tudarmstadt.stg.monto.color;
 import de.tudarmstadt.stg.monto.region.Region;
 
 
-public class Syntax extends Region {
+public class Token extends Region {
 
 	private Category category;
 	
-	public Syntax(int offset, int length, Category category) {
+	public Token(int offset, int length, Category category) {
 		super(offset,length);
 		this.category = category;
 	}

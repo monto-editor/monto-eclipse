@@ -82,12 +82,12 @@ public class ASTs {
 		}
 	}
 	
-	public static AST decode(ProductMessage message) throws ASTParseException {
+	public static AST decode(ProductMessage message) throws ParseException {
 		try {
 			Object json = JSONValue.parse(message.getContents().getReader());
 			return decode(json);
 		} catch(Exception e) {
-			throw new ASTParseException(e);
+			throw new ParseException(e);
 		}
 	}
 	

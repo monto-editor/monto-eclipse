@@ -44,7 +44,7 @@
    <extension
          point="org.eclipse.imp.runtime.tokenColorer">
       <tokenColorer
-            class="de.tudarmstadt.stg.monto.color.SyntaxColorer"
+            class="de.tudarmstadt.stg.monto.color.TokenColorer"
             language="Monto">
       </tokenColorer>
    </extension>

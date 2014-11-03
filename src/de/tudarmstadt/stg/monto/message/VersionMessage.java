@@ -62,7 +62,7 @@ public class VersionMessage {
 		return version;
 	}
 
-	public static VersionMessage decode(Reader reader) throws VersionMessageParseException {
+	public static VersionMessage decode(Reader reader) throws ParseException {
 		try {
 			JSONObject message = (JSONObject) JSONValue.parse(reader);
 			Source source = new Source((String) message.get("source"));
@@ -80,7 +80,7 @@ public class VersionMessage {
 			}
 			return new VersionMessage(source, language, contents, selections);
 		} catch (Exception e) {
-			throw new VersionMessageParseException(e);
+			throw new ParseException(e);
 		}
 	}
 }

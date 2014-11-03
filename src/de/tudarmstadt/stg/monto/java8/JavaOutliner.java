@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto.outline;
+package de.tudarmstadt.stg.monto.java8;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -7,12 +7,14 @@ import org.eclipse.jdt.ui.ISharedImages;
 
 import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.message.Language;
+import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
+import de.tudarmstadt.stg.monto.outline.Outline;
+import de.tudarmstadt.stg.monto.outline.Outlines;
 import de.tudarmstadt.stg.monto.parser.AST;
-import de.tudarmstadt.stg.monto.parser.ASTParseException;
 import de.tudarmstadt.stg.monto.parser.ASTVisitor;
 import de.tudarmstadt.stg.monto.parser.ASTs;
 import de.tudarmstadt.stg.monto.parser.NonTerminal;
@@ -42,7 +44,7 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 								message.getLanguage(),
 								new StringContent(Outlines.encode(converter.getConverted()).toJSONString())
 								));
-			} catch (ASTParseException e) {
+			} catch (ParseException e) {
 				Activator.error(e);
 			}
 		}

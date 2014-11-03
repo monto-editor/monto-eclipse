@@ -21,16 +21,16 @@ import de.tudarmstadt.stg.monto.region.Region;
  * length represents the length of the text of the token and
  * category represents the type of token like keyword or identifier.
  */
-public class Syntaxes {
+public class Tokens {
 	
 	/**
 	 * Encodes a list of tokens in the appropriate message format.
 	 */
 	@SuppressWarnings("unchecked")
-	public static JSONArray encode(final List<Syntax> tokens) {
+	public static JSONArray encode(final List<Token> tokens) {
 		final JSONArray tokenArray = new JSONArray();
 		
-		for(Syntax token : tokens) {
+		for(Token token : tokens) {
 			JSONObject jsonToken = new JSONObject();
 			jsonToken.putAll(Regions.encode(token));
 			jsonToken.put("category", token.getCategory().toString().toLowerCase());
@@ -43,16 +43,16 @@ public class Syntaxes {
 	 * Decodes a product message that contains a tokenization result
 	 * into a list of tokens.
 	 */
-	public static List<Syntax> decode(Reader reader) throws ParseException {
+	public static List<Token> decode(Reader reader) throws ParseException {
 		try {
 			JSONArray syntaxList = (JSONArray) JSONValue.parse(reader);
 			
-			List<Syntax> tokens = new ArrayList<>();
+			List<Token> tokens = new ArrayList<>();
 			for(Object syntaxObj : syntaxList) {
 				JSONObject syntax = (JSONObject) syntaxObj;
 				Region token = Regions.decode((JSONObject) syntaxObj);
 				String category = (String) syntax.get("category");
-				tokens.add(new Syntax(token.getStartOffset(),token.getLength(),Category.fromString(category.toUpperCase())));
+				tokens.add(new Token(token.getStartOffset(),token.getLength(),Category.fromString(category.toUpperCase())));
 			}
 			return tokens;
 		} catch(Exception e) {

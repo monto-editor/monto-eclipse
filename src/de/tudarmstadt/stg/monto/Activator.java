@@ -6,13 +6,13 @@ import org.osgi.framework.BundleContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
-import de.tudarmstadt.stg.monto.color.JavaTokenizer;
 import de.tudarmstadt.stg.monto.connection.Connection;
 import de.tudarmstadt.stg.monto.connection.ServerConnection;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
-import de.tudarmstadt.stg.monto.outline.JavaOutliner;
-import de.tudarmstadt.stg.monto.parser.JavaParser;
+import de.tudarmstadt.stg.monto.java8.JavaOutliner;
+import de.tudarmstadt.stg.monto.java8.JavaParser;
+import de.tudarmstadt.stg.monto.java8.JavaTokenizer;
 
 /**
  * The activator class controls the plug-in life cycle

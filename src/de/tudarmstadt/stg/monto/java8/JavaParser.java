@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto.parser;
+package de.tudarmstadt.stg.monto.java8;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -17,9 +17,11 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
+import de.tudarmstadt.stg.monto.parser.AST;
+import de.tudarmstadt.stg.monto.parser.ASTs;
+import de.tudarmstadt.stg.monto.parser.NonTerminal;
+import de.tudarmstadt.stg.monto.parser.Terminal;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
-import de.tudarmstadt.stg.monto.token.java8.Java8Lexer;
-import de.tudarmstadt.stg.monto.token.java8.Java8Parser;
 
 public class JavaParser extends AbstractServer {
 

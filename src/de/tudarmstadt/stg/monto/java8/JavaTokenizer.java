@@ -1,17 +1,18 @@
-package de.tudarmstadt.stg.monto.color;
+package de.tudarmstadt.stg.monto.java8;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.Token;
 
+import de.tudarmstadt.stg.monto.color.Category;
+import de.tudarmstadt.stg.monto.color.Token;
+import de.tudarmstadt.stg.monto.color.Tokens;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
-import de.tudarmstadt.stg.monto.token.java8.Java8Lexer;
 
 public class JavaTokenizer extends AbstractServer {
 	
@@ -22,13 +23,13 @@ public class JavaTokenizer extends AbstractServer {
 		if(msg.getLanguage().toString().equals("java")) { 
 			try {
 				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
-				List<Syntax> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
+				List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
 				emitProductMessage(
 						new ProductMessage(
 								msg.getSource(),
 								product,
 								msg.getLanguage(),
-								new StringContent(Syntaxes.encode(tokens).toJSONString())));
+								new StringContent(Tokens.encode(tokens).toJSONString())));
 				
 			} catch (Exception e) {
 				
@@ -36,7 +37,7 @@ public class JavaTokenizer extends AbstractServer {
 		}
 	}
 
-	private Syntax convertToken(Token token) {
+	private Token convertToken(org.antlr.v4.runtime.Token token) {
 		int offset = token.getStartIndex();
 		int length = token.getStopIndex() - offset + 1;
 		
@@ -217,6 +218,6 @@ public class JavaTokenizer extends AbstractServer {
 				category = Category.UNKNOWN;
 		}
 		
-		return new Syntax(offset,length,category);
+		return new Token(offset,length,category);
 	}
 }

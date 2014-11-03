@@ -14,11 +14,11 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.themes.ITheme;
 
-public class SyntaxColorer implements ITokenColorer {
+public class TokenColorer implements ITokenColorer {
 	
 	Map<Category,Style> styleMap = new HashMap<>();
 	
-	public SyntaxColorer() {
+	public TokenColorer() {
 		final ITheme theme = PlatformUI.getWorkbench().getThemeManager().getCurrentTheme();
 		final ColorRegistry colorRegistry = theme.getColorRegistry();
 		final FontRegistry fontRegistry = theme.getFontRegistry();
@@ -36,7 +36,7 @@ public class SyntaxColorer implements ITokenColorer {
 	
 	@Override
 	public TextAttribute getColoring(final IParseController controller, final Object tokenObj) {
-		Syntax token = (Syntax) tokenObj;
+		Token token = (Token) tokenObj;
 		if(token == null)
 			return null;
 		Style style = styleMap.get(token.getCategory());

@@ -19,8 +19,8 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 
-import de.tudarmstadt.stg.monto.color.Syntax;
-import de.tudarmstadt.stg.monto.color.Syntaxes;
+import de.tudarmstadt.stg.monto.color.Token;
+import de.tudarmstadt.stg.monto.color.Tokens;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Contents;
@@ -37,7 +37,7 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 	
 	private final SourceConnection sourceConnection = Activator.getSourceConnection();
 	private final SinkConnection sinkConnection = Activator.getSinkConnection();
-	private BlockingQueue<List<Syntax>> tokens = new ArrayBlockingQueue<>(1);;
+	private BlockingQueue<List<Token>> tokens = new ArrayBlockingQueue<>(1);;
 	private BlockingQueue<Outline> outline = new ArrayBlockingQueue<>(1);;
 	private Source source;
 	private Language language;
@@ -88,7 +88,7 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 			if(message.getProduct().toString().equals("tokens")) {
 				try {
 					tokens.clear();
-					tokens.put(Syntaxes.decode(message.getContents().getReader()));
+					tokens.put(Tokens.decode(message.getContents().getReader()));
 				} catch (Exception e) {
 					Activator.error(e);
 				}

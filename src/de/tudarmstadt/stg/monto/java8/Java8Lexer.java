@@ -1,5 +1,5 @@
 // Generated from src/de/tudarmstadt/stg/monto/token/java8/Java8.g4 by ANTLR 4.4
-package de.tudarmstadt.stg.monto.token.java8;
+package de.tudarmstadt.stg.monto.java8;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;
