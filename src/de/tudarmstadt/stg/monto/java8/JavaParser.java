@@ -14,13 +14,14 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import de.tudarmstadt.stg.monto.ast.AST;
+import de.tudarmstadt.stg.monto.ast.ASTVisitor;
+import de.tudarmstadt.stg.monto.ast.ASTs;
+import de.tudarmstadt.stg.monto.ast.NonTerminal;
+import de.tudarmstadt.stg.monto.ast.Terminal;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.parser.AST;
-import de.tudarmstadt.stg.monto.parser.ASTs;
-import de.tudarmstadt.stg.monto.parser.NonTerminal;
-import de.tudarmstadt.stg.monto.parser.Terminal;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaParser extends AbstractServer {
@@ -53,7 +54,7 @@ public class JavaParser extends AbstractServer {
 		}
 	}
 	
-	public static class Converter implements ParseTreeListener {
+	private static class Converter implements ParseTreeListener {
 
 		private Deque<AST> nodes = new ArrayDeque<>();
 		
@@ -76,7 +77,7 @@ public class JavaParser extends AbstractServer {
 		@Override
 		public void visitErrorNode(ErrorNode err) {
 			Interval interval = err.getSourceInterval();
-			addChild(new Terminal(interval.a, interval.length()));
+			addChild(new NonTerminal("error", new Terminal(interval.a, interval.length())));
 		}
 
 		@Override
@@ -99,4 +100,31 @@ public class JavaParser extends AbstractServer {
 		}
 	}
 
+	/**
+	 * Checks if the given AST is complete, i.e. contains no error nodes.
+	 * The complexity of this method is O(n) where n is the number of elements
+	 * in the AST.
+	 */
+	public static boolean isComplete(AST node) {
+		Complete isComplete = new Complete();
+		node.accept(isComplete);
+		return isComplete.complete;
+	}
+	
+	private static class Complete implements ASTVisitor {
+
+		public boolean complete = true;
+
+		@Override
+		public void visit(NonTerminal node) {
+			if(node.getName().equals("error"))
+				complete = false;
+			for(AST child : node.getChilds())
+				child.accept(this);
+		}
+
+		@Override
+		public void visit(Terminal token) {}
+		
+	}
 }

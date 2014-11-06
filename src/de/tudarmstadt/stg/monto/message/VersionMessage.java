@@ -62,6 +62,7 @@ public class VersionMessage {
 		return version;
 	}
 
+	@SuppressWarnings("unchecked")
 	public static VersionMessage decode(Reader reader) throws ParseException {
 		try {
 			JSONObject message = (JSONObject) JSONValue.parse(reader);
@@ -69,8 +70,7 @@ public class VersionMessage {
 			Language language = new Language((String) message.get("language"));
 			Contents contents = new StringContent((String) message.get("contents"));
 			List<Selection> selections = new ArrayList<>();
-			JSONArray selectionsArray = (JSONArray) message.get("selections");
-			@SuppressWarnings("unchecked")
+			JSONArray selectionsArray = (JSONArray) message.getOrDefault("selections", new JSONArray());
 			Iterator<JSONObject> iterator = selectionsArray.iterator();
 			while(iterator.hasNext()) {
 				JSONObject selection = iterator.next();

@@ -6,6 +6,11 @@ import java.util.Deque;
 import org.eclipse.jdt.ui.ISharedImages;
 
 import de.tudarmstadt.stg.monto.Activator;
+import de.tudarmstadt.stg.monto.ast.AST;
+import de.tudarmstadt.stg.monto.ast.ASTVisitor;
+import de.tudarmstadt.stg.monto.ast.ASTs;
+import de.tudarmstadt.stg.monto.ast.NonTerminal;
+import de.tudarmstadt.stg.monto.ast.Terminal;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.Product;
@@ -14,11 +19,6 @@ import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.outline.Outline;
 import de.tudarmstadt.stg.monto.outline.Outlines;
-import de.tudarmstadt.stg.monto.parser.AST;
-import de.tudarmstadt.stg.monto.parser.ASTVisitor;
-import de.tudarmstadt.stg.monto.parser.ASTs;
-import de.tudarmstadt.stg.monto.parser.NonTerminal;
-import de.tudarmstadt.stg.monto.parser.Terminal;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
@@ -33,16 +33,21 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 	public void onProductMessage(ProductMessage message) {
 		if(isJavaAst(message)) {
 			try {
-				NonTerminal root = (NonTerminal) ASTs.decode(message);		
-				OutlineConverter converter = new OutlineConverter();
-				root.accept(converter);
+				NonTerminal root = (NonTerminal) ASTs.decode(message);
+				
+				// cannot create new outline if the AST is incomplete
+				if(!JavaParser.isComplete(root))
+					return;
+				
+				OutlineTrimmer trimmer = new OutlineTrimmer();
+				root.accept(trimmer);
 				
 				emitProductMessage(
 						new ProductMessage(
 								message.getSource(), 
 								outline, 
 								message.getLanguage(),
-								new StringContent(Outlines.encode(converter.getConverted()).toJSONString())
+								new StringContent(Outlines.encode(trimmer.getConverted()).toJSONString())
 								));
 			} catch (ParseException e) {
 				Activator.error(e);
@@ -50,9 +55,13 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 		}
 	}
 	
-	private static class OutlineConverter implements ASTVisitor {
+	/**
+	 * Traverses the AST and removes unneeded information.
+	 */
+	private static class OutlineTrimmer implements ASTVisitor {
 
 		private Deque<Outline> converted = new ArrayDeque<>();
+		private boolean fieldDeclaration = false;
 		
 		public Outline getConverted() {
 			return converted.getFirst();
@@ -84,10 +93,16 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 				case "enumConstant":
 					leaf(node, "constant", ISharedImages.IMG_OBJS_ENUM_DEFAULT);
 					break;
-					
-//				case "variableDeclaratorId":
-//					onIdentifier(node, "field");
-//					break;
+				
+				case "fieldDeclaration":
+					fieldDeclaration = true;
+					node.getChilds().forEach(child -> child.accept(this));
+					fieldDeclaration = false;
+				
+				case "variableDeclaratorId":
+					if(fieldDeclaration)
+						leaf(node, "field", ISharedImages.IMG_OBJS_PRIVATE);
+					break;
 				
 				case "methodDeclarator":
 					leaf(node, "method", ISharedImages.IMG_OBJS_PUBLIC);

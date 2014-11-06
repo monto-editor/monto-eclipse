@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto.parser;
+package de.tudarmstadt.stg.monto.ast;
 
 import de.tudarmstadt.stg.monto.region.IRegion;
 
