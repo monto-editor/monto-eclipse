@@ -10,6 +10,7 @@ import de.tudarmstadt.stg.monto.connection.Connection;
 import de.tudarmstadt.stg.monto.connection.ServerConnection;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
+import de.tudarmstadt.stg.monto.java8.JavaCodeCompletion;
 import de.tudarmstadt.stg.monto.java8.JavaOutliner;
 import de.tudarmstadt.stg.monto.java8.JavaParser;
 import de.tudarmstadt.stg.monto.java8.JavaTokenizer;
@@ -51,9 +52,14 @@ public class Activator extends AbstractUIPlugin {
 		
 		serverConnection.addServer(new JavaTokenizer());
 		serverConnection.addServer(new JavaParser());
+		
 		JavaOutliner javaOutliner = new JavaOutliner();
 		serverConnection.addServer(javaOutliner);
 		sinkConnection.addSink(javaOutliner);
+		
+		JavaCodeCompletion javaCodeCompletion = new JavaCodeCompletion();
+		serverConnection.addServer(javaCodeCompletion);
+		sinkConnection.addSink(javaCodeCompletion);
 	}
 
 	/*

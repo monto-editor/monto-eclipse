@@ -54,8 +54,8 @@ public class VersionMessage {
 		JSONArray selections = new JSONArray();
 		for(Selection selection : message.getSelections()) {
 			JSONObject sel = new JSONObject();
-			sel.put("begin", selection.getBegin());
-			sel.put("end", selection.getEnd());
+			sel.put("begin", selection.getStartOffset());
+			sel.put("end", selection.getEndOffset());
 			selections.add(sel);
 		}
 		version.put("selections", selections);
@@ -76,7 +76,7 @@ public class VersionMessage {
 				JSONObject selection = iterator.next();
 				Long begin = (Long) selection.get("begin");
 				Long end = (Long) selection.get("end");
-				selections.add(new Selection(begin.intValue(), end.intValue()));
+				selections.add(new Selection(begin.intValue(), end.intValue() - begin.intValue()));
 			}
 			return new VersionMessage(source, language, contents, selections);
 		} catch (Exception e) {

@@ -2,6 +2,8 @@ package de.tudarmstadt.stg.monto.java8;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.jdt.ui.ISharedImages;
 
@@ -11,10 +13,11 @@ import de.tudarmstadt.stg.monto.ast.ASTVisitor;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
-import de.tudarmstadt.stg.monto.message.Language;
+import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ParseException;
-import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.Products;
+import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.outline.Outline;
@@ -24,14 +27,16 @@ import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
 public class JavaOutliner extends AbstractServer implements ProductMessageListener {
 	
-	public static final Product outline = new Product("outline");
+	private Set<Source> javaSources = new HashSet<>();
 	
 	public void onVersionMessage(VersionMessage message) {
+		if(message.getLanguage().equals(Languages.java))
+			javaSources.add(message.getSource());
 	}
 
 	@Override
 	public void onProductMessage(ProductMessage message) {
-		if(isJavaAst(message)) {
+		if(message.getProduct().equals(Products.ast) && javaSources.contains(message.getSource())) {
 			try {
 				NonTerminal root = (NonTerminal) ASTs.decode(message);
 				
@@ -45,8 +50,8 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 				emitProductMessage(
 						new ProductMessage(
 								message.getSource(), 
-								outline, 
-								message.getLanguage(),
+								Products.outline, 
+								Languages.json,
 								new StringContent(Outlines.encode(trimmer.getConverted()).toJSONString())
 								));
 			} catch (ParseException e) {
@@ -139,16 +144,5 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 			converted.peek().addChild(new Outline(name, ident, icon));
 		}
 	}
-	
-	private static boolean isJavaAst(ProductMessage message) {
-		return isJava(message.getLanguage()) && isAST(message.getProduct());
-	}
-	
-	private static boolean isJava(Language language) {
-		return language.toString().equals("java");
-	}
-	
-	private static boolean isAST(Product product) {
-		return product.toString().equals("ast");
-	}
+
 }

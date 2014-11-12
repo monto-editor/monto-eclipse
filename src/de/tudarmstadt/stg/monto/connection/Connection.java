@@ -26,7 +26,10 @@ public class Connection {
 		try {
 			JSONObject montoConfig = (JSONObject) JSONValue.parse(configFile());
 			JSONObject connectionInfo = (JSONObject) montoConfig.get("connection");
-			String fromSource = (String) connectionInfo.get("from_source");
+			String fromSource = getOrDefault(
+					connectionInfo,
+					"from_sources",
+					"tcp://127.0.0.1:8000");
 			return new SourceConnection(new OutgoingConnection(context, fromSource));
 		} catch (Exception e) {
 			throw new ConnectionParseException(e);
@@ -37,7 +40,10 @@ public class Connection {
 		try {
 			JSONObject montoConfig = (JSONObject) JSONValue.parse(configFile());
 			JSONObject connectionInfo = (JSONObject) montoConfig.get("connection");
-			String toSinks = (String) connectionInfo.get("to_sinks");
+			String toSinks = getOrDefault(
+					connectionInfo,
+					"to_sinks",
+					"tcp://127.0.0.1:8003");
 			return new SinkConnection(new IncommingConnection(context, toSinks));
 		} catch (Exception e) {
 			throw new ConnectionParseException(e);
@@ -48,13 +54,27 @@ public class Connection {
 		try {
 			JSONObject montoConfig = (JSONObject) JSONValue.parse(configFile());
 			JSONObject connectionInfo = (JSONObject) montoConfig.get("connection");
-			String toServer = (String) connectionInfo.get("to_server");
-			String fromServer = (String) connectionInfo.get("from_server");
+			String toServer = getOrDefault(
+					connectionInfo,
+					"to_servers",
+					"tcp://127.0.0.1:8001");
+			String fromServer = getOrDefault(
+					connectionInfo,
+					"from_servers",
+					"tcp://127.0.0.1:8002");
 			return new ServerConnection(
 					new IncommingConnection(context, toServer),
 					new OutgoingConnection(context, fromServer));
 		} catch (Exception e) {
 			throw new ConnectionParseException(e);
 		}
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static String getOrDefault(JSONObject connectionInfo, String socket, String def) {
+		if(connectionInfo == null)
+			return def;
+		else
+			return (String) connectionInfo.getOrDefault(socket, def);
 	}
 }

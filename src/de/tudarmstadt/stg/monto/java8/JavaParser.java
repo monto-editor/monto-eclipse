@@ -8,7 +8,6 @@ import java.util.List;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
@@ -19,18 +18,17 @@ import de.tudarmstadt.stg.monto.ast.ASTVisitor;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
-import de.tudarmstadt.stg.monto.message.Product;
+import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaParser extends AbstractServer {
-
-	private final static Product ast = new Product("ast");
-
+	
 	@Override
 	public void onVersionMessage(VersionMessage message) {
-		if(message.getLanguage().toString().equals("java")) {
+		if(message.getLanguage().equals(Languages.java)) {
 			try {
 				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(message.getContent().getReader()));
 				CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -44,8 +42,8 @@ public class JavaParser extends AbstractServer {
 				emitProductMessage(
 						new ProductMessage(
 								message.getSource(), 
-								ast, 
-								message.getLanguage(), 
+								Products.ast, 
+								Languages.json, 
 								ASTs.encode(converter.getRoot())));
 				
 			} catch (Exception e) {
@@ -60,11 +58,13 @@ public class JavaParser extends AbstractServer {
 		
 		@Override
 		public void enterEveryRule(ParserRuleContext context) {
-			String name = Java8Parser.ruleNames[context.getRuleIndex()];
-			List<AST>childs = new ArrayList<>(context.getChildCount());
-			NonTerminal node = new NonTerminal(name, childs);
-			addChild(node);
-			nodes.push(node);
+			if(context.getChildCount() > 0) {
+				String name = Java8Parser.ruleNames[context.getRuleIndex()];
+				List<AST>childs = new ArrayList<>(context.getChildCount());
+				NonTerminal node = new NonTerminal(name, childs);
+				addChild(node);
+				nodes.push(node);
+			}
 		}
 
 		@Override
@@ -76,8 +76,8 @@ public class JavaParser extends AbstractServer {
 
 		@Override
 		public void visitErrorNode(ErrorNode err) {
-			Interval interval = err.getSourceInterval();
-			addChild(new NonTerminal("error", new Terminal(interval.a, interval.length())));
+			org.antlr.v4.runtime.Token symbol = err.getSymbol();
+			addChild(new NonTerminal("error", new Terminal(symbol.getStartIndex(), symbol.getStopIndex() - symbol.getStartIndex() + 1)));
 		}
 
 		@Override

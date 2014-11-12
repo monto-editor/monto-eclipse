@@ -3,12 +3,11 @@ package de.tudarmstadt.stg.monto;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
@@ -18,31 +17,38 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.swt.widgets.Display;
 
 import de.tudarmstadt.stg.monto.color.Token;
 import de.tudarmstadt.stg.monto.color.Tokens;
+import de.tudarmstadt.stg.monto.completion.Completion;
+import de.tudarmstadt.stg.monto.completion.Completions;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.outline.Outline;
 import de.tudarmstadt.stg.monto.outline.Outlines;
+import de.tudarmstadt.stg.monto.region.Region;
 import de.tudarmstadt.stg.monto.sink.Sink;
 
 public class MontoParseController extends ParseControllerBase implements Sink, AutoCloseable {
 	
 	private final SourceConnection sourceConnection = Activator.getSourceConnection();
 	private final SinkConnection sinkConnection = Activator.getSinkConnection();
-	private BlockingQueue<List<Token>> tokens = new ArrayBlockingQueue<>(1);;
-	private BlockingQueue<Outline> outline = new ArrayBlockingQueue<>(1);;
-	private Source source;
-	private Language language;
-	private ISourcePositionLocator sourcePositionLocator = new SourcePositionLocator();;
-
+	private MVar<List<Completion>> completions = new MVar<>(new ArrayList<>());
+	private MVar<List<Token>> tokens = new MVar<>();
+	private MVar<Outline> outline = new MVar<>();
+	private Source source = null;
+	private Language language = null;
+	private ISourcePositionLocator sourcePositionLocator = new SourcePositionLocator();
+	private UniversalEditor editor;
+	
 	@Override
 	public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
 		super.initialize(filePath, project, handler);
@@ -58,11 +64,15 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 	
 	@Override
 	public Object parse(String documentText, IProgressMonitor monitor) {
-		final Contents contents = new StringContent(documentText);;
+		final Contents contents = new StringContent(documentText);
 		final List<Selection> selections = new ArrayList<>();
+		if(editor != null) {
+			Display.getDefault().syncExec(() -> {
+				IRegion region = editor.getSelectedRegion();
+				selections.add(new Selection(region.getOffset(), region.getLength()));
+			});
+		}
 		
-		tokens.clear();
-		outline.clear();
 		try {
 			sourceConnection.sendVersionMessage(
 					source,
@@ -70,7 +80,9 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 					contents,
 					selections);
 			
-			fCurrentAst = new ParseResult(outline.poll(100, TimeUnit.MILLISECONDS), documentText);
+			fCurrentAst = new ParseResult(
+					outline.take(100, TimeUnit.MILLISECONDS),
+					documentText);
 		} catch (Exception e) {
 			Activator.error(e);
 			return null;
@@ -82,24 +94,18 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 	@Override
 	public void onProductMessage(ProductMessage message) {
 
-		if(message.getSource().equals(source)
-		&& message.getLanguage().equals(language)) {
-			
-			if(message.getProduct().toString().equals("tokens")) {
-				try {
-					tokens.clear();
+		try {
+			if(message.getSource().equals(source)) {
+				if(message.getProduct().equals(Products.tokens)) {
 					tokens.put(Tokens.decode(message.getContents().getReader()));
-				} catch (Exception e) {
-					Activator.error(e);
-				}
-			} else if(message.getProduct().toString().equals("outline")) {
-				try {
-					outline.clear();
+				} else if(message.getProduct().equals(Products.outline)) {
 					outline.put(Outlines.decode(message.getContents().getReader()));
-				} catch (Exception e) {
-					Activator.error(e);
+				} else if(message.getProduct().equals(Products.completions)) {
+					completions.put(Completions.decode(message.getContents().getReader()));
 				}
 			}
+		} catch (Exception e) {
+			Activator.error(e);
 		}
 	}
 	
@@ -126,13 +132,24 @@ public class MontoParseController extends ParseControllerBase implements Sink, A
 			// Wait for 50 milliseconds on the tokenization product.
 			// If the product doesn't arrive in time this code throws
 			// an exception and returns null.
-			return tokens.poll(50, TimeUnit.MILLISECONDS)
+			return tokens.take(50, TimeUnit.MILLISECONDS)
 						 .stream()
-						 .filter((token) -> token.inRange(region))
+						 .filter((token) -> token.inRange(new Region(region)))
 						 .iterator();
 		} catch (Exception e) {
 			return null;
 		}
 	}
+	
+	public List<Completion> getCompletions() {
+		try {
+			return completions.take(50, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			return new ArrayList<>();
+		}
+	}
 
+	public void setEditor(UniversalEditor editor) {
+		this.editor = editor;
+	}
 }

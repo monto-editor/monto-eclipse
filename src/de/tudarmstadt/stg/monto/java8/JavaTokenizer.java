@@ -8,27 +8,27 @@ import org.antlr.v4.runtime.ANTLRInputStream;
 import de.tudarmstadt.stg.monto.color.Category;
 import de.tudarmstadt.stg.monto.color.Token;
 import de.tudarmstadt.stg.monto.color.Tokens;
-import de.tudarmstadt.stg.monto.message.Product;
+import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaTokenizer extends AbstractServer {
 	
-	private static final Product product = new Product("tokens");
 	
 	@Override
 	public void onVersionMessage(VersionMessage msg) {
-		if(msg.getLanguage().toString().equals("java")) { 
+		if(msg.getLanguage().equals(Languages.java)) { 
 			try {
 				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
 				List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
 				emitProductMessage(
 						new ProductMessage(
 								msg.getSource(),
-								product,
-								msg.getLanguage(),
+								Products.tokens,
+								Languages.json,
 								new StringContent(Tokens.encode(tokens).toJSONString())));
 				
 			} catch (Exception e) {

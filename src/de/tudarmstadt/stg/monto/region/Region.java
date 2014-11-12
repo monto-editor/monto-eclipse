@@ -9,6 +9,10 @@ public class Region implements IRegion {
 		this.length = length;
 	}
 
+	public Region(org.eclipse.jface.text.IRegion region) {
+		this(region.getOffset(),region.getLength());
+	}
+
 	@Override
 	public int getStartOffset() {
 		return offset;
@@ -17,11 +21,6 @@ public class Region implements IRegion {
 	@Override
 	public int getLength() {
 		return length;
-	}
-	
-	public boolean inRange(org.eclipse.jface.text.IRegion region) {
-		return getStartOffset() >= region.getOffset()
-		    && getStartOffset() + getLength() <= region.getOffset() + region.getLength();
 	}
 	
 	public String getText(String document) {

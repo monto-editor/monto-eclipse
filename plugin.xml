@@ -736,4 +736,18 @@
             language="Monto">
       </labelProvider>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.editorService">
+      <editorService
+            class="de.tudarmstadt.stg.monto.EditorService"
+            language="Monto">
+      </editorService>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.contentProposer">
+      <proposer
+            class="de.tudarmstadt.stg.monto.ContentProposer"
+            language="Monto">
+      </proposer>
+   </extension>
 </plugin>

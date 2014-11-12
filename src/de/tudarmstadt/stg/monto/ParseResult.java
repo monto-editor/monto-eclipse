@@ -6,7 +6,7 @@ public class ParseResult {
 	
 	private Outline outline;
 	private String documentText;
-	
+
 	public ParseResult(Outline outline, String documentText) {
 		this.outline = outline;
 		this.documentText = documentText;
@@ -19,4 +19,5 @@ public class ParseResult {
 	public String getDocument() {
 		return documentText;
 	}
+	
 }
