@@ -8,12 +8,15 @@ public class ProductEditorInput implements IEditorInput {
 
 	private Source source;
 	private Product product;
-
-	public ProductEditorInput(Source source, Product product) {
+	private Language language;
+	
+	public ProductEditorInput(Source source, Product product,
+			Language language) {
 		this.source = source;
 		this.product = product;
+		this.language = language;
 	}
-	
+
 	public Source getSource() {
 		return source;
 	}
@@ -21,10 +24,14 @@ public class ProductEditorInput implements IEditorInput {
 	public Product getProduct() {
 		return product;
 	}
+	
+	public Language getLanguage() {
+		return language;
+	}
 
 	@Override
 	public String getName() {
-		return String.format("%s - %s", source.toString(), product.toString());
+		return String.format("%s - %s - %s", source.toString(), product.toString(), language.toString());
 	}
 	
 	@SuppressWarnings("rawtypes")

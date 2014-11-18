@@ -14,6 +14,7 @@ import de.tudarmstadt.stg.monto.java8.JavaCodeCompletion;
 import de.tudarmstadt.stg.monto.java8.JavaOutliner;
 import de.tudarmstadt.stg.monto.java8.JavaParser;
 import de.tudarmstadt.stg.monto.java8.JavaTokenizer;
+import de.tudarmstadt.stg.monto.json.JsonPrettyPrinter;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -60,6 +61,10 @@ public class Activator extends AbstractUIPlugin {
 		JavaCodeCompletion javaCodeCompletion = new JavaCodeCompletion();
 		serverConnection.addServer(javaCodeCompletion);
 		sinkConnection.addSink(javaCodeCompletion);
+		
+		JsonPrettyPrinter jsonPrettyPrinter = new JsonPrettyPrinter();
+		serverConnection.addServer(jsonPrettyPrinter);
+		sinkConnection.addSink(jsonPrettyPrinter);
 	}
 
 	/*

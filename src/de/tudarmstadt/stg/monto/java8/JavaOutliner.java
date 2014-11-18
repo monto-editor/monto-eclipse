@@ -34,7 +34,8 @@ public class JavaOutliner extends StatefullServer implements ProductMessageListe
 	@Override
 	public void onProductMessage(ProductMessage message) {
 		VersionMessage latest = getLatestVersionMessage(message.getSource());
-		if(message.getProduct().equals(Products.ast) && latest != null && message.getId().equals(latest.getId())) {
+		if(message.getLanguage().equals(Languages.json)
+	    && message.getProduct().equals(Products.ast) && latest != null && message.getId().equals(latest.getId())) {
 			try {
 				NonTerminal root = (NonTerminal) ASTs.decode(message);
 				

@@ -1,6 +1,6 @@
 package de.tudarmstadt.stg.monto.message;
 
-public class Language {
+public class Language implements Comparable<Language> {
 	private String language;
 
 	public Language(String language) {
@@ -25,5 +25,10 @@ public class Language {
 	@Override
 	public int hashCode() {
 		return language.hashCode();
+	}
+
+	@Override
+	public int compareTo(Language other) {
+		return this.language.compareTo(other.language);
 	}
 }

@@ -1,6 +1,6 @@
 package de.tudarmstadt.stg.monto.message;
 
-public class Product {
+public class Product implements Comparable<Product> {
 	private String name;
 
 	public Product(String name) {
@@ -25,5 +25,10 @@ public class Product {
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public int compareTo(Product other) {
+		return this.name.compareTo(other.name);
 	}
 }

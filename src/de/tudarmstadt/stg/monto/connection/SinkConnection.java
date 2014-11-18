@@ -6,11 +6,11 @@ import java.util.List;
 import java.util.Set;
 
 import de.tudarmstadt.stg.monto.Activator;
-import de.tudarmstadt.stg.monto.message.Product;
-import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.ProductMessages;
 import de.tudarmstadt.stg.monto.message.ProductRegistry;
+import de.tudarmstadt.stg.monto.message.ProductRegistry.ProductItem;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
@@ -48,7 +48,7 @@ public class SinkConnection {
 		connection.listening(reader -> {
 			try {
 				ProductMessage message = ProductMessages.decode(reader);
-				availableProducts.registerProduct(message.getSource(), message.getProduct());
+				availableProducts.registerProduct(message.getSource(), new ProductItem(message.getProduct(),message.getLanguage()));
 				synchronized(sinks) {
 					sinks.forEach(sink -> sink.onProductMessage(message));
 				}
@@ -58,7 +58,7 @@ public class SinkConnection {
 		});
 	}
 	
-	public Set<Product> availableProducts(Source source) {
+	public Set<ProductItem> availableProducts(Source source) {
 		return availableProducts.availableProducts(source);
 	}
 	

@@ -1,5 +1,9 @@
 package de.tudarmstadt.stg.monto;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.jface.action.Action;
@@ -14,10 +18,10 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
+import de.tudarmstadt.stg.monto.message.ProductRegistry.ProductItem;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.sink.DocumentSink;
 import de.tudarmstadt.stg.monto.sink.SinkDocumentProvider;
-
 
 public class EditorContribution implements ILanguageActionsContributor {
 	
@@ -27,10 +31,15 @@ public class EditorContribution implements ILanguageActionsContributor {
 		final Source source = new Source(getPath(editor.getEditorInput()));
 	
 		SinkConnection sinkConnection = Activator.getSinkConnection();
-		sinkConnection.availableProducts(source).forEach((product) -> {
-			final IEditorInput input = new ProductEditorInput(source, product);
+		List<ProductItem> availableProduct = new ArrayList<>(sinkConnection.availableProducts(source));
+		availableProduct.sort(
+				Comparator.comparing(ProductItem::getProduct)
+				          .thenComparing(ProductItem::getLanguage));
+		availableProduct.forEach((item) -> {
+			final String actionDescription = String.format("%s - %s", item.getProduct().toString(), item.getLanguage().toString());
+			final ProductEditorInput input = new ProductEditorInput(source,item.getProduct(),item.getLanguage());
 			
-			openProduct.add(new Action(product.toString()) {				
+			openProduct.add(new Action(actionDescription) {				
 				@Override
 				public void run() {
 					try {

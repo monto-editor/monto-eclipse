@@ -40,6 +40,7 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 		VersionMessage versionMessage = getLatestVersionMessage(productMessage.getSource());
 		try {
 			if(versionMessage != null
+					&& productMessage.getLanguage().equals(Languages.json)
 					&& productMessage.getProduct().equals(Products.ast)
 					&& versionMessage.getId().equals(productMessage.getId())
 					&& versionMessage.getSelections().size() > 0) {

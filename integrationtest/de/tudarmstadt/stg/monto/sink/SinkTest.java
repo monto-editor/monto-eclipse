@@ -21,6 +21,7 @@ import de.tudarmstadt.stg.monto.message.StringContent;
 
 public class SinkTest {
 	
+	private final Language language = new Language("Monto");
 	private LongKey id = new LongKey(0);
 	
 	@Test
@@ -28,7 +29,7 @@ public class SinkTest {
 		
 		Source source = new Source("TestSource");
 		Product product = new Product("TestProduct");
-		IEditorInput input = new ProductEditorInput(source, product);
+		IEditorInput input = new ProductEditorInput(source, product, language);
 		
 		SinkViewer editor = openInEditor(input);
 		DocumentSink sink = (DocumentSink) editor.getDocumentProvider().getDocument(input);
@@ -52,7 +53,6 @@ public class SinkTest {
 	}
 	
 	private ProductMessage productMessage(Source source, Product product, String msg) {
-		Language language = new Language("Monto");
 		id = id.freshId();
 		return new ProductMessage(id,source, product, language, new StringContent(msg));
 	}

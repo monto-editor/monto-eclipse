@@ -33,6 +33,7 @@ import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
+import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
@@ -94,17 +95,20 @@ public class MontoParseController extends ParseControllerBase {
 		synchronized(tokensLock) {
 			tokensFuture = new WaitOnProduct(sinkConnection, version,
 					message -> message.getId().equals(transactionId)
-					        && message.getProduct().equals(Products.tokens));
+					        && message.getProduct().equals(Products.tokens)
+					        && message.getLanguage().equals(Languages.json));
 		}
 		synchronized(outlineLock) {
 			outlineFuture = new WaitOnProduct(sinkConnection, version,
 					message -> message.getId().equals(transactionId)
-					        && message.getProduct().equals(Products.outline));
+					        && message.getProduct().equals(Products.outline)
+					        && message.getLanguage().equals(Languages.json));
 		}
 		synchronized(completionsLock) {
 			completionsFuture = new WaitOnProduct(sinkConnection, version,
 					message -> message.getId().equals(transactionId)
-					        && message.getProduct().equals(Products.completions));
+					        && message.getProduct().equals(Products.completions)
+					        && message.getLanguage().equals(Languages.json));
 		}
 		
 		try {
