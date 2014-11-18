@@ -7,15 +7,15 @@ import java.util.List;
 public class NonTerminal implements AST {
 
 	private String name;
-	private List<AST> childs;
+	private List<AST> children;
 	
-	public NonTerminal(String name, List<AST> childs) {
+	public NonTerminal(String name, List<AST> children) {
 		this.name = name;
-		this.childs = childs;
+		this.children = children;
 	}
 	
-	public NonTerminal(String name, AST ... childs) {
-		this(name, new ArrayList<AST>(Arrays.asList(childs)));
+	public NonTerminal(String name, AST ... children) {
+		this(name, new ArrayList<AST>(Arrays.asList(children)));
 	}
 	
 	@Override
@@ -28,25 +28,25 @@ public class NonTerminal implements AST {
 	}
 
 	public AST getChild(int i) {
-		return childs.get(i);
+		return children.get(i);
 	}
 	
-	public List<AST> getChilds() {
-		return childs;
+	public List<AST> getChildren() {
+		return children;
 	}
 
 	public void addChild(AST a) {
-		childs.add(a);
+		children.add(a);
 	}
 
 	@Override
 	public int getStartOffset() {
-		return childs.get(0).getStartOffset();
+		return children.get(0).getStartOffset();
 	}
 	
 	@Override
 	public int getEndOffset() {
-		return childs.get(childs.size()-1).getEndOffset();
+		return children.get(children.size()-1).getEndOffset();
 	}
 	
 	@Override

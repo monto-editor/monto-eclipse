@@ -25,30 +25,34 @@ import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaParser extends AbstractServer {
+
+	@Override
+	protected boolean isRelveant(VersionMessage message) {
+		return message.getLanguage().equals(Languages.java);
+	}
 	
 	@Override
-	public void onVersionMessage(VersionMessage message) {
-		if(message.getLanguage().equals(Languages.java)) {
-			try {
-				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(message.getContent().getReader()));
-				CommonTokenStream tokens = new CommonTokenStream(lexer);
-				Java8Parser parser = new Java8Parser(tokens);
-				ParserRuleContext root = parser.compilationUnit();
-				ParseTreeWalker walker = new ParseTreeWalker();
+	public void receiveVersionMessage(VersionMessage message) {
+		try {
+			Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(message.getContent().getReader()));
+			CommonTokenStream tokens = new CommonTokenStream(lexer);
+			Java8Parser parser = new Java8Parser(tokens);
+			ParserRuleContext root = parser.compilationUnit();
+			ParseTreeWalker walker = new ParseTreeWalker();
 
-				Converter converter = new Converter();
-				walker.walk(converter, root);
-				
-				emitProductMessage(
-						new ProductMessage(
-								message.getSource(), 
-								Products.ast, 
-								Languages.json, 
-								ASTs.encode(converter.getRoot())));
-				
-			} catch (Exception e) {
-				
-			}
+			Converter converter = new Converter();
+			walker.walk(converter, root);
+			
+			emitProductMessage(
+					new ProductMessage(
+							message.getId(),
+							message.getSource(), 
+							Products.ast, 
+							Languages.json, 
+							ASTs.encode(converter.getRoot())));
+			
+		} catch (Exception e) {
+			
 		}
 	}
 	
@@ -119,7 +123,7 @@ public class JavaParser extends AbstractServer {
 		public void visit(NonTerminal node) {
 			if(node.getName().equals("error"))
 				complete = false;
-			for(AST child : node.getChilds())
+			for(AST child : node.getChildren())
 				child.accept(this);
 		}
 

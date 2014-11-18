@@ -28,7 +28,7 @@ public class Outline extends Region {
 		childs.add(outline);
 	}
 	
-	public List<Outline> getChilds() {
+	public List<Outline> getChildren() {
 		return childs;
 	}
 
@@ -37,7 +37,7 @@ public class Outline extends Region {
 	}
 	
 	public boolean isLeaf() {
-		return getChilds().size() == 0;
+		return getChildren().size() == 0;
 	}
 
 	public String getDescription() {

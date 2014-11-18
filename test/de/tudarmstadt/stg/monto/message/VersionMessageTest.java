@@ -12,13 +12,15 @@ public class VersionMessageTest {
 	@Test
 	public void canBeEncodedToJSON() {
 		
+		LongKey id = new LongKey(42);
 		Source source = new Source("file.txt");
 		Language language = new Language("text");
 		Contents contents = new StringContent("Hello World");
 		List<Selection> selections = Selection.selections(new Selection(3,5));
-		VersionMessage message = new VersionMessage(source,language,contents,selections);
+		VersionMessage message = new VersionMessage(id,source,language,contents,selections);
 		
-		String decoded = VersionMessage.encode(message).toJSONString();
+		String decoded = VersionMessages.encode(message).toJSONString();
+		assertThat("id", decoded, containsString("\"id\":42"));
 		assertThat("source", decoded, containsString("\"source\":\"file.txt\""));
 		assertThat("language", decoded, containsString("\"language\":\"text\""));
 		assertThat("contents", decoded, containsString("\"contents\":\"Hello World\""));

@@ -16,24 +16,27 @@ import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaTokenizer extends AbstractServer {
-	
+
+	@Override
+	protected boolean isRelveant(VersionMessage message) {
+		return message.getLanguage().equals(Languages.java);
+	}
 	
 	@Override
-	public void onVersionMessage(VersionMessage msg) {
-		if(msg.getLanguage().equals(Languages.java)) { 
-			try {
-				Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
-				List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
-				emitProductMessage(
-						new ProductMessage(
-								msg.getSource(),
-								Products.tokens,
-								Languages.json,
-								new StringContent(Tokens.encode(tokens).toJSONString())));
-				
-			} catch (Exception e) {
-				
-			}
+	public void receiveVersionMessage(VersionMessage msg) {
+		try {
+			Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
+			List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
+			emitProductMessage(
+					new ProductMessage(
+							msg.getId(),
+							msg.getSource(),
+							Products.tokens,
+							Languages.json,
+							new StringContent(Tokens.encode(tokens).toJSONString())));
+			
+		} catch (Exception e) {
+			
 		}
 	}
 
@@ -220,4 +223,5 @@ public class JavaTokenizer extends AbstractServer {
 		
 		return new Token(offset,length,category);
 	}
+
 }

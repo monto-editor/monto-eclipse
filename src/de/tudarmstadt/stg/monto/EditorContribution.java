@@ -1,8 +1,5 @@
 package de.tudarmstadt.stg.monto;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.jface.action.Action;
@@ -16,13 +13,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
-import de.tudarmstadt.stg.monto.connection.SourceConnection;
-import de.tudarmstadt.stg.monto.message.Contents;
-import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
-import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
-import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.sink.DocumentSink;
 import de.tudarmstadt.stg.monto.sink.SinkDocumentProvider;
 
@@ -33,11 +25,8 @@ public class EditorContribution implements ILanguageActionsContributor {
 	public void contributeToEditorMenu(final UniversalEditor editor, final IMenuManager menuManager) {
 		final MenuManager openProduct = new MenuManager("Open Monto Product");
 		final Source source = new Source(getPath(editor.getEditorInput()));
-		final org.eclipse.imp.language.Language impLanguage = org.eclipse.imp.language.LanguageRegistry.findLanguage(editor.getEditorInput(), editor.getDocumentProvider());
-		final Language language = new Language(impLanguage.toString());
-		
+	
 		SinkConnection sinkConnection = Activator.getSinkConnection();
-		SourceConnection sourceConnection = Activator.getSourceConnection();
 		sinkConnection.availableProducts(source).forEach((product) -> {
 			final IEditorInput input = new ProductEditorInput(source, product);
 			
@@ -56,10 +45,6 @@ public class EditorContribution implements ILanguageActionsContributor {
 						final DocumentSink sink = (DocumentSink) sinkDocumentProvider.getDocument(input);
 						sinkConnection.addSink(sink);
 						sinkDocumentProvider.addDisconnectListener(() -> sinkConnection.removeSink(sink));
-						
-						final Contents contents = new StringContent(editor.getDocumentProvider().getDocument(editor.getEditorInput()).get());
-						final List<Selection> selections = new ArrayList<>();
-						sourceConnection.sendVersionMessage(source, language, contents, selections);
 						
 					} catch (Exception e) {
 						Activator.error(e);

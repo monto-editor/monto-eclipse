@@ -2,8 +2,6 @@ package de.tudarmstadt.stg.monto.java8;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.eclipse.jdt.ui.ISharedImages;
 
@@ -17,38 +15,35 @@ import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
-import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.outline.Outline;
 import de.tudarmstadt.stg.monto.outline.Outlines;
-import de.tudarmstadt.stg.monto.server.AbstractServer;
 import de.tudarmstadt.stg.monto.server.ProductMessageListener;
+import de.tudarmstadt.stg.monto.server.StatefullServer;
 
-public class JavaOutliner extends AbstractServer implements ProductMessageListener {
-	
-	private Set<Source> javaSources = new HashSet<>();
-	
-	public void onVersionMessage(VersionMessage message) {
-		if(message.getLanguage().equals(Languages.java))
-			javaSources.add(message.getSource());
+public class JavaOutliner extends StatefullServer implements ProductMessageListener {
+
+	@Override
+	protected boolean isRelevant(VersionMessage message) {
+		return message.getLanguage().equals(Languages.java);
 	}
+	
+	public void receiveVersionMessage(VersionMessage message) {}
 
 	@Override
 	public void onProductMessage(ProductMessage message) {
-		if(message.getProduct().equals(Products.ast) && javaSources.contains(message.getSource())) {
+		VersionMessage latest = getLatestVersionMessage(message.getSource());
+		if(message.getProduct().equals(Products.ast) && latest != null && message.getId().equals(latest.getId())) {
 			try {
 				NonTerminal root = (NonTerminal) ASTs.decode(message);
-				
-				// cannot create new outline if the AST is incomplete
-				if(!JavaParser.isComplete(root))
-					return;
 				
 				OutlineTrimmer trimmer = new OutlineTrimmer();
 				root.accept(trimmer);
 				
 				emitProductMessage(
 						new ProductMessage(
+								message.getId(),
 								message.getSource(), 
 								Products.outline, 
 								Languages.json,
@@ -77,14 +72,15 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 			switch(node.getName()) {
 				case "compilationUnit":
 					converted.push(new Outline("compilationUnit", node, null));
-					node.getChilds().forEach(child -> child.accept(this));
+					node.getChildren().forEach(child -> child.accept(this));
 					// compilation unit doesn't get poped from the stack
 					// to be available as a return value.
 					break;
 				
 				case "packageDeclaration":
-					AST packageIdentifier = node.getChilds().get(1);
-					converted.peek().addChild(new Outline("package",packageIdentifier,ISharedImages.IMG_OBJS_PACKDECL));
+					AST packageIdentifier = node.getChildren().get(1);
+					if(packageIdentifier instanceof Terminal)
+						converted.peek().addChild(new Outline("package",packageIdentifier,ISharedImages.IMG_OBJS_PACKDECL));
 					break;
 					
 				case "normalClassDeclaration":
@@ -101,7 +97,7 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 				
 				case "fieldDeclaration":
 					fieldDeclaration = true;
-					node.getChilds().forEach(child -> child.accept(this));
+					node.getChildren().forEach(child -> child.accept(this));
 					fieldDeclaration = false;
 				
 				case "variableDeclaratorId":
@@ -113,7 +109,7 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 					leaf(node, "method", ISharedImages.IMG_OBJS_PUBLIC);
 					
 				default:
-					node.getChilds().forEach(child -> child.accept(this));
+					node.getChildren().forEach(child -> child.accept(this));
 			}
 		}
 
@@ -123,25 +119,28 @@ public class JavaOutliner extends AbstractServer implements ProductMessageListen
 		}
 		
 		private void structureDeclaration(NonTerminal node, String name, String icon) {
-			Terminal structureIdent = (Terminal) node
-					.getChilds()
-					.stream()
-					.filter(ast -> ast instanceof Terminal)
-					.reduce((previous,current) -> current).get();
-			Outline structure = new Outline(name,structureIdent,icon);
-			converted.peek().addChild(structure);
-			converted.push(structure);
-			node.getChilds().forEach(child -> child.accept(this));
-			converted.pop();
+			node.getChildren()
+				.stream()
+				.filter(ast -> ast instanceof Terminal)
+				.limit(2)
+				.reduce((previous,current) -> current)
+				.ifPresent(ident -> {		
+					Outline structure = new Outline(name,ident,icon);
+					converted.peek().addChild(structure);
+					converted.push(structure);
+					node.getChildren().forEach(child -> child.accept(this));
+					converted.pop();
+				});
 		}
 		
 		private void leaf(NonTerminal node, String name, String icon) {
-			AST ident = node
-					.getChilds()
-					.stream()
-					.filter(ast -> ast instanceof Terminal)
-					.findFirst().get();
-			converted.peek().addChild(new Outline(name, ident, icon));
+			node.getChildren()
+				.stream()
+				.filter(ast -> ast instanceof Terminal)
+				.findFirst()
+				.ifPresent(ident -> {						
+					converted.peek().addChild(new Outline(name, ident, icon));
+				});
 		}
 	}
 

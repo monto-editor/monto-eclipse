@@ -12,6 +12,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.junit.Test;
 
 import de.tudarmstadt.stg.monto.message.Language;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
@@ -19,6 +20,8 @@ import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
 
 public class SinkTest {
+	
+	private LongKey id = new LongKey(0);
 	
 	@Test
 	public void testSinkUpdatesOnNewProductMessages() throws PartInitException {
@@ -50,7 +53,8 @@ public class SinkTest {
 	
 	private ProductMessage productMessage(Source source, Product product, String msg) {
 		Language language = new Language("Monto");
-		return new ProductMessage(source, product, language, new StringContent(msg));
+		id = id.freshId();
+		return new ProductMessage(id,source, product, language, new StringContent(msg));
 	}
 	
 	private SinkViewer openInEditor(IEditorInput input) throws PartInitException {

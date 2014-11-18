@@ -9,6 +9,7 @@ import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.ProductMessages;
 import de.tudarmstadt.stg.monto.message.ProductRegistry;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.server.ProductMessageListener;
@@ -24,11 +25,15 @@ public class SinkConnection {
 	}
 
 	public void addSink(ProductMessageListener sink) {
-		sinks.add(sink);
+		synchronized(sinks) {
+			sinks.add(sink);
+		}
 	}
 	
 	public void removeSink(ProductMessageListener sink) {
-		sinks.remove(sink);
+		synchronized(sinks) {
+			sinks.remove(sink);
+		}
 	}
 	
 	public void connect() throws Exception {
@@ -36,15 +41,17 @@ public class SinkConnection {
 	}
 	
 	public ProductMessage receiveProductMessage() throws ParseException {
-		return ProductMessage.decode(new StringReader(connection.receiveMessage()));
+		return ProductMessages.decode(new StringReader(connection.receiveMessage()));
 	}
 	
 	public void listening() throws Exception {
 		connection.listening(reader -> {
 			try {
-				ProductMessage message = ProductMessage.decode(reader);
+				ProductMessage message = ProductMessages.decode(reader);
 				availableProducts.registerProduct(message.getSource(), message.getProduct());
-				sinks.forEach(sink -> sink.onProductMessage(message));
+				synchronized(sinks) {
+					sinks.forEach(sink -> sink.onProductMessage(message));
+				}
 			} catch (Exception e) {
 				Activator.error(e);
 			}

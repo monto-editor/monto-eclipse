@@ -32,16 +32,17 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 		return message.getLanguage().equals(Languages.java);
 	}
 
+	@Override
+	protected void receiveVersionMessage(VersionMessage msg) {}
 	
 	@Override
 	public void onProductMessage(ProductMessage productMessage) {
-		VersionMessage versionMessage = getVersionMessage(productMessage.getSource());
+		VersionMessage versionMessage = getLatestVersionMessage(productMessage.getSource());
 		try {
 			if(versionMessage != null
 					&& productMessage.getProduct().equals(Products.ast)
+					&& versionMessage.getId().equals(productMessage.getId())
 					&& versionMessage.getSelections().size() > 0) {
-				
-				resetVersionMessage(productMessage.getSource());
 				
 				AST root = ASTs.decode(productMessage);
 				List<Completion> allcompletions = allCompletions(versionMessage.getContent(),root);
@@ -58,8 +59,10 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 							.map(comp -> new Completion(
 									comp.getDescription() + ": " + comp.getReplacement(),
 									comp.getReplacement().substring(toBeCompleted.length()),
+									versionMessage.getSelections().get(0).getStartOffset(),
 									comp.getIcon()));
 					emitProductMessage(new ProductMessage(
+							versionMessage.getId(),
 							versionMessage.getSource(),
 							Products.completions,
 							Languages.json,
@@ -93,7 +96,7 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 			switch(node.getName()) {
 				
 				case "packageDeclaration":
-					AST packageIdentifier = node.getChilds().get(1);
+					AST packageIdentifier = node.getChildren().get(1);
 					completions.add(new Completion(
 							"package",
 							content.extract(packageIdentifier).toString(),
@@ -114,7 +117,7 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 				
 				case "fieldDeclaration":
 					fieldDeclaration = true;
-					node.getChilds().forEach(child -> child.accept(this));
+					node.getChildren().forEach(child -> child.accept(this));
 					fieldDeclaration = false;
 				
 				case "variableDeclaratorId":
@@ -126,7 +129,7 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 					leaf(node, "method", ISharedImages.IMG_OBJS_PUBLIC);
 					
 				default:
-					node.getChilds().forEach(child -> child.accept(this));
+					node.getChildren().forEach(child -> child.accept(this));
 			}
 		}
 
@@ -137,17 +140,17 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 		
 		private void structureDeclaration(NonTerminal node, String name, String icon) {
 			Terminal structureIdent = (Terminal) node
-					.getChilds()
+					.getChildren()
 					.stream()
 					.filter(ast -> ast instanceof Terminal)
 					.reduce((previous,current) -> current).get();
 			completions.add(new Completion(name,content.extract(structureIdent).toString(),icon));
-			node.getChilds().forEach(child -> child.accept(this));
+			node.getChildren().forEach(child -> child.accept(this));
 		}
 		
 		private void leaf(NonTerminal node, String name, String icon) {
 			AST ident = node
-					.getChilds()
+					.getChildren()
 					.stream()
 					.filter(ast -> ast instanceof Terminal)
 					.findFirst().get();
@@ -179,7 +182,7 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 		public void visit(NonTerminal node) {
 			if(selection.inRange(node) || rightBehind(selection,node))
 				selectedPath.add(node);
-			node.getChilds()
+			node.getChildren()
 				.stream()
 				.filter(child -> selection.inRange(child) || rightBehind(selection,child))
 				.forEach(child -> child.accept(this));

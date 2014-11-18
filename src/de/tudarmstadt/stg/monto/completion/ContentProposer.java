@@ -1,4 +1,4 @@
-package de.tudarmstadt.stg.monto;
+package de.tudarmstadt.stg.monto.completion;
 
 import java.util.List;
 
@@ -10,7 +10,7 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 
-import de.tudarmstadt.stg.monto.completion.Completion;
+import de.tudarmstadt.stg.monto.MontoParseController;
 
 public class ContentProposer implements IContentProposer {
 
@@ -29,7 +29,7 @@ public class ContentProposer implements IContentProposer {
 			.stream()
 			.map(comp -> new CompletionProposal(
 					comp.getReplacement(),
-					offset,
+					comp.getInsertionOffset(),
 					0,
 					comp.getReplacement().length(),
 					images.getImage(comp.getIcon()),

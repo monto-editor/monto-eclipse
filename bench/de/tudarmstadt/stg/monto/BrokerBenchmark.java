@@ -8,6 +8,7 @@ import de.tudarmstadt.stg.monto.connection.Connection;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Language;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
@@ -39,9 +40,11 @@ public class BrokerBenchmark {
 	protected Process reverseServer;
 	protected SourceConnection sourceConnection;
 	protected SinkConnection sinkConnection;
+	protected static LongKey id = new LongKey(0);
 
 	protected static final VersionMessage message = 
 			new VersionMessage(
+					id,
 					new Source("lorem ipsum"),
 					new Language("text"),
 					new StringContent(loremIpsum));

@@ -4,9 +4,11 @@ import java.util.List;
 
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
+import de.tudarmstadt.stg.monto.message.VersionMessages;
 
 public class SourceConnection {
 	
@@ -20,13 +22,13 @@ public class SourceConnection {
 		connection.connect();
 	}
 
-	public void sendVersionMessage(Source source, Language language,
+	public void sendVersionMessage(LongKey id, Source source, Language language,
 			Contents contents, List<Selection> selections) throws Exception {
-		sendVersionMessage(new VersionMessage(source, language, contents, selections));
+		sendVersionMessage(new VersionMessage(id,source, language, contents, selections));
 	}
 	
 	public void sendVersionMessage(VersionMessage message) throws Exception {
-		connection.sendMessage(VersionMessage.encode(message).toJSONString());
+		connection.sendMessage(VersionMessages.encode(message).toJSONString());
 	}
 	
 	public void close() throws Exception {

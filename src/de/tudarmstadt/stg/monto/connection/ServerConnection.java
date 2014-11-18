@@ -5,8 +5,10 @@ import java.util.List;
 
 import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
+import de.tudarmstadt.stg.monto.message.ProductMessages;
 import de.tudarmstadt.stg.monto.message.Server;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
+import de.tudarmstadt.stg.monto.message.VersionMessages;
 import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
 public class ServerConnection implements ProductMessageListener {
@@ -39,7 +41,7 @@ public class ServerConnection implements ProductMessageListener {
 		incomming.listening(reader -> {
 			VersionMessage versionMessage;
 			try {
-				versionMessage = VersionMessage.decode(reader);
+				versionMessage = VersionMessages.decode(reader);
 			} catch (Exception e) {
 				Activator.error(e);
 				return;
@@ -53,7 +55,7 @@ public class ServerConnection implements ProductMessageListener {
 	@Override
 	public void onProductMessage(ProductMessage message) {
 		try {
-			outgoing.sendMessage(ProductMessage.encode(message).toJSONString());
+			outgoing.sendMessage(ProductMessages.encode(message).toJSONString());
 		} catch (Exception e) {
 			Activator.debug("Could not send product message: %s,%s", message, e);
 		}

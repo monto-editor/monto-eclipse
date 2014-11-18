@@ -17,7 +17,7 @@ public class ProductMessageTest {
 			+ "  \"language\" : \"number\",\n"
 			+ "  \"contents\" : \"18\"\n"
 			+ "}";
-		ProductMessage message = ProductMessage.decode(new StringReader(json));
+		ProductMessage message = ProductMessages.decode(new StringReader(json));
 		assertEquals("file.txt", message.getSource().toString());
 		assertEquals("length",   message.getProduct().toString());
 		assertEquals("number",   message.getLanguage().toString());

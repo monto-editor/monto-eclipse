@@ -69,7 +69,7 @@ public class ASTs {
 		public void visit(NonTerminal node) {
 			JSONArray jsonNode = new JSONArray();
 			jsonNode.add(node.getName());
-			for(AST child : node.getChilds()) {
+			for(AST child : node.getChildren()) {
 				child.accept(this);
 				jsonNode.add(encoding);
 			}

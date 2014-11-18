@@ -23,6 +23,7 @@ public class Completions {
 				completions.add(new Completion(
 						(String) encoding.get("description"),
 						(String) encoding.get("replacement"),
+						((Long)  encoding.get("insertionOffset")).intValue(),
 						(String) encoding.get("icon")));
 			}
 			return completions;
@@ -46,6 +47,7 @@ public class Completions {
 		JSONObject object = new JSONObject();
 		object.put("description", completion.getDescription());
 		object.put("replacement", completion.getReplacement());
+		object.put("insertionOffset", completion.getInsertionOffset());
 		object.put("icon", completion.getIcon());
 		return object;
 	}

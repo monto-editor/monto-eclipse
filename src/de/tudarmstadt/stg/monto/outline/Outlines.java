@@ -22,9 +22,9 @@ public class Outlines {
 		encoding.put("identifier", Regions.encode(outline.getIdentifier()));
 		
 		if(! outline.isLeaf()) {
-			JSONArray childs = new JSONArray();
-			outline.getChilds().forEach(child -> childs.add(encode(child)));
-			encoding.put("childs", childs);
+			JSONArray children = new JSONArray();
+			outline.getChildren().forEach(child -> children.add(encode(child)));
+			encoding.put("children", children);
 		}
 		
 		if(outline.getIcon().isPresent()) {
@@ -53,13 +53,13 @@ public class Outlines {
 				icon = (String) encoding.get("icon");
 			}
 			
-			List<Outline> childs = new ArrayList<>();
-			if(encoding.containsKey("childs")) {
-				for(Object child : (JSONArray) encoding.get("childs"))
-					childs.add(decode((JSONObject)child));
+			List<Outline> children = new ArrayList<>();
+			if(encoding.containsKey("children")) {
+				for(Object child : (JSONArray) encoding.get("children"))
+					children.add(decode((JSONObject)child));
 			}
 			
-			return new Outline(description, identifier, icon, childs);
+			return new Outline(description, identifier, icon, children);
 			
 		} catch(Exception e) {
 			throw new ParseException(e);

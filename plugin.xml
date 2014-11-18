@@ -746,7 +746,7 @@
    <extension
          point="org.eclipse.imp.runtime.contentProposer">
       <proposer
-            class="de.tudarmstadt.stg.monto.ContentProposer"
+            class="de.tudarmstadt.stg.monto.completion.ContentProposer"
             language="Monto">
       </proposer>
    </extension>

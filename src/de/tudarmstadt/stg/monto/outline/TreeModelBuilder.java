@@ -13,7 +13,7 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 		if(result == null || result.getOutline() == null)
 			return;
 		
-		result.getOutline().getChilds().forEach(child -> buildOutline(child, result.getDocument()));
+		result.getOutline().getChildren().forEach(child -> buildOutline(child, result.getDocument()));
 	}
 	
 	private void buildOutline(Outline out,String document) {
@@ -21,7 +21,7 @@ public class TreeModelBuilder extends TreeModelBuilderBase {
 			createSubItem(new OutlineLabel(out, document));
 		} else {
 			pushSubItem(new OutlineLabel(out, document));
-			out.getChilds().forEach(child ->
+			out.getChildren().forEach(child ->
 					buildOutline(child, document));
 			popSubItem();
 		}
