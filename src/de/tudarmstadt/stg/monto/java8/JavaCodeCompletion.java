@@ -49,7 +49,6 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 				
 				AST root = ASTs.decode(productMessage);
 				List<Completion> allcompletions = allCompletions(versionMessage.getContent(),root);
-				
 				List<AST> selectedPath = selectedPath(root, versionMessage.getSelections().get(0));
 				
 				if(selectedPath.size() > 0 && last(selectedPath) instanceof Terminal) {
@@ -208,7 +207,11 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 		}
 		
 		private static boolean rightBehind(IRegion region1, IRegion region2) {
-			return region1.getStartOffset() == region2.getEndOffset();
+			try {
+				return region1.getStartOffset() == region2.getEndOffset();
+			} catch(Exception e) {
+				return false;
+			}
 		}
 	}
 

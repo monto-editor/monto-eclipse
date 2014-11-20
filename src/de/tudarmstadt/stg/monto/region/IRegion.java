@@ -16,8 +16,13 @@ public interface IRegion {
 	 * a.inRange(b) tests if a is in range of b.
 	 */
 	public default boolean inRange(IRegion whole) {
-		return this.getStartOffset() >= whole.getStartOffset()
-		    && this.getEndOffset() <= whole.getEndOffset();
+		try {
+			return this.getStartOffset() >= whole.getStartOffset()
+			    && this.getEndOffset() <= whole.getEndOffset();
+		} catch(Exception e) {
+			return false;
+		}
+
 	}
 	
 	/**

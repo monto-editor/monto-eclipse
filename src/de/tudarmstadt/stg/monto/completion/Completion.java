@@ -31,4 +31,9 @@ public class Completion {
 	public int getInsertionOffset() {
 		return insertionOffset;
 	}
+
+	@Override
+	public String toString() {
+		return String.format("%s", description);
+	}
 }

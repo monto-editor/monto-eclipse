@@ -41,11 +41,15 @@ public class NonTerminal implements AST {
 
 	@Override
 	public int getStartOffset() {
+		if(children.size() == 0)
+			throw new HasNoChildrenException(name);
 		return children.get(0).getStartOffset();
 	}
 	
 	@Override
 	public int getEndOffset() {
+		if(children.size() == 0)
+			throw new HasNoChildrenException(name);
 		return children.get(children.size()-1).getEndOffset();
 	}
 	
