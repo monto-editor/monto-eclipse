@@ -1,5 +1,11 @@
 package de.tudarmstadt.stg.monto;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -15,6 +21,7 @@ import de.tudarmstadt.stg.monto.java8.JavaOutliner;
 import de.tudarmstadt.stg.monto.java8.JavaParser;
 import de.tudarmstadt.stg.monto.java8.JavaTokenizer;
 import de.tudarmstadt.stg.monto.json.JsonPrettyPrinter;
+import de.tudarmstadt.stg.monto.profiling.Profiler;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -30,6 +37,7 @@ public class Activator extends AbstractUIPlugin {
 	private SourceConnection sourceConnection;
 	private ServerConnection serverConnection;
 	private SinkConnection sinkConnection;
+	private Profiler profiler;
 
 	/*
 	 * (non-Javadoc)
@@ -38,6 +46,9 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext bundle) throws Exception {
 		super.start(bundle);
 		plugin = this;
+		
+		String profFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-kk-mm-ss.csv"));
+		profiler = new Profiler(new PrintWriter(new BufferedWriter(new FileWriter(profFile))));
 		
 		Context context = ZMQ.context(1);
 		sourceConnection = Connection.createSourceConnection(context);
@@ -76,6 +87,8 @@ public class Activator extends AbstractUIPlugin {
 		sourceConnection.close();
 		serverConnection.close();
 		sinkConnection.close();
+
+		profiler.close();
 		
 		plugin = null;
 		super.stop(bundle);
@@ -95,6 +108,10 @@ public class Activator extends AbstractUIPlugin {
 
 	public static SinkConnection getSinkConnection() {
 		return getDefault().sinkConnection;
+	}
+	
+	public static Profiler getProfiler() {
+		return getDefault().profiler;
 	}
 	
 	public static void debug(String msg, Object ... formatArgs) {

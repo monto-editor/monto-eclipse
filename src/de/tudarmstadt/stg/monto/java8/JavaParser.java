@@ -13,11 +13,13 @@ import org.antlr.v4.runtime.tree.ParseTreeListener;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.ast.AST;
 import de.tudarmstadt.stg.monto.ast.ASTVisitor;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
+import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
@@ -33,7 +35,10 @@ public class JavaParser extends AbstractServer {
 	
 	@Override
 	public void receiveVersionMessage(VersionMessage message) {
+		
 		try {
+			Activator.getProfiler().start(JavaParser.class, "onVersionMessage", message);
+
 			Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(message.getContent().getReader()));
 			CommonTokenStream tokens = new CommonTokenStream(lexer);
 			Java8Parser parser = new Java8Parser(tokens);
@@ -43,13 +48,17 @@ public class JavaParser extends AbstractServer {
 			Converter converter = new Converter();
 			walker.walk(converter, root);
 			
+			Contents content = ASTs.encode(converter.getRoot());
+			
+			Activator.getProfiler().end(JavaParser.class, "onVersionMessage", message);
+			
 			emitProductMessage(
 					new ProductMessage(
 							message.getId(),
 							message.getSource(), 
 							Products.ast, 
-							Languages.json, 
-							ASTs.encode(converter.getRoot())));
+							Languages.json,
+							content));
 			
 		} catch (Exception e) {
 			

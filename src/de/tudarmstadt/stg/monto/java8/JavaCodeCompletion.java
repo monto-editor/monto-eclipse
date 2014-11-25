@@ -45,6 +45,8 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 					&& versionMessage.getId().equals(productMessage.getId())
 					&& versionMessage.getSelections().size() > 0) {
 				
+				Activator.getProfiler().start(JavaCodeCompletion.class, "onVersionMessage", productMessage);
+				
 				AST root = ASTs.decode(productMessage);
 				List<Completion> allcompletions = allCompletions(versionMessage.getContent(),root);
 				
@@ -62,12 +64,18 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 									comp.getReplacement().substring(toBeCompleted.length()),
 									versionMessage.getSelections().get(0).getStartOffset(),
 									comp.getIcon()));
+					
+					Contents content = new StringContent(Completions.encode(relevant).toJSONString());
+					
+					Activator.getProfiler().end(JavaCodeCompletion.class, "onVersionMessage", productMessage);
+					
 					emitProductMessage(new ProductMessage(
 							versionMessage.getId(),
 							versionMessage.getSource(),
 							Products.completions,
 							Languages.json,
-							new StringContent(Completions.encode(relevant).toJSONString())));
+							content
+							));
 				}
 			
 			}

@@ -11,6 +11,7 @@ import de.tudarmstadt.stg.monto.ast.ASTVisitor;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
+import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
@@ -36,11 +37,18 @@ public class JavaOutliner extends StatefullServer implements ProductMessageListe
 		VersionMessage latest = getLatestVersionMessage(message.getSource());
 		if(message.getLanguage().equals(Languages.json)
 	    && message.getProduct().equals(Products.ast) && latest != null && message.getId().equals(latest.getId())) {
+			
+			
 			try {
+				Activator.getProfiler().start(JavaOutliner.class, "onVersionMessage", message);
+
 				NonTerminal root = (NonTerminal) ASTs.decode(message);
 				
 				OutlineTrimmer trimmer = new OutlineTrimmer();
 				root.accept(trimmer);
+				Contents content = new StringContent(Outlines.encode(trimmer.getConverted()).toJSONString());
+				
+				Activator.getProfiler().end(JavaOutliner.class, "onVersionMessage", message);
 				
 				emitProductMessage(
 						new ProductMessage(
@@ -48,8 +56,7 @@ public class JavaOutliner extends StatefullServer implements ProductMessageListe
 								message.getSource(), 
 								Products.outline, 
 								Languages.json,
-								new StringContent(Outlines.encode(trimmer.getConverted()).toJSONString())
-								));
+								content));
 			} catch (ParseException e) {
 				Activator.error(e);
 			}

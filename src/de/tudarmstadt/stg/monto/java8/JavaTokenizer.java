@@ -5,9 +5,11 @@ import java.util.stream.Collectors;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 
+import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.color.Category;
 import de.tudarmstadt.stg.monto.color.Token;
 import de.tudarmstadt.stg.monto.color.Tokens;
+import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
@@ -24,16 +26,23 @@ public class JavaTokenizer extends AbstractServer {
 	
 	@Override
 	public void receiveVersionMessage(VersionMessage msg) {
+		
+		Activator.getProfiler().start(JavaTokenizer.class, "onVersionMessage", msg);
+		
 		try {
 			Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
 			List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
+			Contents contents = new StringContent(Tokens.encode(tokens).toJSONString());
+			
+			Activator.getProfiler().end(JavaTokenizer.class, "onVersionMessage", msg);
+			
 			emitProductMessage(
 					new ProductMessage(
 							msg.getId(),
 							msg.getSource(),
 							Products.tokens,
 							Languages.json,
-							new StringContent(Tokens.encode(tokens).toJSONString())));
+							contents));
 			
 		} catch (Exception e) {
 			

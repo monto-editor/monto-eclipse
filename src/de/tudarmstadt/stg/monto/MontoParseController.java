@@ -155,6 +155,8 @@ public class MontoParseController extends ParseControllerBase {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Iterator getTokenIterator(final IRegion region) {
+		Activator.getProfiler().start(MontoParseController.class, "getTokenIterator", tokensFuture.getVersionMessage());
+
 		synchronized(tokensLock) {
 			if(tokens == null) {
 				try {
@@ -169,13 +171,18 @@ public class MontoParseController extends ParseControllerBase {
 				}
 			}
 	
-			return tokens.stream()
+			Iterator iterator = tokens.stream()
 				.filter((token) -> token.inRange(new Region(region)))
 				.iterator();
+			
+			Activator.getProfiler().end(MontoParseController.class, "getTokenIterator", tokensFuture.getVersionMessage());
+			return iterator;
 		}
 	}
 	
 	public List<Completion> getCompletions() {
+		Activator.getProfiler().start(MontoParseController.class, "getCompletions", completionsFuture.getVersionMessage());
+		
 		synchronized(completionsLock) {
 		
 			if(completions == null) {
@@ -191,13 +198,16 @@ public class MontoParseController extends ParseControllerBase {
 					return new ArrayList<>();
 				}
 			}
-	
+
+			Activator.getProfiler().end(MontoParseController.class, "getCompletions", completionsFuture.getVersionMessage());
 			return completions;
 		}
 	}
 	
 	@Override
 	public Object getCurrentAst() {
+		Activator.getProfiler().start(MontoParseController.class, "getCurrentAst", outlineFuture.getVersionMessage());
+		
 		synchronized(outlineLock) {
 		
 			if(outline == null) {
@@ -214,6 +224,7 @@ public class MontoParseController extends ParseControllerBase {
 				}
 			}
 
+			Activator.getProfiler().end(MontoParseController.class, "getCurrentAst", outlineFuture.getVersionMessage());
 			return new ParseResult(outline,outlineFuture.getVersionMessage().getContent().toString());
 		}
 	}
