@@ -9,11 +9,14 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
+import de.tudarmstadt.stg.monto.Activator;
+
 public class VersionMessages {
 
 	@SuppressWarnings("unchecked")
 	public static VersionMessage decode(Reader reader) throws ParseException {
 		try {
+			long start = System.nanoTime();
 			JSONObject message = (JSONObject) JSONValue.parse(reader);
 			Long id = (Long) message.get("id");
 			Source source = new Source((String) message.get("source"));
@@ -28,7 +31,10 @@ public class VersionMessages {
 				Long end = (Long) selection.get("end");
 				selections.add(new Selection(begin.intValue(), end.intValue() - begin.intValue()));
 			}
-			return new VersionMessage(new LongKey(id), source, language, contents, selections);
+			VersionMessage msg = new VersionMessage(new LongKey(id), source, language, contents, selections);
+			Activator.getProfiler().start(VersionMessage.class, "decode", msg, start);
+			Activator.getProfiler().end(VersionMessage.class, "decode", msg);
+			return msg;
 		} catch (Exception e) {
 			throw new ParseException(e);
 		}
@@ -36,6 +42,7 @@ public class VersionMessages {
 
 	@SuppressWarnings("unchecked")
 	public static JSONObject encode(VersionMessage message) {
+		Activator.getProfiler().start(VersionMessage.class, "encode", message);
 		JSONObject version = new JSONObject();
 		version.put("id", message.getId().longValue());
 		version.put("source", message.getSource().toString());
@@ -49,6 +56,7 @@ public class VersionMessages {
 			selections.add(sel);
 		}
 		version.put("selections", selections);
+		Activator.getProfiler().end(VersionMessage.class, "encode", message);
 		return version;
 	}
 

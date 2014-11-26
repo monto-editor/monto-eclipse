@@ -13,23 +13,41 @@ public class Profiler implements AutoCloseable {
 	}
 	
 	public void start(Class<?> klass, String method, Message message) {
-		writer.format("start,%s,%s,%s,%d,%d",
-				klass,
+		writer.format("start,%s,%s,%s,%d,%d\n",
+				klass.getSimpleName(),
 				method,
 				message.getSource(),
 				message.getId().longValue(),
 				System.nanoTime());
 	}
 	
+	public void start(Class<?> klass, String method, Message message, long time) {
+		writer.format("start,%s,%s,%s,%d,%d\n",
+				klass.getSimpleName(),
+				method,
+				message.getSource(),
+				message.getId().longValue(),
+				time);
+	}
+	
 	public void end(Class<?> klass, String method, Message message) {
-		writer.format("end,%s,%s,%s,%d,%d",
-				klass,
+		writer.format("end,%s,%s,%s,%d,%d\n",
+				klass.getSimpleName(),
 				method,
 				message.getSource(),
 				message.getId().longValue(),
 				System.nanoTime());
 	}
-
+	
+	public void end(Class<?> klass, String method, Message message, long time) {
+		writer.format("end,%s,%s,%s,%d,%d\n",
+				klass.getSimpleName(),
+				method,
+				message.getSource(),
+				message.getId().longValue(),
+				time);
+	}
+	
 	@Override
 	public void close() throws Exception {
 		writer.close();

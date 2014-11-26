@@ -47,7 +47,7 @@ public class Activator extends AbstractUIPlugin {
 		super.start(bundle);
 		plugin = this;
 		
-		String profFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-kk-mm-ss.csv"));
+		String profFile = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd-kk-mm-ss"))+".csv";
 		profiler = new Profiler(new PrintWriter(new BufferedWriter(new FileWriter(profFile))));
 		
 		Context context = ZMQ.context(1);
