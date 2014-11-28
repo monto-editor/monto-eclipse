@@ -32,7 +32,7 @@ classes <- unique(df2$class)
 
 plotClass <- function(df,class) {
 	sub <- rm.outlier(df[df$class == class,]$delta)
-	qplot(sub / 1e3) +
+	qplot(sub / 1e6) +
 		xlab('latency (ms)') +
 		ylab('count') +
 		ggtitle(class) +
@@ -42,7 +42,7 @@ plotClass <- function(df,class) {
 plotClassMethod <- function(df,class,method) {
 	df <- df[df$class == class,]
 	sub <- rm.outlier(df[df$method == method,]$delta)
-	qplot(sub / 1e3) +
+	qplot(sub / 1e6) +
 		xlab('latency (ms)') +
 		ylab('count') +
 		ggtitle(paste(class,method)) +

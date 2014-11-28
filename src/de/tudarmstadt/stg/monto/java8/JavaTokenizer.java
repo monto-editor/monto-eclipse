@@ -18,7 +18,9 @@ import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaTokenizer extends AbstractServer {
-
+	
+	Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream());
+	
 	@Override
 	protected boolean isRelveant(VersionMessage message) {
 		return message.getLanguage().equals(Languages.java);
@@ -30,7 +32,7 @@ public class JavaTokenizer extends AbstractServer {
 		Activator.getProfiler().start(JavaTokenizer.class, "onVersionMessage", msg);
 		
 		try {
-			Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(msg.getContent().getReader()));
+			lexer.setInputStream(new ANTLRInputStream(msg.getContent().getReader()));
 			List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
 			Contents contents = new StringContent(Tokens.encode(tokens).toJSONString());
 			

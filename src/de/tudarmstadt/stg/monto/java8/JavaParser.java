@@ -15,7 +15,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.ast.AST;
-import de.tudarmstadt.stg.monto.ast.ASTVisitor;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
@@ -27,7 +26,10 @@ import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaParser extends AbstractServer {
-
+	Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream());
+	CommonTokenStream tokens = new CommonTokenStream(lexer);
+	Java8Parser parser = new Java8Parser(tokens);
+	
 	@Override
 	protected boolean isRelveant(VersionMessage message) {
 		return message.getLanguage().equals(Languages.java);
@@ -39,9 +41,9 @@ public class JavaParser extends AbstractServer {
 		try {
 			Activator.getProfiler().start(JavaParser.class, "onVersionMessage", message);
 
-			Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream(message.getContent().getReader()));
+			lexer.setInputStream(new ANTLRInputStream(message.getContent().getReader()));
 			CommonTokenStream tokens = new CommonTokenStream(lexer);
-			Java8Parser parser = new Java8Parser(tokens);
+			parser.setTokenStream(tokens);
 			ParserRuleContext root = parser.compilationUnit();
 			ParseTreeWalker walker = new ParseTreeWalker();
 
@@ -118,26 +120,26 @@ public class JavaParser extends AbstractServer {
 	 * The complexity of this method is O(n) where n is the number of elements
 	 * in the AST.
 	 */
-	public static boolean isComplete(AST node) {
-		Complete isComplete = new Complete();
-		node.accept(isComplete);
-		return isComplete.complete;
-	}
-	
-	private static class Complete implements ASTVisitor {
-
-		public boolean complete = true;
-
-		@Override
-		public void visit(NonTerminal node) {
-			if(node.getName().equals("error"))
-				complete = false;
-			for(AST child : node.getChildren())
-				child.accept(this);
-		}
-
-		@Override
-		public void visit(Terminal token) {}
-		
-	}
+//	public static boolean isComplete(AST node) {
+//		Complete isComplete = new Complete();
+//		node.accept(isComplete);
+//		return isComplete.complete;
+//	}
+//	
+//	private static class Complete implements ASTVisitor {
+//
+//		public boolean complete = true;
+//
+//		@Override
+//		public void visit(NonTerminal node) {
+//			if(node.getName().equals("error"))
+//				complete = false;
+//			for(AST child : node.getChildren())
+//				child.accept(this);
+//		}
+//
+//		@Override
+//		public void visit(Terminal token) {}
+//		
+//	}
 }

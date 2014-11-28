@@ -112,7 +112,9 @@ public class MontoParseController extends ParseControllerBase {
 		}
 		
 		try {
-			sourceConnection.sendVersionMessage(transactionId,source,language,contents,selections);
+			VersionMessage message = new VersionMessage(transactionId,source,language,contents,selections);
+			Activator.getProfiler().start(MontoParseController.class, "version", message);
+			sourceConnection.sendVersionMessage(message);
 		} catch (Exception e) {
 			Activator.error(e);
 		}
@@ -155,7 +157,6 @@ public class MontoParseController extends ParseControllerBase {
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Iterator getTokenIterator(final IRegion region) {
-		Activator.getProfiler().start(MontoParseController.class, "getTokenIterator", tokensFuture.getVersionMessage());
 
 		synchronized(tokensLock) {
 			if(tokens == null) {
@@ -174,14 +175,11 @@ public class MontoParseController extends ParseControllerBase {
 			Iterator iterator = tokens.stream()
 				.filter((token) -> token.inRange(new Region(region)))
 				.iterator();
-			
-			Activator.getProfiler().end(MontoParseController.class, "getTokenIterator", tokensFuture.getVersionMessage());
 			return iterator;
 		}
 	}
 	
 	public List<Completion> getCompletions() {
-		Activator.getProfiler().start(MontoParseController.class, "getCompletions", completionsFuture.getVersionMessage());
 		
 		synchronized(completionsLock) {
 		
@@ -199,14 +197,12 @@ public class MontoParseController extends ParseControllerBase {
 				}
 			}
 
-			Activator.getProfiler().end(MontoParseController.class, "getCompletions", completionsFuture.getVersionMessage());
 			return completions;
 		}
 	}
 	
 	@Override
 	public Object getCurrentAst() {
-		Activator.getProfiler().start(MontoParseController.class, "getCurrentAst", outlineFuture.getVersionMessage());
 		
 		synchronized(outlineLock) {
 		
@@ -224,7 +220,6 @@ public class MontoParseController extends ParseControllerBase {
 				}
 			}
 
-			Activator.getProfiler().end(MontoParseController.class, "getCurrentAst", outlineFuture.getVersionMessage());
 			return new ParseResult(outline,outlineFuture.getVersionMessage().getContent().toString());
 		}
 	}
@@ -302,6 +297,7 @@ public class MontoParseController extends ParseControllerBase {
 			try {
 				if(relevant.test(message)) {
 					reply.put(message);
+					Activator.getProfiler().end(MontoParseController.class, "product_"+message.getProduct(), message);
 					state = State.DONE;
 				}
 			} catch (InterruptedException e) {}
