@@ -1,6 +1,7 @@
 package de.tudarmstadt.stg.monto.server;
 
 import de.tudarmstadt.stg.monto.message.Contents;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
@@ -16,7 +17,8 @@ public class LineSplitter extends AbstractServer {
 		
 		emitProductMessage(
 				new ProductMessage(
-						version.getId(), 
+						version.getVersionId(),
+						new LongKey(1),
 						version.getSource(), 
 						product, 
 						version.getLanguage(),

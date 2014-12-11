@@ -13,7 +13,10 @@ import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
+import de.tudarmstadt.stg.monto.message.LongKey;
+import de.tudarmstadt.stg.monto.message.Message;
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.ProductDependency;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.StringContent;
@@ -29,20 +32,23 @@ public class JavaOutliner extends StatefullServer implements ProductMessageListe
 	protected boolean isRelevant(VersionMessage message) {
 		return message.getLanguage().equals(Languages.java);
 	}
-	
-	public void receiveVersionMessage(VersionMessage message) {}
 
 	@Override
-	public void onProductMessage(ProductMessage message) {
-		VersionMessage latest = getLatestVersionMessage(message.getSource());
-		if(message.getLanguage().equals(Languages.json)
-	    && message.getProduct().equals(Products.ast) && latest != null && message.getId().equals(latest.getId())) {
+	protected boolean isRelevant(ProductMessage message) {
+		return message.getLanguage().equals(Languages.json)
+				&& message.getProduct().equals(Products.ast);
+	}
+	
+	@Override
+	public void onMessage(Message message) {
+		VersionMessage javaFile = getVersionMessage(message.getSource(), Languages.java);
+		ProductMessage ast = getProductMessage(message.getSource(), Languages.json, Products.ast);
 			
-			
+		if(javaFile != null && ast != null) {
 			try {
 				Activator.getProfiler().start(JavaOutliner.class, "onVersionMessage", message);
 
-				NonTerminal root = (NonTerminal) ASTs.decode(message);
+				NonTerminal root = (NonTerminal) ASTs.decode(ast);
 				
 				OutlineTrimmer trimmer = new OutlineTrimmer();
 				root.accept(trimmer);
@@ -52,11 +58,13 @@ public class JavaOutliner extends StatefullServer implements ProductMessageListe
 				
 				emitProductMessage(
 						new ProductMessage(
-								message.getId(),
+								message.getVersionId(),
+								new LongKey(1),
 								message.getSource(), 
 								Products.outline, 
 								Languages.json,
-								content));
+								content,
+								new ProductDependency(ast)));
 			} catch (ParseException e) {
 				Activator.error(e);
 			}

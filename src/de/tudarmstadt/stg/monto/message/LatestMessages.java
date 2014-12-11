@@ -11,7 +11,7 @@ public class LatestMessages<M extends Message> {
 		synchronized(messages) {
 			messages.putIfAbsent(message.getSource(), message);
 			M latest = messages.get(message.getSource());
-			if(message.getId().newerThan(latest.getId())) {
+			if(message.getVersionId().newerThan(latest.getVersionId())) {
 				messages.put(message.getSource(), message);
 				return new Newer<M>(message);
 			} else {

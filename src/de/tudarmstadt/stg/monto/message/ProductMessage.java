@@ -1,30 +1,49 @@
 package de.tudarmstadt.stg.monto.message;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 
 public class ProductMessage implements Message {
 	
-	private LongKey id;
-	private Source source;
-	private Product product;
-	private Language language;
-	private Contents contents;
+	private final LongKey versionId;
+	private final LongKey productId;
+	private final Source source;
+	private final Product product;
+	private final Language language;
+	private final Contents contents;
+	private final List<Dependency> invalid;
+	private final List<Dependency> dependencies;
 	
-	public ProductMessage(LongKey id,Source source, Product product, Language language, Contents contents) {
-		this.id = id;
+	public ProductMessage(LongKey versionId, LongKey productId, Source source, Product product, Language language, Contents contents, Dependency... dependencies) {
+		this(versionId,productId,source,product,language,contents,new ArrayList<>(),Arrays.asList(dependencies));
+	}
+
+	public ProductMessage(LongKey versionId, LongKey productId, Source source, Product product, Language language, Contents contents, List<Dependency> invalid2, List<Dependency> dependencies) {
+		this.versionId = versionId;
+		this.productId= productId;
 		this.source = source;
 		this.product = product;
 		this.language = language;
 		this.contents = contents;
+		this.invalid = invalid2;
+		this.dependencies = dependencies;
 	}
 	
-	public LongKey getId() { return id; }
+	public LongKey getVersionId() { return versionId; }
+	public LongKey getProductId() { return productId; }
 	public Source getSource() { return source; }
 	public Product getProduct() { return product; }
 	public Language getLanguage() { return language; }
 	public Contents getContents() { return contents; }
+	@Override public List<Dependency> getInvalid() { return invalid; }
+	public List<Dependency> getDependencies() { return dependencies; }
 	
 	@Override
 	public String toString() {
 		return String.format("{ source: %s, product: %s, language: %s, contents: %s }", source, product, language, contents);
 	}
+
+
 }

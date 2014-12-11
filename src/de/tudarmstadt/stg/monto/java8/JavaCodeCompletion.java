@@ -16,6 +16,9 @@ import de.tudarmstadt.stg.monto.completion.Completion;
 import de.tudarmstadt.stg.monto.completion.Completions;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
+import de.tudarmstadt.stg.monto.message.LongKey;
+import de.tudarmstadt.stg.monto.message.Message;
+import de.tudarmstadt.stg.monto.message.ProductDependency;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.Selection;
@@ -31,29 +34,29 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 	protected boolean isRelevant(VersionMessage message) {
 		return message.getLanguage().equals(Languages.java);
 	}
-
-	@Override
-	protected void receiveVersionMessage(VersionMessage msg) {}
 	
 	@Override
-	public void onProductMessage(ProductMessage productMessage) {
-		VersionMessage versionMessage = getLatestVersionMessage(productMessage.getSource());
-		try {
-			if(versionMessage != null
-					&& productMessage.getLanguage().equals(Languages.json)
-					&& productMessage.getProduct().equals(Products.ast)
-					&& versionMessage.getId().equals(productMessage.getId())
-					&& versionMessage.getSelections().size() > 0) {
+	protected boolean isRelevant(ProductMessage message) {
+		return message.getLanguage().equals(Languages.json)
+				&& message.getProduct().equals(Products.ast);
+	}
+	
+	@Override
+	public void onMessage(Message message) {
+		VersionMessage javaFile = getVersionMessage(message.getSource(), Languages.java);
+		ProductMessage ast = getProductMessage(message.getSource(), Languages.json, Products.ast);
+		
+		if(javaFile != null && ast != null && javaFile.getSelections().size() > 0) {
+			try {
+				Activator.getProfiler().start(JavaCodeCompletion.class, "onVersionMessage", message);
 				
-				Activator.getProfiler().start(JavaCodeCompletion.class, "onVersionMessage", productMessage);
-				
-				AST root = ASTs.decode(productMessage);
-				List<Completion> allcompletions = allCompletions(versionMessage.getContent(),root);
-				List<AST> selectedPath = selectedPath(root, versionMessage.getSelections().get(0));
+				AST root = ASTs.decode(ast);
+				List<Completion> allcompletions = allCompletions(javaFile.getContent(),root);
+				List<AST> selectedPath = selectedPath(root, javaFile.getSelections().get(0));
 				
 				if(selectedPath.size() > 0 && last(selectedPath) instanceof Terminal) {
 					Terminal terminalToBeCompleted = (Terminal) last(selectedPath);
-					String toBeCompleted = versionMessage.getContent().extract(terminalToBeCompleted).toString();
+					String toBeCompleted = javaFile.getContent().extract(terminalToBeCompleted).toString();
 					Stream<Completion> relevant = 
 							allcompletions
 							.stream()
@@ -61,25 +64,26 @@ public class JavaCodeCompletion extends StatefullServer implements ProductMessag
 							.map(comp -> new Completion(
 									comp.getDescription() + ": " + comp.getReplacement(),
 									comp.getReplacement().substring(toBeCompleted.length()),
-									versionMessage.getSelections().get(0).getStartOffset(),
+									javaFile.getSelections().get(0).getStartOffset(),
 									comp.getIcon()));
 					
 					Contents content = new StringContent(Completions.encode(relevant).toJSONString());
 					
-					Activator.getProfiler().end(JavaCodeCompletion.class, "onVersionMessage", productMessage);
+					Activator.getProfiler().end(JavaCodeCompletion.class, "onVersionMessage", message);
 					
 					emitProductMessage(new ProductMessage(
-							versionMessage.getId(),
-							versionMessage.getSource(),
+							message.getVersionId(),
+							new LongKey(1),
+							message.getSource(),
 							Products.completions,
 							Languages.json,
-							content
+							content,
+							new ProductDependency(ast)
 							));
 				}
-			
-			}
-		} catch (Exception e) {
-			Activator.error(e);
+			} catch (Exception e) {
+				Activator.error(e);
+			}	
 		}
 	}
 	

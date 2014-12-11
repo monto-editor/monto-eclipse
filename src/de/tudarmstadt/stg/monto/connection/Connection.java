@@ -29,7 +29,7 @@ public class Connection {
 			String fromSource = getOrDefault(
 					connectionInfo,
 					"from_sources",
-					"tcp://127.0.0.1:8000");
+					"tcp://127.0.0.1:5000");
 			return new SourceConnection(new OutgoingConnection(context, fromSource));
 		} catch (Exception e) {
 			throw new ConnectionParseException(e);
@@ -43,7 +43,7 @@ public class Connection {
 			String toSinks = getOrDefault(
 					connectionInfo,
 					"to_sinks",
-					"tcp://127.0.0.1:8003");
+					"tcp://127.0.0.1:5003");
 			return new SinkConnection(new IncommingConnection(context, toSinks));
 		} catch (Exception e) {
 			throw new ConnectionParseException(e);
@@ -57,11 +57,11 @@ public class Connection {
 			String toServer = getOrDefault(
 					connectionInfo,
 					"to_servers",
-					"tcp://127.0.0.1:8001");
+					"tcp://127.0.0.1:5001");
 			String fromServer = getOrDefault(
 					connectionInfo,
 					"from_servers",
-					"tcp://127.0.0.1:8002");
+					"tcp://127.0.0.1:5002");
 			return new ServerConnection(
 					new IncommingConnection(context, toServer),
 					new OutgoingConnection(context, fromServer));

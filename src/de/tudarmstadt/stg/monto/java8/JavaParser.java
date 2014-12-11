@@ -20,6 +20,7 @@ import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
@@ -56,7 +57,8 @@ public class JavaParser extends AbstractServer {
 			
 			emitProductMessage(
 					new ProductMessage(
-							message.getId(),
+							message.getVersionId(),
+							new LongKey(1),
 							message.getSource(), 
 							Products.ast, 
 							Languages.json,

@@ -14,24 +14,26 @@ import de.tudarmstadt.stg.monto.Activator;
 public class VersionMessages {
 
 	@SuppressWarnings("unchecked")
-	public static VersionMessage decode(Reader reader) throws ParseException {
+	public static VersionMessage decode(final Reader reader) throws ParseException {
 		try {
-			long start = System.nanoTime();
-			JSONObject message = (JSONObject) JSONValue.parse(reader);
-			Long id = (Long) message.get("id");
-			Source source = new Source((String) message.get("source"));
-			Language language = new Language((String) message.get("language"));
-			Contents contents = new StringContent((String) message.get("contents"));
-			List<Selection> selections = new ArrayList<>();
-			JSONArray selectionsArray = (JSONArray) message.getOrDefault("selections", new JSONArray());
+			final long start = System.nanoTime();
+			final JSONObject message = (JSONObject) JSONValue.parse(reader);
+			final LongKey id = new LongKey((Long) message.get("version_id"));
+			final Source source = new Source((String) message.get("source"));
+			final Language language = new Language((String) message.get("language"));
+			final Contents contents = new StringContent((String) message.get("contents"));
+			final JSONArray selectionsArray = (JSONArray) message.getOrDefault("selections", new JSONArray());
+			final List<Selection> selections = new ArrayList<>(selectionsArray.size());
 			Iterator<JSONObject> iterator = selectionsArray.iterator();
 			while(iterator.hasNext()) {
-				JSONObject selection = iterator.next();
-				Long begin = (Long) selection.get("begin");
-				Long end = (Long) selection.get("end");
+				final JSONObject selection = iterator.next();
+				final Long begin = (Long) selection.get("begin");
+				final Long end = (Long) selection.get("end");
 				selections.add(new Selection(begin.intValue(), end.intValue() - begin.intValue()));
 			}
-			VersionMessage msg = new VersionMessage(new LongKey(id), source, language, contents, selections);
+			JSONArray invalid = (JSONArray) message.getOrDefault("invalid", new JSONArray());
+			List<Dependency> invalidProducts = Dependencies.decode(invalid);
+			final VersionMessage msg = new VersionMessage(id, source, language, contents, selections, invalidProducts);
 			Activator.getProfiler().start(VersionMessage.class, "decode", msg, start);
 			Activator.getProfiler().end(VersionMessage.class, "decode", msg);
 			return msg;
@@ -44,7 +46,7 @@ public class VersionMessages {
 	public static JSONObject encode(VersionMessage message) {
 		Activator.getProfiler().start(VersionMessage.class, "encode", message);
 		JSONObject version = new JSONObject();
-		version.put("id", message.getId().longValue());
+		version.put("version_id", message.getVersionId().longValue());
 		version.put("source", message.getSource().toString());
 		version.put("language", message.getLanguage().toString());
 		version.put("contents", message.getContent().toString());
@@ -56,6 +58,8 @@ public class VersionMessages {
 			selections.add(sel);
 		}
 		version.put("selections", selections);
+		JSONArray invalidProducts = Dependencies.encode(message.getInvalid());
+		version.put("invalid",invalidProducts);
 		Activator.getProfiler().end(VersionMessage.class, "encode", message);
 		return version;
 	}

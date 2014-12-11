@@ -11,6 +11,7 @@ import com.tonian.director.dm.json.JSONWriter;
 import de.tudarmstadt.stg.monto.Activator;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
@@ -44,7 +45,8 @@ public class JsonPrettyPrinter extends AbstractServer implements ProductMessageL
 			
 			emitProductMessage(
 					new ProductMessage(
-							message.getId(),
+							message.getVersionId(),
+							new LongKey(1),
 							message.getSource(),
 							message.getProduct(),
 							Languages.jsonPretty,

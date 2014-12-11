@@ -18,22 +18,13 @@ public class OutgoingConnection {
 	}
 
 	public void connect() throws Exception {
-		socket = context.socket(ZMQ.REQ);
-		socket.setReceiveTimeOut(Time.seconds(2));
+		socket = context.socket(ZMQ.PUB);
 		socket.setLinger(Time.seconds(2));
 		socket.connect(connectionInfo);
 	}
 
 	public synchronized void sendMessage(String msg) throws Exception {
 		socket.send(msg);
-		byte[] ack = socket.recv();
-		
-		if(Connection.hasTimedOut(ack)) {
-			
-			// Close and reopen connection to be able to send messages the next time.
-			socket.close();
-			connect();
-		}
 	}
 
 	public void close() throws Exception {

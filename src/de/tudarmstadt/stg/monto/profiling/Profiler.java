@@ -17,7 +17,7 @@ public class Profiler implements AutoCloseable {
 				klass.getSimpleName(),
 				method,
 				message.getSource(),
-				message.getId().longValue(),
+				message.getVersionId().longValue(),
 				System.nanoTime());
 	}
 	
@@ -26,7 +26,7 @@ public class Profiler implements AutoCloseable {
 				klass.getSimpleName(),
 				method,
 				message.getSource(),
-				message.getId().longValue(),
+				message.getVersionId().longValue(),
 				time);
 	}
 	
@@ -35,7 +35,7 @@ public class Profiler implements AutoCloseable {
 				klass.getSimpleName(),
 				method,
 				message.getSource(),
-				message.getId().longValue(),
+				message.getVersionId().longValue(),
 				System.nanoTime());
 	}
 	
@@ -44,7 +44,7 @@ public class Profiler implements AutoCloseable {
 				klass.getSimpleName(),
 				method,
 				message.getSource(),
-				message.getId().longValue(),
+				message.getVersionId().longValue(),
 				time);
 	}
 	

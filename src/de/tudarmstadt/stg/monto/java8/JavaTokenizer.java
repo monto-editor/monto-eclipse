@@ -11,6 +11,7 @@ import de.tudarmstadt.stg.monto.color.Token;
 import de.tudarmstadt.stg.monto.color.Tokens;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.StringContent;
@@ -40,7 +41,8 @@ public class JavaTokenizer extends AbstractServer {
 			
 			emitProductMessage(
 					new ProductMessage(
-							msg.getId(),
+							msg.getVersionId(),
+							new LongKey(1),
 							msg.getSource(),
 							Products.tokens,
 							Languages.json,

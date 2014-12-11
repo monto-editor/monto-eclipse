@@ -1,6 +1,7 @@
 package de.tudarmstadt.stg.monto.server;
 
 import de.tudarmstadt.stg.monto.message.Contents;
+import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
@@ -19,7 +20,8 @@ public class ReverseContent extends AbstractServer {
 						).reverse().toString());
 		emitProductMessage(
 				new ProductMessage(
-						version.getId(),
+						version.getVersionId(),
+						new LongKey(1),
 						version.getSource(), 
 						product, 
 						version.getLanguage(), 

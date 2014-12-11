@@ -94,19 +94,19 @@ public class MontoParseController extends ParseControllerBase {
 		VersionMessage version = new VersionMessage(transactionId,source,language,contents,selections);
 		synchronized(tokensLock) {
 			tokensFuture = new WaitOnProduct(sinkConnection, version,
-					message -> message.getId().equals(transactionId)
+					message -> message.getVersionId().equals(transactionId)
 					        && message.getProduct().equals(Products.tokens)
 					        && message.getLanguage().equals(Languages.json));
 		}
 		synchronized(outlineLock) {
 			outlineFuture = new WaitOnProduct(sinkConnection, version,
-					message -> message.getId().equals(transactionId)
+					message -> message.getVersionId().equals(transactionId)
 					        && message.getProduct().equals(Products.outline)
 					        && message.getLanguage().equals(Languages.json));
 		}
 		synchronized(completionsLock) {
 			completionsFuture = new WaitOnProduct(sinkConnection, version,
-					message -> message.getId().equals(transactionId)
+					message -> message.getVersionId().equals(transactionId)
 					        && message.getProduct().equals(Products.completions)
 					        && message.getLanguage().equals(Languages.json));
 		}

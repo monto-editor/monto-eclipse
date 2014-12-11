@@ -54,7 +54,7 @@ public class SinkTest {
 	
 	private ProductMessage productMessage(Source source, Product product, String msg) {
 		id = id.freshId();
-		return new ProductMessage(id,source, product, language, new StringContent(msg));
+		return new ProductMessage(id, new LongKey(1), source, product, language, new StringContent(msg));
 	}
 	
 	private SinkViewer openInEditor(IEditorInput input) throws PartInitException {
