@@ -53,7 +53,6 @@ public class ProductMessages {
 		encoding.put("contents", msg.getContents().toString());
 		encoding.put("invalid", Dependencies.encode(msg.getInvalid()));
 		encoding.put("dependencies", Dependencies.encode(msg.getDependencies()));
-		
 		Activator.getProfiler().end(ProductMessage.class, "encode", msg);
 		return encoding;
 	}

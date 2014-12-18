@@ -42,7 +42,15 @@ public class ProductMessage implements Message {
 	
 	@Override
 	public String toString() {
-		return String.format("{ source: %s, product: %s, language: %s, contents: %s }", source, product, language, contents);
+		return String.format("{"
+				+ "  vid: %s,\n"
+				+ "  pid: %s,\n"
+				+ "  source: %s,\n"
+				+ "  product: %s,\n"
+				+ "  language: %s,\n"
+				+ "  contents: %s,\n"
+				+ "  dependencies: %s\n"
+				+ "}", versionId, productId, source, product, language, contents, dependencies);
 	}
 
 

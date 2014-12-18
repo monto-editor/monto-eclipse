@@ -89,7 +89,7 @@ public class Dependencies {
 	public static <D extends Dependency> JSONArray encode(List<D> dependencies) {
 		JSONArray encoding = new JSONArray();
 		for(Dependency dependency : dependencies)
-			encoding.add(dependency);
+			encoding.add(encode(dependency));
 		return encoding;
 	}
 	

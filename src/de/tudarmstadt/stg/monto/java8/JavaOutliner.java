@@ -56,15 +56,16 @@ public class JavaOutliner extends StatefullServer implements ProductMessageListe
 				
 				Activator.getProfiler().end(JavaOutliner.class, "onVersionMessage", message);
 				
-				emitProductMessage(
-						new ProductMessage(
-								message.getVersionId(),
-								new LongKey(1),
-								message.getSource(), 
-								Products.outline, 
-								Languages.json,
-								content,
-								new ProductDependency(ast)));
+				ProductMessage prod = new ProductMessage(
+						message.getVersionId(),
+						new LongKey(1),
+						message.getSource(), 
+						Products.outline, 
+						Languages.json,
+						content,
+						new ProductDependency(ast));
+				
+				emitProductMessage(prod);
 			} catch (ParseException e) {
 				Activator.error(e);
 			}
