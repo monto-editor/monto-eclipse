@@ -29,10 +29,8 @@ public class DocumentSink extends Document implements Sink {
 	}
 
 	@Override
-	public void onProductMessage(ProductMessage message) {
-		if(message.getSource().equals(this.source)
-		&& message.getProduct().equals(this.product)
-        && message.getLanguage().equals(this.language)) {
+	public void onMessage(ProductMessage message) {
+		if(message.getSource().equals(source) && message.getProduct().equals(product) && message.getLanguage().equals(language)) {
 			executor.execute(() -> this.set(message.getContents().toString()));
 		}
 	}

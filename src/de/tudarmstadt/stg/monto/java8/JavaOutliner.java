@@ -2,74 +2,65 @@ package de.tudarmstadt.stg.monto.java8;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 import org.eclipse.jdt.ui.ISharedImages;
 
 import de.tudarmstadt.stg.monto.Activator;
+import de.tudarmstadt.stg.monto.Either;
 import de.tudarmstadt.stg.monto.ast.AST;
 import de.tudarmstadt.stg.monto.ast.ASTVisitor;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
+import de.tudarmstadt.stg.monto.connection.AbstractServer;
+import de.tudarmstadt.stg.monto.connection.Pair;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Message;
+import de.tudarmstadt.stg.monto.message.Messages;
 import de.tudarmstadt.stg.monto.message.ParseException;
 import de.tudarmstadt.stg.monto.message.ProductDependency;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.StringContent;
-import de.tudarmstadt.stg.monto.message.VersionMessage;
 import de.tudarmstadt.stg.monto.outline.Outline;
 import de.tudarmstadt.stg.monto.outline.Outlines;
-import de.tudarmstadt.stg.monto.server.ProductMessageListener;
-import de.tudarmstadt.stg.monto.server.StatefullServer;
 
-public class JavaOutliner extends StatefullServer implements ProductMessageListener {
+public class JavaOutliner extends AbstractServer {
 
-	@Override
-	protected boolean isRelevant(VersionMessage message) {
-		return message.getLanguage().equals(Languages.java);
+	public JavaOutliner(Pair connection) {
+		super(connection);
 	}
 
 	@Override
-	protected boolean isRelevant(ProductMessage message) {
-		return message.getLanguage().equals(Languages.json)
-				&& message.getProduct().equals(Products.ast);
-	}
-	
-	@Override
-	public void onMessage(Message message) {
-		VersionMessage javaFile = getVersionMessage(message.getSource(), Languages.java);
-		ProductMessage ast = getProductMessage(message.getSource(), Languages.json, Products.ast);
-			
-		if(javaFile != null && ast != null) {
+	public Either<Exception,ProductMessage> onMessage(List<Message> messages) {
+		return Messages.getVersionMessage(messages).flatMap(javaFile ->
+		Messages.getProductMessage(messages, Products.ast, Languages.json).flatMap(ast -> {
 			try {
-				Activator.getProfiler().start(JavaOutliner.class, "onVersionMessage", message);
-
+				Activator.getProfiler().start(JavaOutliner.class, "onVersionMessage", javaFile);
+	
 				NonTerminal root = (NonTerminal) ASTs.decode(ast);
 				
 				OutlineTrimmer trimmer = new OutlineTrimmer();
 				root.accept(trimmer);
 				Contents content = new StringContent(Outlines.encode(trimmer.getConverted()).toJSONString());
 				
-				Activator.getProfiler().end(JavaOutliner.class, "onVersionMessage", message);
+				Activator.getProfiler().end(JavaOutliner.class, "onVersionMessage", javaFile);
 				
-				ProductMessage prod = new ProductMessage(
-						message.getVersionId(),
-						new LongKey(1),
-						message.getSource(), 
-						Products.outline, 
-						Languages.json,
-						content,
-						new ProductDependency(ast));
-				
-				emitProductMessage(prod);
+				return Either.right(new ProductMessage(
+					javaFile.getVersionId(),
+					new LongKey(1),
+					javaFile.getSource(), 
+					Products.outline, 
+					Languages.json,
+					content,
+					new ProductDependency(ast)));
 			} catch (ParseException e) {
-				Activator.error(e);
+				return Either.left(e);
 			}
-		}
+		}));
 	}
 	
 	/**

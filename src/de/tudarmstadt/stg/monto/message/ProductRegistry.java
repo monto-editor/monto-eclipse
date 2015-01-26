@@ -8,12 +8,12 @@ import java.util.Set;
 public class ProductRegistry {
 
 	private Map<Source,Set<ProductItem>> registeredProducts = new HashMap<>();
-	
-	public void registerProduct(final Source source, final ProductItem product) {
+
+	public void registerProduct(final Source source, final Product product, final Language language) {
 		registeredProducts.compute(source, (_source,products) -> {
 			if(products == null)
 				products = new HashSet<>();
-			products.add(product);
+			products.add(new ProductItem(product,language));
 			return products;
 		});
 	}

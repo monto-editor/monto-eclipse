@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.region.Regions;
 import de.tudarmstadt.stg.monto.region.Region;
 
@@ -37,6 +38,10 @@ public class Tokens {
 			tokenArray.add(jsonToken);
 		}
 		return tokenArray;
+	}
+	
+	public static List<Token> decode(ProductMessage message) throws ParseException {
+		return decode(message.getContents().getReader());
 	}
 	
 	/**

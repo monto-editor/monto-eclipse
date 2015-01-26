@@ -11,8 +11,13 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.ProductMessage;
 
 public class Completions {
+	
+	public static List<Completion> decode(ProductMessage message) throws ParseException {
+		return decode(message.getContents().getReader());
+	}
 
 	public static List<Completion> decode(Reader reader) throws ParseException {
 		try {

@@ -1,6 +1,8 @@
 package de.tudarmstadt.stg.monto.json;
 
 import java.io.Reader;
+import java.util.List;
+import java.util.Optional;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -9,16 +11,21 @@ import org.json.simple.JSONValue;
 import com.tonian.director.dm.json.JSONWriter;
 
 import de.tudarmstadt.stg.monto.Activator;
+import de.tudarmstadt.stg.monto.Either;
+import de.tudarmstadt.stg.monto.connection.AbstractServer;
+import de.tudarmstadt.stg.monto.connection.Pair;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.LongKey;
+import de.tudarmstadt.stg.monto.message.Message;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.StringContent;
-import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.server.AbstractServer;
-import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
-public class JsonPrettyPrinter extends AbstractServer implements ProductMessageListener {
+public class JsonPrettyPrinter extends AbstractServer {
+
+	public JsonPrettyPrinter(Pair connection) {
+		super(connection);
+	}
 
 	private String prettyPrint(Reader reader) {
 		Object obj = JSONValue.parse(reader);
@@ -36,32 +43,26 @@ public class JsonPrettyPrinter extends AbstractServer implements ProductMessageL
 	}
 
 	@Override
-	public void onProductMessage(ProductMessage message) {
-		if(message.getLanguage().equals(Languages.json)) {
-			
+	public Either<Exception,ProductMessage> onMessage(List<Message> messages) {
+		Optional<ProductMessage> opt = messages.stream().filter(m -> m instanceof ProductMessage).map(m -> {
+			ProductMessage message = (ProductMessage) m;
 			Activator.getProfiler().start(JsonPrettyPrinter.class, "onVersionMessage", message);
 			Contents content = new StringContent(prettyPrint(message.getContents().getReader()));
 			Activator.getProfiler().end(JsonPrettyPrinter.class, "onVersionMessage", message);
 			
-			emitProductMessage(
-					new ProductMessage(
-							message.getVersionId(),
-							new LongKey(1),
-							message.getSource(),
-							message.getProduct(),
-							Languages.jsonPretty,
-							content));
+			return new ProductMessage(
+				message.getVersionId(),
+				new LongKey(1),
+				message.getSource(),
+				message.getProduct(),
+				Languages.jsonPretty,
+				content);
+		}).findAny();
+		
+		if(opt.isPresent()) {
+			return Either.right(opt.get());
+		} else {
+			return Either.left(new IllegalArgumentException("Messages didn't contain product message to convert"));
 		}
-	}
-	
-	@Override
-	protected boolean isRelveant(VersionMessage message) {
-		return false;
-	}
-
-	@Override
-	protected void receiveVersionMessage(VersionMessage message) {
-
-	}
-	
+	}	
 }

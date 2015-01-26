@@ -16,7 +16,6 @@ import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-import de.tudarmstadt.stg.monto.connection.SinkConnection;
 import de.tudarmstadt.stg.monto.message.ProductEditorInput;
 import de.tudarmstadt.stg.monto.message.ProductRegistry.ProductItem;
 import de.tudarmstadt.stg.monto.message.Source;
@@ -29,9 +28,8 @@ public class EditorContribution implements ILanguageActionsContributor {
 	public void contributeToEditorMenu(final UniversalEditor editor, final IMenuManager menuManager) {
 		final MenuManager openProduct = new MenuManager("Open Monto Product");
 		final Source source = new Source(getPath(editor.getEditorInput()));
-	
-		SinkConnection sinkConnection = Activator.getSinkConnection();
-		List<ProductItem> availableProduct = new ArrayList<>(sinkConnection.availableProducts(source));
+		
+		List<ProductItem> availableProduct = new ArrayList<>(Activator.availableProducts(source));
 		availableProduct.sort(
 				Comparator.comparing(ProductItem::getProduct)
 				          .thenComparing(ProductItem::getLanguage));
@@ -52,8 +50,8 @@ public class EditorContribution implements ILanguageActionsContributor {
 						final SinkDocumentProvider sinkDocumentProvider = (SinkDocumentProvider) sinkViewer.getDocumentProvider();
 						
 						final DocumentSink sink = (DocumentSink) sinkDocumentProvider.getDocument(input);
-						sinkConnection.addSink(sink);
-						sinkDocumentProvider.addDisconnectListener(() -> sinkConnection.removeSink(sink));
+						Activator.addMessageListener(sink);
+						sinkDocumentProvider.addDisconnectListener(() -> Activator.removeMessageListener(sink));
 						
 					} catch (Exception e) {
 						Activator.error(e);

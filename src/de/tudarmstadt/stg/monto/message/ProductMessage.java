@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import de.tudarmstadt.stg.monto.PartialFunction;
+
 
 public class ProductMessage implements Message {
 	
@@ -53,5 +55,11 @@ public class ProductMessage implements Message {
 				+ "}", versionId, productId, source, product, language, contents, dependencies);
 	}
 
+	@Override
+	public <A, E extends Throwable> A match(
+			PartialFunction<VersionMessage, A, E> ver,
+			PartialFunction<ProductMessage, A, E> prod) throws E {
+		return prod.apply(this);
+	}
 
 }

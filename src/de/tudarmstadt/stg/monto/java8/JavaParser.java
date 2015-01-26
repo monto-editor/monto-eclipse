@@ -14,59 +14,62 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import de.tudarmstadt.stg.monto.Activator;
+import de.tudarmstadt.stg.monto.Either;
 import de.tudarmstadt.stg.monto.ast.AST;
 import de.tudarmstadt.stg.monto.ast.ASTs;
 import de.tudarmstadt.stg.monto.ast.NonTerminal;
 import de.tudarmstadt.stg.monto.ast.Terminal;
+import de.tudarmstadt.stg.monto.connection.AbstractServer;
+import de.tudarmstadt.stg.monto.connection.Pair;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.LongKey;
+import de.tudarmstadt.stg.monto.message.Message;
+import de.tudarmstadt.stg.monto.message.Messages;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
-import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaParser extends AbstractServer {
+	
 	Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream());
 	CommonTokenStream tokens = new CommonTokenStream(lexer);
 	Java8Parser parser = new Java8Parser(tokens);
 	
-	@Override
-	protected boolean isRelveant(VersionMessage message) {
-		return message.getLanguage().equals(Languages.java);
+	public JavaParser(Pair connection) {
+		super(connection);
 	}
-	
+
 	@Override
-	public void receiveVersionMessage(VersionMessage message) {
-		
-		try {
-			Activator.getProfiler().start(JavaParser.class, "onVersionMessage", message);
-
-			lexer.setInputStream(new ANTLRInputStream(message.getContent().getReader()));
-			CommonTokenStream tokens = new CommonTokenStream(lexer);
-			parser.setTokenStream(tokens);
-			ParserRuleContext root = parser.compilationUnit();
-			ParseTreeWalker walker = new ParseTreeWalker();
-
-			Converter converter = new Converter();
-			walker.walk(converter, root);
-			
-			Contents content = ASTs.encode(converter.getRoot());
-			
-			Activator.getProfiler().end(JavaParser.class, "onVersionMessage", message);
-			
-			emitProductMessage(
-					new ProductMessage(
-							message.getVersionId(),
-							new LongKey(1),
-							message.getSource(), 
-							Products.ast, 
-							Languages.json,
-							content));
-			
-		} catch (Exception e) {
-			
-		}
+	public Either<Exception,ProductMessage> onMessage(List<Message> messages) {
+		return Messages.getVersionMessage(messages).flatMap(version -> {
+			try {
+				Activator.getProfiler().start(JavaParser.class, "onVersionMessage", version);
+	
+				lexer.setInputStream(new ANTLRInputStream(version.getContent().getReader()));
+				CommonTokenStream tokens = new CommonTokenStream(lexer);
+				parser.setTokenStream(tokens);
+				ParserRuleContext root = parser.compilationUnit();
+				ParseTreeWalker walker = new ParseTreeWalker();
+	
+				Converter converter = new Converter();
+				walker.walk(converter, root);
+				
+				Contents content = ASTs.encode(converter.getRoot());
+				
+				Activator.getProfiler().end(JavaParser.class, "onVersionMessage", version);
+				
+				return Either.right(new ProductMessage(
+					version.getVersionId(),
+					new LongKey(1),
+					version.getSource(), 
+					Products.ast, 
+					Languages.json,
+					content));
+				
+			} catch (Exception e) {
+				return Either.left(e);
+			}
+		});
 	}
 	
 	private static class Converter implements ParseTreeListener {

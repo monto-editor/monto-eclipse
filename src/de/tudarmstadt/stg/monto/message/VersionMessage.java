@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import de.tudarmstadt.stg.monto.PartialFunction;
+
 public class VersionMessage implements Message {
 
 	private final LongKey versionId;
@@ -55,5 +57,12 @@ public class VersionMessage implements Message {
 	@Override
 	public List<Dependency> getInvalid() {
 		return invalid;
+	}
+
+	@Override
+	public <A, E extends Throwable> A match(
+			PartialFunction<VersionMessage, A, E> ver,
+			PartialFunction<ProductMessage, A, E> prod) throws E {
+		return ver.apply(this);
 	}
 }

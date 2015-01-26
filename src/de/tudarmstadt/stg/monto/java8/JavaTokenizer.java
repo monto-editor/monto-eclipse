@@ -6,51 +6,50 @@ import java.util.stream.Collectors;
 import org.antlr.v4.runtime.ANTLRInputStream;
 
 import de.tudarmstadt.stg.monto.Activator;
+import de.tudarmstadt.stg.monto.Either;
 import de.tudarmstadt.stg.monto.color.Category;
 import de.tudarmstadt.stg.monto.color.Token;
 import de.tudarmstadt.stg.monto.color.Tokens;
+import de.tudarmstadt.stg.monto.connection.AbstractServer;
+import de.tudarmstadt.stg.monto.connection.Pair;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.LongKey;
+import de.tudarmstadt.stg.monto.message.Message;
+import de.tudarmstadt.stg.monto.message.Messages;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.StringContent;
-import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.server.AbstractServer;
 
 public class JavaTokenizer extends AbstractServer {
-	
+
 	Java8Lexer lexer = new Java8Lexer(new ANTLRInputStream());
 	
-	@Override
-	protected boolean isRelveant(VersionMessage message) {
-		return message.getLanguage().equals(Languages.java);
+	public JavaTokenizer(Pair connection) {
+		super(connection);
 	}
 	
 	@Override
-	public void receiveVersionMessage(VersionMessage msg) {
-		
-		Activator.getProfiler().start(JavaTokenizer.class, "onVersionMessage", msg);
-		
-		try {
-			lexer.setInputStream(new ANTLRInputStream(msg.getContent().getReader()));
-			List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
-			Contents contents = new StringContent(Tokens.encode(tokens).toJSONString());
-			
-			Activator.getProfiler().end(JavaTokenizer.class, "onVersionMessage", msg);
-			
-			emitProductMessage(
-					new ProductMessage(
-							msg.getVersionId(),
-							new LongKey(1),
-							msg.getSource(),
-							Products.tokens,
-							Languages.json,
-							contents));
-			
-		} catch (Exception e) {
-			
-		}
+	public Either<Exception,ProductMessage> onMessage(List<Message> messages) throws Exception {
+		return Messages.getVersionMessage(messages).flatMap(version -> {
+			try {
+				Activator.getProfiler().start(JavaTokenizer.class, "onVersionMessage", version);
+					lexer.setInputStream(new ANTLRInputStream(version.getContent().getReader()));
+				List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
+				Contents contents = new StringContent(Tokens.encode(tokens).toJSONString());
+				Activator.getProfiler().end(JavaTokenizer.class, "onVersionMessage", version);
+				
+				return Either.right(new ProductMessage(
+					version.getVersionId(),
+					new LongKey(1),
+					version.getSource(),
+					Products.tokens,
+					Languages.json,
+					contents));
+			} catch (Exception e) {
+				return Either.left(e);
+			}
+		});
 	}
 
 	private Token convertToken(org.antlr.v4.runtime.Token token) {

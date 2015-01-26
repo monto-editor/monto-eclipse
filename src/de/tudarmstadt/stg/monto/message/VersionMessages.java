@@ -13,11 +13,15 @@ import de.tudarmstadt.stg.monto.Activator;
 
 public class VersionMessages {
 
-	@SuppressWarnings("unchecked")
 	public static VersionMessage decode(final Reader reader) throws ParseException {
+		final JSONObject message = (JSONObject) JSONValue.parse(reader);
+		return decode(message);
+	}	
+	
+	@SuppressWarnings("unchecked")
+	public static VersionMessage decode(JSONObject message) throws ParseException {
 		try {
 			final long start = System.nanoTime();
-			final JSONObject message = (JSONObject) JSONValue.parse(reader);
 			final LongKey id = new LongKey((Long) message.get("version_id"));
 			final Source source = new Source((String) message.get("source"));
 			final Language language = new Language((String) message.get("language"));

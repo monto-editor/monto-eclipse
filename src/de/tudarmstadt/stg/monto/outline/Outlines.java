@@ -9,6 +9,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.region.Region;
 import de.tudarmstadt.stg.monto.region.Regions;
 
@@ -34,6 +35,9 @@ public class Outlines {
 		return encoding;
 	}
 	
+	public static Outline decode(ProductMessage message) throws ParseException {
+		return decode(message.getContents().getReader());
+	}
 
 	public static Outline decode(Reader reader) throws ParseException {
 		try {

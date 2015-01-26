@@ -3,12 +3,14 @@ package de.tudarmstadt.stg.monto;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.Function;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -28,36 +30,32 @@ import de.tudarmstadt.stg.monto.color.Token;
 import de.tudarmstadt.stg.monto.color.Tokens;
 import de.tudarmstadt.stg.monto.completion.Completion;
 import de.tudarmstadt.stg.monto.completion.Completions;
-import de.tudarmstadt.stg.monto.connection.SinkConnection;
-import de.tudarmstadt.stg.monto.connection.SourceConnection;
 import de.tudarmstadt.stg.monto.message.Contents;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.Languages;
 import de.tudarmstadt.stg.monto.message.LongKey;
+import de.tudarmstadt.stg.monto.message.MessageListener;
 import de.tudarmstadt.stg.monto.message.ParseException;
+import de.tudarmstadt.stg.monto.message.Product;
 import de.tudarmstadt.stg.monto.message.ProductMessage;
 import de.tudarmstadt.stg.monto.message.Products;
 import de.tudarmstadt.stg.monto.message.Selection;
 import de.tudarmstadt.stg.monto.message.Source;
 import de.tudarmstadt.stg.monto.message.StringContent;
 import de.tudarmstadt.stg.monto.message.VersionMessage;
-import de.tudarmstadt.stg.monto.outline.Outline;
 import de.tudarmstadt.stg.monto.outline.Outlines;
 import de.tudarmstadt.stg.monto.region.Region;
-import de.tudarmstadt.stg.monto.server.ProductMessageListener;
 
-public class MontoParseController extends ParseControllerBase {
-	
-	private final SourceConnection sourceConnection = Activator.getSourceConnection();
-	private final SinkConnection sinkConnection = Activator.getSinkConnection();
+public class MontoParseController extends ParseControllerBase implements MessageListener {
+
 	private Source source = null;
 	private Language language = null;
 	private final ISourcePositionLocator sourcePositionLocator = new SourcePositionLocator();
 	private UniversalEditor editor;
 	private LongKey id = new LongKey(0);
-	private WaitOnTokens tokensFuture = null;
-	private WaitOnOutline outlineFuture = null;
-	private WaitOnCompletions completionsFuture = null;
+	private WaitOnMessage tokensFuture = null;
+	private WaitOnMessage completionsFuture = null;
+	private WaitOnMessage outlineFuture = null;
 	
 	private synchronized LongKey freshId() {
 		id = id.freshId();
@@ -69,6 +67,7 @@ public class MontoParseController extends ParseControllerBase {
 		super.initialize(filePath, project, handler);
 		source = new Source(String.format("/%s/%s",project.getName(), filePath.toPortableString()));
 		language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
+		Activator.addMessageListener(this);
 	}
 
 	@Override
@@ -84,13 +83,13 @@ public class MontoParseController extends ParseControllerBase {
 				});
 			}
 			
-			cancleFutures();
 			final VersionMessage version = new VersionMessage(transactionId,source,language,contents,selections);
-			tokensFuture = new WaitOnTokens(sinkConnection, version);
-			outlineFuture = new WaitOnOutline(sinkConnection, version);
-			completionsFuture = new WaitOnCompletions(sinkConnection, version);
-			Activator.getProfiler().start(MontoParseController.class, "version", version);
-			sourceConnection.sendVersionMessage(version);
+
+			cancleFutures();
+			startFutures(version);
+			
+//			Activator.getProfiler().start(MontoParseController.class, "version", version);
+			Activator.sendMessage(version);
 		} catch (Exception e) {
 			Activator.error(e);
 		}
@@ -98,13 +97,35 @@ public class MontoParseController extends ParseControllerBase {
 		return null;
 	}
 	
+	private void startFutures(VersionMessage version) {
+		tokensFuture = new WaitOnMessage(version, Products.tokens, Languages.json);
+		completionsFuture = new WaitOnMessage(version, Products.completions, Languages.json);
+		outlineFuture = new WaitOnMessage(version, Products.outline, Languages.json);
+	}
+
 	private void cancleFutures() {
-		if(tokensFuture != null)
-			tokensFuture.cancel(true);
-		if(completionsFuture != null)
-			completionsFuture.cancel(true);
-		if(outlineFuture != null)
-			outlineFuture.cancel(true);
+		cancleFuture(tokensFuture);
+		cancleFuture(completionsFuture);
+		cancleFuture(outlineFuture);
+	}
+	
+	private static void cancleFuture(WaitOnMessage future) {
+		if(future != null) {
+			future.cancel(true);
+		}
+	}
+
+	@Override
+	public void onMessage(ProductMessage message) {
+		notifyFuture(tokensFuture, message);
+		notifyFuture(completionsFuture, message);
+		notifyFuture(outlineFuture, message);
+	}
+	
+	private void notifyFuture(WaitOnMessage future, ProductMessage message) {
+		if(future != null) {
+			future.onMessage(message);
+		}
 	}
 	
 	@Override
@@ -122,11 +143,24 @@ public class MontoParseController extends ParseControllerBase {
 		return null;
 	}
 
+	private static <T> Function<ProductMessage,Optional<T>> parse(PartialFunction<ProductMessage, T, ParseException> parser) {
+		return msg -> {
+			try {
+				return Optional.of(parser.apply(msg));
+			} catch (ParseException e) {
+				return Optional.empty();
+			}
+		};
+	}
+	
 	@SuppressWarnings("rawtypes")
 	@Override
 	public Iterator getTokenIterator(final IRegion region) {
 		try {
-			List<Token> tokens = tokensFuture.get(50, TimeUnit.MILLISECONDS);
+			List<Token> tokens = tokensFuture
+					.get(50, TimeUnit.MILLISECONDS)
+					.flatMap(parse(Tokens::decode))
+					.orElse(new ArrayList<Token>());
 			return tokens.stream()
 					.filter((token) -> token.inRange(new Region(region)))
 					.iterator();
@@ -138,7 +172,9 @@ public class MontoParseController extends ParseControllerBase {
 	
 	public List<Completion> getCompletions() {
 		try {
-			return completionsFuture.get(100, TimeUnit.MILLISECONDS);
+			return completionsFuture.get(100, TimeUnit.MILLISECONDS)
+					.flatMap(parse(Completions::decode))
+					.orElse(new ArrayList<Completion>());
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			Activator.error(e);
 			return new ArrayList<>();
@@ -148,7 +184,10 @@ public class MontoParseController extends ParseControllerBase {
 	@Override
 	public Object getCurrentAst() {
 		try {
-			return outlineFuture.get(100,TimeUnit.MILLISECONDS);
+			return outlineFuture.get(100,TimeUnit.MILLISECONDS)
+					.flatMap(parse(Outlines::decode))
+					.map(outline -> new ParseResult(outline, outlineFuture.getVersionMessage().getContent().toString()))
+					.orElse(null);
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
 			return null;
 		}
@@ -157,81 +196,26 @@ public class MontoParseController extends ParseControllerBase {
 	public void setEditor(UniversalEditor editor) {
 		this.editor = editor;
 	}
-
-	private static class WaitOnTokens extends WaitOnProduct<List<Token>> {
-
-		public WaitOnTokens(SinkConnection sinkConnection,	VersionMessage version) {
-			super(sinkConnection, version);
-		}
-
-		@Override
-		protected boolean relevant(ProductMessage message) {
-			return message.getProduct().equals(Products.tokens)
-			    && message.getLanguage().equals(Languages.json);
-		}
-
-		@Override
-		protected List<Token> parseProductMessage(ProductMessage message) throws ParseException {
-				return Tokens.decode(message.getContents().getReader());
-		}
-	}
 	
-	private static class WaitOnCompletions extends WaitOnProduct<List<Completion>> {
-
-		public WaitOnCompletions(SinkConnection sinkConnection,	VersionMessage version) {
-			super(sinkConnection, version);
-		}
-
-		@Override
-		protected boolean relevant(ProductMessage message) {
-			return message.getProduct().equals(Products.completions)
-			    && message.getLanguage().equals(Languages.json);
-		}
-
-		@Override
-		protected List<Completion> parseProductMessage(ProductMessage message) throws ParseException {
-			return Completions.decode(message.getContents().getReader());
-		}
-	}
-	
-	private static class WaitOnOutline extends WaitOnProduct<ParseResult> {
-
-		public WaitOnOutline(SinkConnection sinkConnection,	VersionMessage version) {
-			super(sinkConnection, version);
-		}
-
-		@Override
-		protected boolean relevant(ProductMessage message) {
-	        return message.getProduct().equals(Products.outline)
-	            && message.getLanguage().equals(Languages.json);
-		}
-
-		@Override
-		protected ParseResult parseProductMessage(ProductMessage message) throws ParseException {
-			Outline outline = Outlines.decode(message.getContents().getReader());
-			return new ParseResult(outline,version.getContent().toString());
-		}
-	}
-	
-	private static abstract class WaitOnProduct<A> implements Future<A>, ProductMessageListener, AutoCloseable {
+	private static class WaitOnMessage implements Future<Optional<ProductMessage>>, MessageListener, AutoCloseable {
 		private static enum State {WAITING, DONE, CANCELLED}
 
 		private final BlockingQueue<ProductMessage> reply = new ArrayBlockingQueue<>(1);
 		private State state = State.WAITING;
-		private SinkConnection sinkConnection;
 		protected VersionMessage version;
-		private A parsed;
+		private Product product;
+		private Language language;
 		
-		public WaitOnProduct(SinkConnection sinkConnection,	VersionMessage version) {
-			this.sinkConnection = sinkConnection;
+		public WaitOnMessage(VersionMessage version, Product product, Language language) {
 			this.version = version;
-			this.parsed = null;
-			sinkConnection.addSink(this);
+			this.product = product;
+			this.language = language;
 		}
-		
-		protected abstract boolean relevant(ProductMessage message);
-		protected abstract A parseProductMessage(ProductMessage message) throws ParseException;
 				
+		public VersionMessage getVersionMessage() {
+			return version;
+		}
+
 		@Override
 		public boolean cancel(boolean mayInterruptIfRunning) {
 			try {
@@ -243,40 +227,26 @@ public class MontoParseController extends ParseControllerBase {
 			}
 		}
 		
-		// This thing is so f**ing ugly.
-		private A doGet(SupplierException<ProductMessage,InterruptedException> supplier) throws InterruptedException {
+		private Optional<ProductMessage> doGet(SupplierException<ProductMessage,InterruptedException> supplier) throws InterruptedException {
 			if(isCancelled())
-				return null;
-			if(parsed == null) {
-				final ProductMessage product = supplier.get();
-				if(product == null) {
-					state = State.CANCELLED;
-					return null;
-				}
-				try {
-					parsed = parseProductMessage(product);
-					if(parsed == null)
-						state = State.CANCELLED; 
-				} catch (Exception e) {
-					Activator.error(e);
-					state = State.CANCELLED;
-					return null;
-				}
-				if(isCancelled())
-					return null;
-				else return parsed;
-			} else {
-				return parsed;
+				return Optional.empty();
+			final ProductMessage message = supplier.get();
+			if(message == null) {
+				state = State.CANCELLED;
+				return Optional.empty();
 			}
+			if(isCancelled())
+				return Optional.empty();
+			else return Optional.of(message);
 		}
 
 		@Override
-		public A get() throws InterruptedException, ExecutionException {
+		public Optional<ProductMessage> get() throws InterruptedException, ExecutionException {
 			return doGet(() -> reply.take());
 		}
 
 		@Override
-		public A get(long timeout, TimeUnit unit)
+		public Optional<ProductMessage> get(long timeout, TimeUnit unit)
 				throws InterruptedException, ExecutionException,
 				TimeoutException {
 			return doGet(() -> reply.poll(timeout, unit));
@@ -293,11 +263,14 @@ public class MontoParseController extends ParseControllerBase {
 		}
 
 		@Override
-		public void onProductMessage(ProductMessage message) {
+		public void onMessage(ProductMessage message) {
 			try {
-				if(version.getVersionId().equals(message.getVersionId()) && relevant(message)) {
+				if(message.getSource().equals(version.getSource())
+						&& message.getVersionId().equals(version.getVersionId())
+						&& message.getProduct().equals(product)
+						&& message.getLanguage().equals(language)
+						) {
 					reply.put(message);
-					Activator.getProfiler().end(MontoParseController.class, "product_"+message.getProduct(), message);
 					state = State.DONE;
 				}
 			} catch (InterruptedException e) {}
@@ -305,12 +278,16 @@ public class MontoParseController extends ParseControllerBase {
 
 		@Override
 		public void close() throws Exception {
-			sinkConnection.removeSink(this);
 		}
-	}
-	
-	@FunctionalInterface
-	private interface SupplierException<A,E extends Exception> {
-		public A get() throws E;
+		
+		@Override
+		public int hashCode() {
+			return version.hashCode();
+		}
+		
+		@FunctionalInterface
+		private interface SupplierException<A,E extends Exception> {
+			public A get() throws E;
+		}
 	}
 }
