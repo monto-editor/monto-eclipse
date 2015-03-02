@@ -4,9 +4,9 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
 import de.tudarmstadt.stg.monto.broker.Broker;
-import de.tudarmstadt.stg.monto.connection.Connection;
+import de.tudarmstadt.stg.monto.connection.Pair;
 import de.tudarmstadt.stg.monto.connection.SinkConnection;
-import de.tudarmstadt.stg.monto.connection.SourceConnection;
+import de.tudarmstadt.stg.monto.connection.PublishSource;
 import de.tudarmstadt.stg.monto.message.Language;
 import de.tudarmstadt.stg.monto.message.LongKey;
 import de.tudarmstadt.stg.monto.message.Source;
@@ -61,8 +61,8 @@ public class BrokerBenchmark {
 		reverseServer = new ProcessBuilder(reverseServerCommand).start();
 		
 		Context context = ZMQ.context(1);
-		sourceConnection = Connection.createSourceConnection(context);
-		sinkConnection = Connection.createSinkConnection(context);
+		sourceConnection = Pair.createSourceConnection(context);
+		sinkConnection = Pair.createSinkConnection(context);
 		
 		sourceConnection.connect();
 		sinkConnection.connect();
