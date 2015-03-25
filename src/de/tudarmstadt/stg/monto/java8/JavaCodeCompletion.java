@@ -39,7 +39,6 @@ public class JavaCodeCompletion extends AbstractServer {
 	public Either<Exception,ProductMessage> onMessage(List<Message> messages) {
 		return Messages.getVersionMessage(messages).flatMap(javaFile ->
 		Messages.getProductMessage(messages, Products.ast, Languages.json).flatMap(ast -> {
-			
 			if(javaFile.getSelections().size() > 0) {
 				try {
 					Activator.getProfiler().start(JavaCodeCompletion.class, "onVersionMessage", javaFile);
@@ -74,6 +73,7 @@ public class JavaCodeCompletion extends AbstractServer {
 							content,
 							new ProductDependency(ast)));
 					}
+					return Either.left(new IllegalArgumentException(String.format("Last token in selection path is not a terminal: %s",selectedPath)));
 				} catch (Exception e) {
 					return Either.left(e);
 				}	

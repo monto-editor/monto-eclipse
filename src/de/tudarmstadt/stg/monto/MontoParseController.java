@@ -71,7 +71,7 @@ public class MontoParseController extends ParseControllerBase implements Message
 	}
 
 	@Override
-	public synchronized Object parse(String documentText, IProgressMonitor monitor) {				
+	public synchronized Object parse(String documentText, IProgressMonitor monitor) {
 		try {
 			final LongKey transactionId = freshId();
 			final Contents contents = new StringContent(documentText);
@@ -184,11 +184,13 @@ public class MontoParseController extends ParseControllerBase implements Message
 	@Override
 	public Object getCurrentAst() {
 		try {
-			return outlineFuture.get(100,TimeUnit.MILLISECONDS)
+			ParseResult result = outlineFuture.get(100,TimeUnit.MILLISECONDS)
 					.flatMap(parse(Outlines::decode))
 					.map(outline -> new ParseResult(outline, outlineFuture.getVersionMessage().getContent().toString()))
 					.orElse(null);
+			return result;
 		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			Activator.error(e);
 			return null;
 		}
 	}
@@ -203,6 +205,7 @@ public class MontoParseController extends ParseControllerBase implements Message
 		private final BlockingQueue<ProductMessage> reply = new ArrayBlockingQueue<>(1);
 		private State state = State.WAITING;
 		protected VersionMessage version;
+		private ProductMessage productMessage = null;
 		private Product product;
 		private Language language;
 		
@@ -230,6 +233,8 @@ public class MontoParseController extends ParseControllerBase implements Message
 		private Optional<ProductMessage> doGet(SupplierException<ProductMessage,InterruptedException> supplier) throws InterruptedException {
 			if(isCancelled())
 				return Optional.empty();
+			if(isDone())
+				return Optional.of(productMessage);
 			final ProductMessage message = supplier.get();
 			if(message == null) {
 				state = State.CANCELLED;
@@ -270,8 +275,9 @@ public class MontoParseController extends ParseControllerBase implements Message
 						&& message.getProduct().equals(product)
 						&& message.getLanguage().equals(language)
 						) {
-					reply.put(message);
+					productMessage = message;
 					state = State.DONE;
+					reply.put(message);
 				}
 			} catch (InterruptedException e) {}
 		}
