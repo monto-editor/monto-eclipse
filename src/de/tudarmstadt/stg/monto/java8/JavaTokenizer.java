@@ -34,7 +34,7 @@ public class JavaTokenizer extends AbstractServer {
 		return Messages.getVersionMessage(messages).flatMap(version -> {
 			try {
 				Activator.getProfiler().start(JavaTokenizer.class, "onVersionMessage", version);
-					lexer.setInputStream(new ANTLRInputStream(version.getContent().getReader()));
+				lexer.setInputStream(new ANTLRInputStream(version.getContent().getReader()));
 				List<Token> tokens = lexer.getAllTokens().stream().map(token -> convertToken(token)).collect(Collectors.toList());
 				Contents contents = new StringContent(Tokens.encode(tokens).toJSONString());
 				Activator.getProfiler().end(JavaTokenizer.class, "onVersionMessage", version);
