@@ -15,11 +15,12 @@ an running.
 
 1. Get the [Monto broker](https://github.com/svenkeidel/monto-broker)
    and follow the installation instructions
-2. Add the `http://update.rascal-mpl.org/unstable` for IMP
-3. Import this repository as an eclipse project
-4. Start the broker with `./start.sh`
-5. Run the project as an `Eclipse Application`
-6. The only supported language at the moment is Java, so create a new Java
+2. In Eclipse, install `Eclipse plug-in development environment` from Eclipse's built-in update site.
+3. Add the update site `http://update.rascal-mpl.org/unstable` and install `IMP runtime`
+4. Import this repository as an eclipse project
+5. Start the broker with `./start.sh`
+6. Run the project as an `Eclipse Application`
+7. The only supported language at the moment is Java, so create a new Java
    Project in the new eclipse instance, create a new Java class and play around.
 
 
