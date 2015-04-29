@@ -21,7 +21,7 @@ an running.
 5. Start the broker with `./start.sh`
 6. Run the project as an `Eclipse Application`
 7. The only supported language at the moment is Java, so create a new Java
-   Project in the new eclipse instance, create a new Java class and play around.
+   Project in the new eclipse instance, create a new Java class, open it with IMP editor and play around.
 
 
 Code Compass
