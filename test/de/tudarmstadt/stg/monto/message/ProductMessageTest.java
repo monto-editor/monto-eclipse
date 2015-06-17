@@ -4,6 +4,10 @@ import static org.junit.Assert.*;
 
 import java.io.StringReader;
 
+import monto.eclipse.message.ParseException;
+import monto.eclipse.message.ProductMessage;
+import monto.eclipse.message.ProductMessages;
+
 import org.junit.Test;
 
 public class ProductMessageTest {

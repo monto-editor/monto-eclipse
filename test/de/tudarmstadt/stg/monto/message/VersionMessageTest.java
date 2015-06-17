@@ -5,6 +5,15 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
+import monto.eclipse.message.Contents;
+import monto.eclipse.message.Language;
+import monto.eclipse.message.LongKey;
+import monto.eclipse.message.Selection;
+import monto.eclipse.message.Source;
+import monto.eclipse.message.StringContent;
+import monto.eclipse.message.VersionMessage;
+import monto.eclipse.message.VersionMessages;
+
 import org.junit.Test;
 
 public class VersionMessageTest {

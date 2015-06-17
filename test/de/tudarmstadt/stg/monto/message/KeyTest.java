@@ -1,6 +1,7 @@
 package de.tudarmstadt.stg.monto.message;
 
 import static org.junit.Assert.*;
+import monto.eclipse.message.LongKey;
 
 import org.junit.Test;
 

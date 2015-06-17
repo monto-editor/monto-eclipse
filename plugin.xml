@@ -21,7 +21,7 @@
    <extension
          point="org.eclipse.imp.runtime.parser">
       <parser
-            class="de.tudarmstadt.stg.monto.MontoParseController"
+            class="monto.eclipse.MontoParseController"
             language="Monto">
       </parser>
    </extension>
@@ -37,14 +37,14 @@
    <extension
          point="org.eclipse.imp.runtime.editorActionContributions">
       <editorActionContributor
-            class="de.tudarmstadt.stg.monto.EditorContribution"
+            class="monto.eclipse.EditorContribution"
             language="Monto">
       </editorActionContributor>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.tokenColorer">
       <tokenColorer
-            class="de.tudarmstadt.stg.monto.color.TokenColorer"
+            class="monto.eclipse.color.TokenColorer"
             language="Monto">
       </tokenColorer>
    </extension>
@@ -725,28 +725,28 @@
    <extension
          point="org.eclipse.imp.runtime.modelTreeBuilder">
       <treeBuilder
-            class="de.tudarmstadt.stg.monto.outline.TreeModelBuilder"
+            class="monto.eclipse.outline.TreeModelBuilder"
             language="Monto">
       </treeBuilder>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.labelProvider">
       <labelProvider
-            class="de.tudarmstadt.stg.monto.outline.LabelProvider"
+            class="monto.eclipse.outline.LabelProvider"
             language="Monto">
       </labelProvider>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.editorService">
       <editorService
-            class="de.tudarmstadt.stg.monto.EditorService"
+            class="monto.eclipse.EditorService"
             language="Monto">
       </editorService>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.contentProposer">
       <proposer
-            class="de.tudarmstadt.stg.monto.completion.ContentProposer"
+            class="monto.eclipse.completion.ContentProposer"
             language="Monto">
       </proposer>
    </extension>
