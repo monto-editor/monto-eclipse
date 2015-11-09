@@ -1,6 +1,7 @@
 package monto.eclipse.outline;
 
-import monto.eclipse.region.IRegion;
+import monto.service.outline.Outline;
+import monto.service.region.IRegion;
 
 public class OutlineLabel implements IRegion {
 	private Outline outline;

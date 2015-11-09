@@ -2,8 +2,6 @@ package monto.eclipse.completion;
 
 import java.util.List;
 
-import monto.eclipse.MontoParseController;
-
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.jdt.ui.ISharedImages;
@@ -11,6 +9,9 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+
+import monto.eclipse.MontoParseController;
+import monto.service.completion.Completion;
 
 public class ContentProposer implements IContentProposer {
 

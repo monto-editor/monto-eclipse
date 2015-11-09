@@ -1,10 +1,10 @@
 package monto.eclipse.connection;
 
-import monto.eclipse.Time;
-
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 import org.zeromq.ZMQ.Socket;
+
+import monto.eclipse.Time;
 
 public class Pair {
 	

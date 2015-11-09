@@ -14,6 +14,9 @@ import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.themes.ITheme;
 
+import monto.service.token.Category;
+import monto.service.token.Token;
+
 public class TokenColorer implements ITokenColorer {
 	
 	Map<Category,Style> styleMap = new HashMap<>();

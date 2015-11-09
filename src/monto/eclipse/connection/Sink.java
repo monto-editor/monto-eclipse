@@ -1,53 +1,38 @@
 package monto.eclipse.connection;
 
+import java.util.Optional;
+
 import monto.eclipse.Activator;
-import monto.eclipse.message.ProductMessage;
-import monto.eclipse.message.ProductMessages;
+import monto.service.message.ProductMessage;
+import monto.service.message.ProductMessages;
 
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
-
-public abstract class Sink {
-
+public class Sink {
 	private Subscribe connection;
-	private boolean running = true;
-	private Thread thread = null;
-	
-	public Sink(Subscribe connection) {
+	private String serviceId;
+
+	public Sink(Subscribe connection, String serviceId) {
 		this.connection = connection;
+		this.serviceId = serviceId;
 	}
 	
-	public void fork() {
-		Sink that = this;
+	public void connect() {
 		connection.connect();
-		thread  = new Thread() {
-			@Override
-			public void run() {
-				try {
-					that.run();
-				} catch (Exception e) {
-					Activator.error(e);
-				}
-			}
-		};
-		thread.start();
-	}
-
-	protected void run() throws Exception {
-		running = true;
-		while(running) {
-			ProductMessage decoded = ProductMessages.decode((JSONObject) JSONValue.parse(connection.receiveMessage()));
-			this.onMessage(decoded);
-		}
-		connection.close();
+		connection.subscribe(serviceId);
 	}
 	
-	public abstract void onMessage(ProductMessage decodedMessages);
-
-	public void stop() {
-		if(running = true) {
-			running = false;
-			thread.interrupt();
-		}
+	public Optional<ProductMessage> receiveMessage() {
+		return connection.receiveMessage()
+                .flatMap(msg -> {
+                	try {
+                		return Optional.of(ProductMessages.decode(msg));
+                	} catch(Exception e) {
+                		Activator.error("Could not decode product message: "+msg, e);
+                		return Optional.empty();
+                	}
+                });
+	}
+	
+	public void close() throws Exception {
+		connection.close();
 	}
 }

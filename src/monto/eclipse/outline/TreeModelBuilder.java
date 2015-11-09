@@ -1,8 +1,9 @@
 package monto.eclipse.outline;
 
-import monto.eclipse.ParseResult;
-
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
+
+import monto.eclipse.ParseResult;
+import monto.service.outline.Outline;
 
 public class TreeModelBuilder extends TreeModelBuilderBase {
 

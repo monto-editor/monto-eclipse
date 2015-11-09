@@ -3,29 +3,28 @@ package monto.eclipse.connection;
 import org.json.simple.JSONObject;
 
 import monto.eclipse.Activator;
-import monto.service.message.VersionMessage;
-import monto.service.message.VersionMessages;
+import monto.service.configuration.Configurations;
+import monto.service.configuration.ServiceConfiguration;
 
-public class PublishSource {
+public class PublishConfiguration {
 	private Publish connection;
-	
-	public PublishSource(Publish connection) {
+
+	public PublishConfiguration(Publish connection) {
 		this.connection = connection;
 	}
-	
+
 	public void connect() {
 		connection.connect();
 	}
 	
-	public void sendMessage(VersionMessage message) {
+	public <T> void sendMessage(ServiceConfiguration message) {
 		try {
-			JSONObject encoding = VersionMessages.encode(message);
+			JSONObject encoding = Configurations.encode(message);
 			connection.sendMessage(encoding.toJSONString());
 		} catch (Exception e) {
 			Activator.error(e);
 		}
 	}
-
 
 	public void close() {
 		connection.close();

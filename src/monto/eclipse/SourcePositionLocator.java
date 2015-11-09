@@ -1,10 +1,10 @@
 package monto.eclipse;
 
-import monto.eclipse.region.IRegion;
-
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+
+import monto.service.region.IRegion;
 
 public class SourcePositionLocator implements ISourcePositionLocator {
 

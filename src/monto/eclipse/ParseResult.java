@@ -1,6 +1,6 @@
 package monto.eclipse;
 
-import monto.eclipse.outline.Outline;
+import monto.service.outline.Outline;
 
 public class ParseResult {
 	

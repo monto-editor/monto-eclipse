@@ -18,28 +18,21 @@
           language="java">
       </language>
    </extension>
+  <extension
+        point="org.eclipse.imp.runtime.languageDescription">
+     <language
+           derivedFrom="Monto"
+           description="JavaScript"
+           extensions="js"
+           language="javascript">
+     </language>
+  </extension>
    <extension
          point="org.eclipse.imp.runtime.parser">
       <parser
             class="monto.eclipse.MontoParseController"
             language="Monto">
       </parser>
-   </extension>
-   <extension
-         point="org.eclipse.ui.editors">
-      <editor
-            class="de.tudarmstadt.stg.monto.sink.SinkViewer"
-            default="false"
-            id="de.tudarmstadt.stg.monto.sinkviewer"
-            name="Sink Viewer">
-      </editor>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.editorActionContributions">
-      <editorActionContributor
-            class="monto.eclipse.EditorContribution"
-            language="Monto">
-      </editorActionContributor>
    </extension>
    <extension
          point="org.eclipse.imp.runtime.tokenColorer">
@@ -737,17 +730,25 @@
       </labelProvider>
    </extension>
    <extension
-         point="org.eclipse.imp.runtime.editorService">
-      <editorService
-            class="monto.eclipse.EditorService"
-            language="Monto">
-      </editorService>
-   </extension>
-   <extension
          point="org.eclipse.imp.runtime.contentProposer">
       <proposer
             class="monto.eclipse.completion.ContentProposer"
             language="Monto">
       </proposer>
+   </extension>
+   <extension
+         point="org.eclipse.imp.runtime.editorActionContributions">
+      <editorActionContributor
+            class="monto.eclipse.EditorContribution"
+            language="Monto">
+      </editorActionContributor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.propertyPages">
+      <page
+            class="monto.eclipse.ServiceConfigurationPage"
+            id="monto.services.configurationpage"
+            name="Monto Services">
+      </page>
    </extension>
 </plugin>
