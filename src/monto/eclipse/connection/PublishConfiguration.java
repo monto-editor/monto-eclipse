@@ -3,8 +3,8 @@ package monto.eclipse.connection;
 import org.json.simple.JSONObject;
 
 import monto.eclipse.Activator;
-import monto.service.configuration.Configurations;
-import monto.service.configuration.ServiceConfiguration;
+import monto.service.message.ConfigurationMessage;
+import monto.service.message.ConfigurationMessages;
 
 public class PublishConfiguration {
 	private Publish connection;
@@ -13,14 +13,14 @@ public class PublishConfiguration {
 		this.connection = connection;
 	}
 
-	public void connect() {
-		connection.connect();
+	public void bind() {
+		connection.bind();
 	}
 	
-	public <T> void sendMessage(ServiceConfiguration message) {
+	public <T> void sendMessage(ConfigurationMessage message) {
 		try {
-			JSONObject encoding = Configurations.encode(message);
-			connection.sendMessage(encoding.toJSONString());
+			JSONObject encoding = ConfigurationMessages.encode(message);
+			connection.sendMessage(message.getServiceID(), encoding.toJSONString());
 		} catch (Exception e) {
 			Activator.error(e);
 		}

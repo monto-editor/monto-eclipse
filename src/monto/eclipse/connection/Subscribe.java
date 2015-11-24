@@ -15,7 +15,7 @@ public class Subscribe {
 		socket.setReceiveTimeOut(500);
 		this.address = address;
     }
-	
+
 	public void connect() {
 		socket.connect(address);
 	}
@@ -25,7 +25,8 @@ public class Subscribe {
 	}
 	
 	public Optional<String> receiveMessage() {
-		return Optional.ofNullable(socket.recvStr())
+		String str = socket.recvStr();
+		return Optional.ofNullable(str)
 				.map(ignore -> socket.recvStr());
 	}
 	

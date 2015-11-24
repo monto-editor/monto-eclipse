@@ -26,7 +26,7 @@ public class Service<A> {
 
 	public Service(Source source, Language language, String product, Function<ProductMessage, Optional<A>> parser) {
 		String capProduct = product.substring(0,1).toUpperCase() + product.substring(1);
-		subscription = String.format("%s%s", language, capProduct);
+		subscription = String.format("%s %s%s", source, language, capProduct);
 		this.sink = Activator.sink(subscription);
 		this.lock = new ReentrantLock();
 		this.arrived = lock.newCondition();
@@ -53,7 +53,6 @@ public class Service<A> {
 						withLock( () -> {
 							product = message
 									.map(msg -> {
-										Activator.debug("new product %s", msg);
 										return msg;
 									})
 									.filter(msg -> msg.getVersionId().upToDate(versionID))

@@ -38,7 +38,7 @@ public class ProductEditorInput implements IEditorInput {
 		return String.format("%s - %s - %s", source.toString(), product.toString(), language.toString());
 	}
 	
-	@SuppressWarnings("rawtypes")
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Object getAdapter(Class adapter) {
 		// TODO Auto-generated method stub

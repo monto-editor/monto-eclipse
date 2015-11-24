@@ -16,11 +16,10 @@ import monto.eclipse.connection.PublishSource;
 import monto.eclipse.connection.RequestResponse;
 import monto.eclipse.connection.Sink;
 import monto.eclipse.connection.Subscribe;
-import monto.eclipse.connection.SubscribeDiscover;
 import monto.service.configuration.Configuration;
-import monto.service.configuration.ServiceConfiguration;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
+import monto.service.message.ConfigurationMessage;
 import monto.service.message.VersionMessage;
 
 /**
@@ -36,7 +35,6 @@ public class Activator extends AbstractUIPlugin {
 	private PublishSource source;
 	private PublishConfiguration config;
 	private Discovery discover;
-	private SubscribeDiscover discoverResponse;
 	private static Context ctx;
 	
 	/*
@@ -53,11 +51,10 @@ public class Activator extends AbstractUIPlugin {
 		source.connect();
 		
 		config = new PublishConfiguration(new Publish(ctx,"tcp://localhost:5007"));
-		config.connect();
+		config.bind();
 		
 		discover = new Discovery(new RequestResponse(ctx,"tcp://localhost:5005"));
 		discover.connect();
-		
 	}
 	
 	public static Sink sink(String service) {
@@ -68,13 +65,13 @@ public class Activator extends AbstractUIPlugin {
 		return getDefault().discover.discoveryRequest(request);
 	}
 	
-	public static <T> void configure(ServiceConfiguration config) {
+	public static <T> void configure(ConfigurationMessage config) {
 		getDefault().config.sendMessage(config);
 	}
 	
 	@SuppressWarnings("rawtypes")
 	public static <T> void configure(String serviceId, Configuration ... confs) {
-		configure(new ServiceConfiguration(serviceId,Arrays.asList(confs)));
+		configure(new ConfigurationMessage(serviceId,Arrays.asList(confs)));
 	}
 
 	/*
@@ -85,7 +82,6 @@ public class Activator extends AbstractUIPlugin {
 		source.close();
 		config.close();
 		discover.close();
-		discoverResponse.close();
 		ctx.close();
 		plugin = null;
 		super.stop(bundle);

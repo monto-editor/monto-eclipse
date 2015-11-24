@@ -17,13 +17,28 @@ public class Publish {
 		this.address = address;
 	}
 	
-	public void connect() {
+	private void setupConnection() {
 		socket = ctx.socket(ZMQ.PUB);
 		socket.setLinger(Time.seconds(2));
+	}
+	
+	public void connect() {
+		setupConnection();
 		socket.connect(address);
 	}
 	
+	public void bind() {
+		setupConnection();
+		socket.bind(address);
+	}
+	
 	public void sendMessage(String msg) throws Exception {
+		sendMessage(null, msg);
+	}
+	
+	public void sendMessage(String topic, String msg) throws Exception {
+		if(topic != null)
+			socket.sendMore(topic);
 		socket.send(msg);
 	}
 

@@ -19,8 +19,8 @@ public class Discovery {
 	
 	public Optional<DiscoveryResponse> discoveryRequest(DiscoveryRequest request) {
 		JSONObject encoding = Discoveries.encode(request);
-		return Optional.ofNullable(connection.request(encoding.toJSONString()))
-						.flatMap(withException(Discoveries::decode));
+		Optional<String> response = Optional.ofNullable(connection.request(encoding.toJSONString()));
+		return response.flatMap(withException(Discoveries::decode));
 	}
 
 	public void connect() {
