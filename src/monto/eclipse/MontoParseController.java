@@ -3,12 +3,15 @@ package monto.eclipse;
 import static monto.eclipse.OptionalUtils.withException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.editor.quickfix.IAnnotation;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
@@ -22,8 +25,10 @@ import org.eclipse.swt.widgets.Display;
 
 import monto.service.completion.Completion;
 import monto.service.completion.Completions;
+import monto.service.error.Errors;
 import monto.service.message.Language;
 import monto.service.message.LongKey;
+import monto.service.message.Products;
 import monto.service.message.Selection;
 import monto.service.message.Source;
 import monto.service.message.VersionMessage;
@@ -42,22 +47,33 @@ public class MontoParseController extends ParseControllerBase {
 	private UniversalEditor editor;
 
 	private LongKey versionID = new LongKey(0);
-	Service<Outline> outline;
-	Service<List<Token>> tokens;
-	Service<List<Completion>> completions;
-	List<Service<?>> services = new ArrayList<>();
+	private Service<Outline> outline;
+	private Service<List<Token>> tokens;
+	private Service<List<Completion>> completions;
+	private Service<List<monto.service.error.Error>> errors;
+	private List<Service<?>> services = new ArrayList<>();
+	
+	private static final Map<String, Object> errorSeverity = new HashMap<>();
+	private static final Map<String, Object> warningSeverity = new HashMap<>();
+	private static final Map<String, Object> infoSeverity = new HashMap<>();
+	
+	static {
+		errorSeverity.put(IMessageHandler.SEVERITY_KEY, IAnnotation.ERROR);
+		warningSeverity.put(IMessageHandler.SEVERITY_KEY, IAnnotation.WARNING);
+		infoSeverity.put(IMessageHandler.SEVERITY_KEY, IAnnotation.INFO);
+	}
 	
 	@Override
 	public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
 		super.initialize(filePath, project, handler);
 		source = new Source(String.format("/%s/%s",project.getName(), filePath.toPortableString()));
 		language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
-		outline = new Service<Outline>(source, language, "outliner", withException(Outlines::decode));
-		tokens = new Service<List<Token>>(source, language, "tokenizer", withException(Tokens::decode));
-		completions = new Service<List<Completion>>(source, language, "completioner", withException(Completions::decode));
-		services.add(outline);
-		services.add(completions);
-		services.add(tokens);
+		services.add(completions = new Service<List<Completion>>(source, Products.COMPLETIONS, language, withException(Completions::decode)));
+		services.add(tokens = new Service<List<Token>>(source, Products.TOKENS, language, withException(Tokens::decode)));
+		services.add(outline = new Service<Outline>(source, Products.OUTLINE, language, withException(Outlines::decode))
+				.setTimeout(500));
+		services.add(errors = new Service<List<monto.service.error.Error>>(source, Products.ERRORS, language, withException(Errors::decode))
+				.setTimeout(500));
 		startServices();
 	}
 	
@@ -89,7 +105,7 @@ public class MontoParseController extends ParseControllerBase {
 			versionID.increment();
 			services.forEach(service -> service.invalidateProduct(versionID));
 			VersionMessage version = new VersionMessage(versionID,source,language,contents,selections);
-			Activator.sendMessage(version);			
+			Activator.sendMessage(version);
 		} catch (Exception e) {
 			Activator.error(e);
 		}
@@ -131,6 +147,29 @@ public class MontoParseController extends ParseControllerBase {
 	
 	@Override
 	public ParseResult getCurrentAst() {
+		// Use this method to add markers to the file
+		errors
+			.getProduct()
+			.ifPresent(errs -> { 
+				clearMarkers();
+				Activator.debug("Clear Markers");
+				Activator.debug("Errors: %s", errs);
+				errs.forEach(error -> {
+					switch(error.getLevel()) {
+						case "error":
+							addErrorMarker(error.getDescription(), error.getOffset(), error.getLength());
+							break;
+						case "warning":
+							addWarningMarker(error.getDescription(), error.getOffset(), error.getLength());
+							break;
+						default:
+							addInfoMarker(error.getDescription(), error.getOffset(), error.getLength());
+					}
+				});
+				Activator.debug("Add Markers");
+				flushMarkers();
+			});
+		
 		return outline
 			.getProduct()
 		    .map(o -> new ParseResult(o, contents))
@@ -139,5 +178,29 @@ public class MontoParseController extends ParseControllerBase {
 
 	public void setEditor(UniversalEditor editor) {
 		this.editor = editor;
+	}
+
+	private void addErrorMarker(String message, int startOffset, int length) {
+		addMarker(message, errorSeverity, startOffset, length);
+	}
+
+	private void addWarningMarker(String message, int startOffset, int length) {
+		addMarker(message, warningSeverity, startOffset, length);
+	}
+
+	private void addInfoMarker(String message, int startOffset, int length) {
+		addMarker(message, infoSeverity, startOffset, length);
+	}
+
+	private void addMarker(String message, Map<String, Object> attributes, int startOffset, int length) {
+		getHandler().handleSimpleMessage(message, startOffset, startOffset+length-1, 0, 0, 0, 0, attributes);
+	}
+
+	private void clearMarkers() {
+		getHandler().clearMessages();
+	}
+
+	private void flushMarkers() {
+		getHandler().endMessages();
 	}
 }

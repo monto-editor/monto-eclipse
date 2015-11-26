@@ -10,10 +10,12 @@ import java.util.function.Function;
 import monto.eclipse.connection.Sink;
 import monto.service.message.Language;
 import monto.service.message.LongKey;
+import monto.service.message.Product;
 import monto.service.message.ProductMessage;
 import monto.service.message.Source;
 
 public class Service<A> {
+
 	private Lock lock;
 	private Condition arrived;
 	private Optional<A> product;
@@ -21,25 +23,44 @@ public class Service<A> {
 	private Sink sink;
 	private LongKey versionID;
 	private Thread thread;
-	private String subscription;
 	private boolean running;
+	private long timeout;
+	private Fetch state;
+	private String subscription;
 
-	public Service(Source source, Language language, String product, Function<ProductMessage, Optional<A>> parser) {
-		String capProduct = product.substring(0,1).toUpperCase() + product.substring(1);
-		subscription = String.format("%s %s%s", source, language, capProduct);
-		this.sink = Activator.sink(subscription);
+	private Service(String subscription, Function<ProductMessage, Optional<A>> parser) {
+		this.sink = Activator.sink(this.subscription = subscription);
 		this.lock = new ReentrantLock();
 		this.arrived = lock.newCondition();
-		this.product = Optional.empty();
 		this.parser = parser;
+		this.timeout = 100;
+		setProduct(Optional.empty());
+	}
+	
+	public Service(Source source, Product product, Function<ProductMessage, Optional<A>> parser) {
+		this(String.format("%s %s", source, product), parser);
+	}
+	
+	public Service(Source source, Product product, Language language, Function<ProductMessage, Optional<A>> parser) {
+		this(String.format("%s %s %s", source, product, language), parser);
+	}
+	
+	public Service(Source source, Product product, Language language, String serviceID, Function<ProductMessage, Optional<A>> parser) {
+		this(String.format("%s %s %s %s", source, product, language, serviceID), parser);
 	}
 	
 	public void invalidateProduct(LongKey newVersionID) {
 		withLock( () -> {
-			product = Optional.empty();
-			arrived.signalAll();
+			setProduct(Optional.empty());
+			setState(Fetch.PENDING);
 			versionID = newVersionID;
+			arrived.signalAll();
 		});
+	}
+	
+	private void setProduct(Optional<A> product) {
+		Activator.debug("%s, %s: setProduct %s -> %s", subscription, getState(), this.product, product);
+		this.product = product;
 	}
 	
 	public void start() {
@@ -50,18 +71,16 @@ public class Service<A> {
 				try {
 					while(running) {
 						Optional<ProductMessage> message = sink.receiveMessage();
-						withLock( () -> {
-							product = message
-									.map(msg -> {
-										return msg;
-									})
-									.filter(msg -> msg.getVersionId().upToDate(versionID))
-									.flatMap(msg -> parser.apply(msg));
-							arrived.signalAll();
+						withLock(() -> {
+							if((state == Fetch.PENDING || state == Fetch.PENDING_WAITING) && message.map(msg -> msg.getVersionId().upToDate(versionID)).orElse(false)) {
+								Activator.debug("%s", message);
+								setProduct(message.flatMap(msg -> parser.apply(msg)));
+								product.ifPresent(p -> setState(Fetch.ARRIVED));
+								arrived.signalAll();
+							}
 						});
 					}
 					sink.close();
-					Activator.debug("service %s shutdown correctly", subscription);
 				} catch (Exception e) {
 					Activator.error(e);
 				}
@@ -75,19 +94,30 @@ public class Service<A> {
 	}
 	
 	public Optional<A> getProduct() {
-		return product.map(Optional::of).orElseGet(() -> {
+		if(state == Fetch.PENDING) {
 			lock.lock();
 			try {
-				arrived.await(100, TimeUnit.MILLISECONDS);
+
+				setState(Fetch.PENDING_WAITING);
+					
+				arrived.await(timeout, TimeUnit.MILLISECONDS);
+				
+				if(getState() != Fetch.PENDING && getState() != Fetch.ARRIVED)
+					setState(Fetch.LOST);
+
 			} catch (InterruptedException e) {
-				// Ignore interruption
+				Activator.error("service got interupted: %s", e);
 			} finally {
 				lock.unlock();
 			}
-			return product;
-		});
+		}
+		
+		Activator.debug("%s, %s: getProduct() -> %s", subscription, getState(), product);
+		
+		return product;
 	}
 	
+
 	public void withLock(Runnable runnable) {
 		lock.lock();
 		try {
@@ -95,5 +125,45 @@ public class Service<A> {
 		} finally {
 			lock.unlock();
 		}
+	}
+
+	public Service<A> setTimeout(long timeout) {
+		this.timeout = timeout;
+		return this;
+	}
+	
+	private void setState(Fetch state) {
+		Activator.debug("%s: %s -> %s", subscription, this.state, state);
+		this.state = state;
+	}
+	
+	private Fetch getState() {
+		return state;
+	}
+
+	private enum Fetch {
+		/**
+		 * Represents a state, where a new product is requested, that is not
+		 * yet available and no one is waiting on it.
+		 */
+		PENDING,
+		
+		/**
+		 * Represents a state, where a new product is requested, that is not
+		 * yet available and getProduct got called.  
+		 */
+		PENDING_WAITING,
+		
+		/**
+		 * Represents a state, where a new product has arrived, that is not
+		 * invalidated yet.
+		 */
+		ARRIVED,
+		
+		/**
+		 * Represents a state, where a new product has been requested, but
+		 * the deadline was missed.
+		 */
+		LOST;
 	}
 }

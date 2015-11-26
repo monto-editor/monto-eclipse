@@ -12,7 +12,6 @@ public class Subscribe {
 
 	public Subscribe(Context ctx, String address) {
 		socket = ctx.socket(ZMQ.SUB);
-		socket.setReceiveTimeOut(500);
 		this.address = address;
     }
 
@@ -28,6 +27,10 @@ public class Subscribe {
 		String str = socket.recvStr();
 		return Optional.ofNullable(str)
 				.map(ignore -> socket.recvStr());
+	}
+	
+	public void setReceivedTimeout(int timeout) {
+		socket.setReceiveTimeOut(timeout);
 	}
 	
 	public void close() throws Exception {

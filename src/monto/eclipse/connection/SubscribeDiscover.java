@@ -13,6 +13,7 @@ public class SubscribeDiscover {
 
 	public SubscribeDiscover(Subscribe connection) {
 		this.connection = connection;
+		connection.setReceivedTimeout(500);
 	}
 	
 	public void connect() {
