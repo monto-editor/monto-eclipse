@@ -38,6 +38,8 @@ import monto.service.configuration.TextConfiguration;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.LanguageFilter;
 import monto.service.discovery.ServiceDescription;
+import monto.service.message.Language;
+import monto.service.message.ServiceID;
 
 public class ServiceConfigurationPage extends PropertyPage implements IWorkbenchPropertyPage {
 
@@ -53,7 +55,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 		try {
 			IFileEditorInput editorInput = (IFileEditorInput) getElement();
 			UniversalEditor editor = (UniversalEditor) EditorUtility.isOpenInEditor(editorInput);
-			String language = editor.getLanguage().getName();
+			Language language = new Language(editor.getLanguage().getName());
 			request = new DiscoveryRequest(new LanguageFilter(language));
 		} catch (Exception e) {
 			request = new DiscoveryRequest();
@@ -105,7 +107,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 		return folder;
 	}
 	
-	<T> void createOptions(String serviceID, Option<T> option, Map<String,Button> buttons, Map<String,Control> controls, List<Pair<OptionGroup,Group>> optionGroups, Composite parent) {
+	<T> void createOptions(ServiceID serviceID, Option<T> option, Map<String,Button> buttons, Map<String,Control> controls, List<Pair<OptionGroup,Group>> optionGroups, Composite parent) {
 		IPreferenceStore store = getPreferenceStore();
 		
 		@SuppressWarnings("unchecked")

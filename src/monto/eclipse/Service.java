@@ -14,6 +14,12 @@ import monto.service.message.Product;
 import monto.service.message.ProductMessage;
 import monto.service.message.Source;
 
+/**
+ * Awaits all products of a given services.
+ * 
+ * The class mediates between a thread that polls the connection and the UI
+ * thread that calls {@link #getProduct() getProduct}.
+ */
 public class Service<A> {
 
 	private Lock lock;
@@ -58,11 +64,6 @@ public class Service<A> {
 		});
 	}
 	
-	private void setProduct(Optional<A> product) {
-		Activator.debug("%s, %s: setProduct %s -> %s", subscription, getState(), this.product, product);
-		this.product = product;
-	}
-	
 	public void start() {
 		sink.connect();
 		running = true;
@@ -72,8 +73,7 @@ public class Service<A> {
 					while(running) {
 						Optional<ProductMessage> message = sink.receiveMessage();
 						withLock(() -> {
-							if((state == Fetch.PENDING || state == Fetch.PENDING_WAITING) && message.map(msg -> msg.getVersionId().upToDate(versionID)).orElse(false)) {
-								Activator.debug("%s", message);
+							if((state == Fetch.PENDING || state == Fetch.WAITING) && message.map(msg -> msg.getVersionId().upToDate(versionID)).orElse(false)) {
 								setProduct(message.flatMap(msg -> parser.apply(msg)));
 								product.ifPresent(p -> setState(Fetch.ARRIVED));
 								arrived.signalAll();
@@ -93,12 +93,16 @@ public class Service<A> {
 		running = false;
 	}
 	
+	private void setProduct(Optional<A> product) {
+		this.product = product;
+	}
+
 	public Optional<A> getProduct() {
 		if(state == Fetch.PENDING) {
 			lock.lock();
 			try {
 
-				setState(Fetch.PENDING_WAITING);
+				setState(Fetch.WAITING);
 					
 				arrived.await(timeout, TimeUnit.MILLISECONDS);
 				
@@ -133,7 +137,6 @@ public class Service<A> {
 	}
 	
 	private void setState(Fetch state) {
-		Activator.debug("%s: %s -> %s", subscription, this.state, state);
 		this.state = state;
 	}
 	
@@ -152,7 +155,7 @@ public class Service<A> {
 		 * Represents a state, where a new product is requested, that is not
 		 * yet available and getProduct got called.  
 		 */
-		PENDING_WAITING,
+		WAITING,
 		
 		/**
 		 * Represents a state, where a new product has arrived, that is not

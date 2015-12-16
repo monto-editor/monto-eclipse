@@ -27,6 +27,15 @@
            language="javascript">
      </language>
   </extension>
+  <extension
+        point="org.eclipse.imp.runtime.languageDescription">
+     <language
+           derivedFrom="Monto"
+           description="Haskell"
+           extensions="hs"
+           language="haskell">
+     </language>
+  </extension>
    <extension
          point="org.eclipse.imp.runtime.parser">
       <parser

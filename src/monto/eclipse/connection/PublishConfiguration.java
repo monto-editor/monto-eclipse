@@ -20,7 +20,7 @@ public class PublishConfiguration {
 	public <T> void sendMessage(ConfigurationMessage message) {
 		try {
 			JSONObject encoding = ConfigurationMessages.encode(message);
-			connection.sendMessage(message.getServiceID(), encoding.toJSONString());
+			connection.sendMessage(message.getServiceID().toString(), encoding.toJSONString());
 		} catch (Exception e) {
 			Activator.error(e);
 		}

@@ -152,8 +152,6 @@ public class MontoParseController extends ParseControllerBase {
 			.getProduct()
 			.ifPresent(errs -> { 
 				clearMarkers();
-				Activator.debug("Clear Markers");
-				Activator.debug("Errors: %s", errs);
 				errs.forEach(error -> {
 					switch(error.getLevel()) {
 						case "error":
@@ -166,7 +164,6 @@ public class MontoParseController extends ParseControllerBase {
 							addInfoMarker(error.getDescription(), error.getOffset(), error.getLength());
 					}
 				});
-				Activator.debug("Add Markers");
 				flushMarkers();
 			});
 		
