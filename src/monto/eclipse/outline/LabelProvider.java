@@ -5,16 +5,16 @@ import java.util.Set;
 
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.services.ILabelProvider;
-import org.eclipse.jdt.ui.ISharedImages;
-import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 
 
 public class LabelProvider implements ILabelProvider {
 	
 	private Set<ILabelProviderListener> listeners = new HashSet<ILabelProviderListener>();
-	ISharedImages images = JavaUI.getSharedImages();
+	ImageRegistry images = new ImageRegistry(Display.getCurrent()); 
 
 	@Override
 	public void dispose() {
@@ -26,13 +26,22 @@ public class LabelProvider implements ILabelProvider {
 		return false;
 	}
 
-
+	private Image getImageInternal(String filepath) {
+		Image img = images.get(filepath);
+		if(img == null) {
+			images.put(filepath, new Image(Display.getCurrent(),filepath));
+			return images.get(filepath);
+		} else {
+			return img;
+		}
+	}
+	
 	@Override
 	public Image getImage(Object element) {
 		if(element instanceof OutlineLabel) {
 			OutlineLabel label = (OutlineLabel) element;
 			if(label.getOutline().getIcon().isPresent())
-				return images.getImage(label.getOutline().getIcon().get());
+				return getImageInternal(label.getOutline().getIcon().get());
 		} else if(element instanceof ModelTreeNode) {
 			return getImage(((ModelTreeNode) element).getASTNode());
 		}
