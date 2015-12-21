@@ -8,11 +8,11 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import monto.eclipse.connection.Sink;
-import monto.service.message.Language;
-import monto.service.message.LongKey;
-import monto.service.message.Product;
-import monto.service.message.ProductMessage;
-import monto.service.message.Source;
+import monto.service.product.ProductMessage;
+import monto.service.types.Language;
+import monto.service.types.LongKey;
+import monto.service.types.Product;
+import monto.service.types.Source;
 
 /**
  * Awaits all products of a given services.

@@ -38,8 +38,8 @@ import monto.service.configuration.TextConfiguration;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.LanguageFilter;
 import monto.service.discovery.ServiceDescription;
-import monto.service.message.Language;
-import monto.service.message.ServiceID;
+import monto.service.types.Language;
+import monto.service.types.ServiceID;
 
 public class ServiceConfigurationPage extends PropertyPage implements IWorkbenchPropertyPage {
 

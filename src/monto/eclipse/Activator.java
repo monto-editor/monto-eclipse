@@ -20,15 +20,15 @@ import monto.eclipse.connection.Sink;
 import monto.eclipse.connection.Subscribe;
 import monto.service.configuration.BooleanConfiguration;
 import monto.service.configuration.Configuration;
+import monto.service.configuration.ConfigurationMessage;
 import monto.service.configuration.NumberConfiguration;
 import monto.service.configuration.Option;
 import monto.service.configuration.TextConfiguration;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
 import monto.service.discovery.ServiceDescription;
-import monto.service.message.ConfigurationMessage;
-import monto.service.message.ServiceID;
-import monto.service.message.VersionMessage;
+import monto.service.types.ServiceID;
+import monto.service.version.VersionMessage;
 
 /**
  * The activator class controls the plug-in life cycle

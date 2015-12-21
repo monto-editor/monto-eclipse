@@ -3,8 +3,8 @@ package monto.eclipse.connection;
 import java.util.Optional;
 
 import monto.eclipse.Activator;
-import monto.service.message.ProductMessage;
-import monto.service.message.ProductMessages;
+import monto.service.product.ProductMessage;
+import monto.service.product.ProductMessages;
 
 public class Sink {
 	private Subscribe connection;

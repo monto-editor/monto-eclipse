@@ -3,8 +3,8 @@ package monto.eclipse.connection;
 import org.json.simple.JSONObject;
 
 import monto.eclipse.Activator;
-import monto.service.message.ConfigurationMessage;
-import monto.service.message.ConfigurationMessages;
+import monto.service.configuration.ConfigurationMessage;
+import monto.service.configuration.ConfigurationMessages;
 
 public class PublishConfiguration {
 	private Publish connection;

@@ -4,9 +4,9 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 
-import monto.service.message.Language;
-import monto.service.message.Product;
-import monto.service.message.Source;
+import monto.service.types.Language;
+import monto.service.types.Product;
+import monto.service.types.Source;
 
 public class ProductEditorInput implements IEditorInput {
 

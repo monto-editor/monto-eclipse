@@ -26,17 +26,17 @@ import org.eclipse.swt.widgets.Display;
 import monto.service.completion.Completion;
 import monto.service.completion.Completions;
 import monto.service.error.Errors;
-import monto.service.message.Language;
-import monto.service.message.LongKey;
-import monto.service.message.Products;
-import monto.service.message.Selection;
-import monto.service.message.Source;
-import monto.service.message.VersionMessage;
 import monto.service.outline.Outline;
 import monto.service.outline.Outlines;
+import monto.service.product.Products;
 import monto.service.region.Region;
 import monto.service.token.Token;
 import monto.service.token.Tokens;
+import monto.service.types.Language;
+import monto.service.types.LongKey;
+import monto.service.types.Selection;
+import monto.service.types.Source;
+import monto.service.version.VersionMessage;
 
 public class MontoParseController extends ParseControllerBase {
 
