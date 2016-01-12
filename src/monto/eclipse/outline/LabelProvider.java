@@ -1,10 +1,12 @@
 package monto.eclipse.outline;
 
+import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.services.ILabelProvider;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Image;
@@ -26,14 +28,13 @@ public class LabelProvider implements ILabelProvider {
 		return false;
 	}
 
-	private Image getImageInternal(String filepath) {
-		Image img = images.get(filepath);
+	private Image getImageInternal(URL url) {
+		Image img = images.get(url.toString());
 		if(img == null) {
-			images.put(filepath, new Image(Display.getCurrent(),filepath));
-			return images.get(filepath);
-		} else {
-			return img;
+			images.put(url.toString(), ImageDescriptor.createFromURL(url));
+			img = images.get(url.toString());
 		}
+		return img;
 	}
 	
 	@Override
