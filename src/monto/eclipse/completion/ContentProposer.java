@@ -1,21 +1,32 @@
 package monto.eclipse.completion;
 
+import java.net.URL;
 import java.util.List;
 
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
-import org.eclipse.jdt.ui.ISharedImages;
-import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 
 import monto.eclipse.MontoParseController;
 import monto.service.completion.Completion;
 
 public class ContentProposer implements IContentProposer {
-
-	ISharedImages images = JavaUI.getSharedImages();
+	ImageRegistry images = new ImageRegistry(Display.getCurrent());
+	
+	private Image getImage(URL url) {
+		Image img = images.get(url.toString());
+		if(img == null) {
+			images.put(url.toString(), ImageDescriptor.createFromURL(url));
+			img = images.get(url.toString());
+		}
+		return img;
+	}
 	
 	@Override
 	public ICompletionProposal[] getContentProposals(IParseController parseController,
@@ -33,7 +44,7 @@ public class ContentProposer implements IContentProposer {
 					comp.getInsertionOffset(),
 					0,
 					comp.getReplacement().length(),
-					images.getImage(comp.getIcon()),
+					getImage(comp.getIcon()),
 					comp.getDescription(),
 					null,
 					null))
