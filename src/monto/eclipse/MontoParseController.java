@@ -68,7 +68,8 @@ public class MontoParseController extends ParseControllerBase {
 		super.initialize(filePath, project, handler);
 		source = new Source(String.format("/%s/%s",project.getName(), filePath.toPortableString()));
 		language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
-		services.add(completions = new Service<List<Completion>>(source, Products.COMPLETIONS, language, withException(Completions::decode)));
+		services.add(completions = new Service<List<Completion>>(source, Products.COMPLETIONS, language, withException(Completions::decode))
+				.setTimeout(500));
 		services.add(tokens = new Service<List<Token>>(source, Products.TOKENS, language, withException(Tokens::decode)));
 		services.add(outline = new Service<Outline>(source, Products.OUTLINE, language, withException(Outlines::decode))
 				.setTimeout(500));
@@ -146,7 +147,7 @@ public class MontoParseController extends ParseControllerBase {
 	}
 	
 	@Override
-	public ParseResult getCurrentAst() {
+	public Outline getCurrentAst() {
 		// Use this method to add markers to the file
 		errors
 			.getProduct()
@@ -169,7 +170,6 @@ public class MontoParseController extends ParseControllerBase {
 		
 		return outline
 			.getProduct()
-		    .map(o -> new ParseResult(o, contents))
 		    .orElse(null);
 	}
 

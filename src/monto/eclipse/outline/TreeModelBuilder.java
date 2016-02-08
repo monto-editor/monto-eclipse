@@ -2,28 +2,27 @@ package monto.eclipse.outline;
 
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 
-import monto.eclipse.ParseResult;
 import monto.service.outline.Outline;
 
 public class TreeModelBuilder extends TreeModelBuilderBase {
 
 	@Override
 	protected void visitTree(Object obj) {
-		ParseResult result = (ParseResult) obj;
+		Outline result = (Outline) obj;
 		
-		if(result == null || result.getOutline() == null)
+		if(result == null)
 			return;
 		
-		result.getOutline().getChildren().forEach(child -> buildOutline(child, result.getDocument()));
+		result.getChildren().forEach(child -> buildOutline(child));
 	}
 	
-	private void buildOutline(Outline out,String document) {
+	private void buildOutline(Outline out) {
 		if(out.isLeaf()) {
-			createSubItem(new OutlineLabel(out, document));
+			createSubItem(out);
 		} else {
-			pushSubItem(new OutlineLabel(out, document));
+			pushSubItem(out);
 			out.getChildren().forEach(child ->
-					buildOutline(child, document));
+					buildOutline(child));
 			popSubItem();
 		}
 	}

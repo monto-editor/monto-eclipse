@@ -760,4 +760,11 @@
             name="Monto Services">
       </page>
    </extension>
+   <extension
+         point="org.eclipse.imp.runtime.editorService">
+      <editorService
+            class="monto.eclipse.EditorService"
+            language="monto">
+      </editorService>
+   </extension>
 </plugin>
