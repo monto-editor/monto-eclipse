@@ -73,7 +73,7 @@ public class Service<A> {
 					while(running) {
 						Optional<ProductMessage> message = sink.receiveMessage();
 						withLock(() -> {
-							if((state == Fetch.PENDING || state == Fetch.WAITING) && message.map(msg -> msg.getVersionId().upToDate(versionID)).orElse(false)) {
+							if((state == Fetch.PENDING || state == Fetch.WAITING) && message.map(msg -> msg.getId().upToDate(versionID)).orElse(false)) {
 								setProduct(message.flatMap(msg -> parser.apply(msg)));
 								product.ifPresent(p -> setState(Fetch.ARRIVED));
 								arrived.signalAll();

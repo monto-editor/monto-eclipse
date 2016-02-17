@@ -24,7 +24,7 @@ public class Sink {
 		return connection.receiveMessage()
                 .flatMap(msg -> {
                 	try {
-                		return Optional.of(ProductMessages.decode(msg));
+                		return Optional.of((ProductMessage) ProductMessages.decode(msg));
                 	} catch(Exception e) {
                 		Activator.error("Could not decode product message: "+msg, e);
                 		return Optional.empty();

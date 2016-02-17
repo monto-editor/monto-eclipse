@@ -30,13 +30,13 @@ import monto.service.outline.Outline;
 import monto.service.outline.Outlines;
 import monto.service.product.Products;
 import monto.service.region.Region;
+import monto.service.source.SourceMessage;
 import monto.service.token.Token;
 import monto.service.token.Tokens;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
 import monto.service.types.Selection;
 import monto.service.types.Source;
-import monto.service.version.VersionMessage;
 
 public class MontoParseController extends ParseControllerBase {
 
@@ -105,7 +105,7 @@ public class MontoParseController extends ParseControllerBase {
 			
 			versionID.increment();
 			services.forEach(service -> service.invalidateProduct(versionID));
-			VersionMessage version = new VersionMessage(versionID,source,language,contents,selections);
+			SourceMessage version = new SourceMessage(versionID,source,language,contents,selections);
 			Activator.sendMessage(version);
 		} catch (Exception e) {
 			Activator.error(e);

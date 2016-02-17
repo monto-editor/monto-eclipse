@@ -26,8 +26,8 @@ import monto.service.configuration.TextConfiguration;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
 import monto.service.discovery.ServiceDescription;
+import monto.service.source.SourceMessage;
 import monto.service.types.ServiceID;
-import monto.service.version.VersionMessage;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -156,7 +156,7 @@ public class Activator extends AbstractUIPlugin {
 		getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, msg, e));
 	}
 
-	public static void sendMessage(VersionMessage version) {
+	public static void sendMessage(SourceMessage version) {
 		getDefault().source.sendMessage(version);
 	}
 }
