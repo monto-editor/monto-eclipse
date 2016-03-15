@@ -15,8 +15,6 @@ import monto.eclipse.connection.Publish;
 import monto.eclipse.connection.PublishConfiguration;
 import monto.eclipse.connection.PublishSource;
 import monto.eclipse.connection.RequestResponse;
-import monto.eclipse.connection.Sink;
-import monto.eclipse.connection.Subscribe;
 import monto.service.configuration.BooleanConfiguration;
 import monto.service.configuration.Configuration;
 import monto.service.configuration.ConfigurationMessage;

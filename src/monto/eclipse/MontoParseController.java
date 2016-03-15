@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -103,9 +104,11 @@ public class MontoParseController extends ParseControllerBase {
 				});
 			}
 			
+			Optional<Selection> selection = selections.size() >= 1 ? Optional.of(selections.get(1)) : Optional.empty();
+			
 			versionID.increment();
 			services.forEach(service -> service.invalidateProduct(versionID));
-			SourceMessage version = new SourceMessage(versionID,source,language,contents,selections);
+			SourceMessage version = new SourceMessage(versionID,source,language,contents,selection);
 			Activator.sendMessage(version);
 		} catch (Exception e) {
 			Activator.error(e);

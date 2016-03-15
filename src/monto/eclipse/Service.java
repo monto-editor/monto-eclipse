@@ -7,7 +7,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
-import monto.eclipse.connection.Sink;
 import monto.service.product.ProductMessage;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
