@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.imp.editor.EditorUtility;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -25,20 +23,17 @@ import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
 import org.javatuples.Pair;
 
-import monto.service.configuration.BooleanConfiguration;
-import monto.service.configuration.NumberConfiguration;
+import monto.service.configuration.BooleanSetting;
+import monto.service.configuration.NumberSetting;
 import monto.service.configuration.Option;
 import monto.service.configuration.OptionGroup;
-import monto.service.configuration.TextConfiguration;
+import monto.service.configuration.TextSetting;
 import monto.service.discovery.DiscoveryRequest;
-import monto.service.discovery.LanguageFilter;
 import monto.service.discovery.ServiceDescription;
-import monto.service.types.Language;
 import monto.service.types.ServiceID;
 
 public class ServiceConfigurationPage extends PropertyPage implements IWorkbenchPropertyPage {
@@ -51,15 +46,14 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 	@SuppressWarnings("unchecked")
 	@Override
 	protected Control createContents(Composite parent) {
-		DiscoveryRequest request;
-		try {
-			IFileEditorInput editorInput = (IFileEditorInput) getElement();
-			UniversalEditor editor = (UniversalEditor) EditorUtility.isOpenInEditor(editorInput);
-			Language language = new Language(editor.getLanguage().getName());
-			request = new DiscoveryRequest(new LanguageFilter(language));
-		} catch (Exception e) {
-			request = new DiscoveryRequest();
-		}
+		DiscoveryRequest request = new DiscoveryRequest();
+//		try {
+//			IFileEditorInput editorInput = (IFileEditorInput) getElement();
+//			UniversalEditor editor = (UniversalEditor) EditorUtility.isOpenInEditor(editorInput);
+//			Language language = new Language(editor.getLanguage().getName());
+//			request = new DiscoveryRequest(new LanguageFilter(language));
+//		} catch (Exception e) {
+//		}
 		
 		List<ServiceDescription> services = Activator.discover(request)
 			.map(resp -> resp.getServices())
@@ -121,7 +115,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
         			button.addSelectionListener(new SelectionAdapter() {
         				@Override
         				public void widgetSelected(SelectionEvent e) {
-        					BooleanConfiguration conf = new BooleanConfiguration(booleanOption.getOptionId(), button.getSelection()); 
+        					BooleanSetting conf = new BooleanSetting(booleanOption.getOptionId(), button.getSelection()); 
         					Activator.configure(serviceID,conf);
         				}
 					});
@@ -136,7 +130,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
         	        spinner.addSelectionListener(new SelectionAdapter() {
         	        	@Override
         				public void widgetSelected(SelectionEvent e) {
-        					NumberConfiguration conf = new NumberConfiguration(numberOption.getOptionId(), spinner.getSelection()); 
+        					NumberSetting conf = new NumberSetting(numberOption.getOptionId(), spinner.getSelection()); 
         					Activator.configure(serviceID,conf);
         				}
 					});
@@ -150,7 +144,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
         			text.addVerifyListener(new VerifyListener() {
 						@Override
 						public void verifyText(VerifyEvent e) {
-							TextConfiguration conf = new TextConfiguration(textOption.getOptionId(), text.getText());
+							TextSetting conf = new TextSetting(textOption.getOptionId(), text.getText());
 							
 							Activator.configure(serviceID,conf);
 						}
@@ -169,7 +163,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
         				@Override
         				public void widgetSelected(SelectionEvent e) {
         					String selected = combo.getItem(combo.getSelectionIndex());
-        					TextConfiguration conf = new TextConfiguration(xorOption.getOptionId(), selected); 
+        					TextSetting conf = new TextSetting(xorOption.getOptionId(), selected); 
         					Activator.configure(serviceID,conf);
         				}
 					});

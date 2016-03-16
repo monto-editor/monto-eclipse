@@ -26,3 +26,4 @@ Bundle-ClassPath: .,
  lib/junit-benchmarks-0.7.2.jar,
  lib/antlr-4.4-complete.jar,
  lib/javatuples-1.2.jar
+Import-Package: com.ibm.icu.text

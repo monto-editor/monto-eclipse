@@ -15,12 +15,12 @@ import monto.eclipse.connection.Publish;
 import monto.eclipse.connection.PublishConfiguration;
 import monto.eclipse.connection.PublishSource;
 import monto.eclipse.connection.RequestResponse;
-import monto.service.configuration.BooleanConfiguration;
+import monto.service.configuration.BooleanSetting;
+import monto.service.configuration.Setting;
 import monto.service.configuration.Configuration;
-import monto.service.configuration.ConfigurationMessage;
-import monto.service.configuration.NumberConfiguration;
+import monto.service.configuration.NumberSetting;
 import monto.service.configuration.Option;
-import monto.service.configuration.TextConfiguration;
+import monto.service.configuration.TextSetting;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
 import monto.service.discovery.ServiceDescription;
@@ -83,22 +83,22 @@ public class Activator extends AbstractUIPlugin {
 		Activator.debug("restore option: %s", option);
 		option.<Void>match(
 			booleanOption -> {
-				Configuration conf = new BooleanConfiguration(booleanOption.getOptionId(), store.getBoolean(serviceID + booleanOption.getOptionId()));
+				Setting conf = new BooleanSetting(booleanOption.getOptionId(), store.getBoolean(serviceID + booleanOption.getOptionId()));
 				configure(service.getServiceID(), conf);
 				return null;
 			},
 			numberOption -> {
-				Configuration conf = new NumberConfiguration(numberOption.getOptionId(), store.getInt(serviceID + numberOption.getOptionId()));
+				Setting conf = new NumberSetting(numberOption.getOptionId(), store.getInt(serviceID + numberOption.getOptionId()));
 				configure(service.getServiceID(), conf);
 				return null;
 			},
 			textOption -> {
-				Configuration conf = new TextConfiguration(textOption.getOptionId(), store.getString(serviceID + textOption.getOptionId()));
+				Setting conf = new TextSetting(textOption.getOptionId(), store.getString(serviceID + textOption.getOptionId()));
 				configure(service.getServiceID(), conf);
 				return null;
 			},
 			xorOption -> {
-				Configuration conf = new TextConfiguration(xorOption.getOptionId(), store.getString(serviceID) + xorOption.getOptionId());
+				Setting conf = new TextSetting(xorOption.getOptionId(), store.getString(serviceID) + xorOption.getOptionId());
 				configure(service.getServiceID(), conf);
 				return null;
 			},
@@ -116,13 +116,13 @@ public class Activator extends AbstractUIPlugin {
 		return getDefault().discover.discoveryRequest(request);
 	}
 	
-	public static <T> void configure(ConfigurationMessage config) {
+	public static <T> void configure(Configuration config) {
 		getDefault().config.sendMessage(config);
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static <T> void configure(ServiceID serviceId, Configuration ... confs) {
-		configure(new ConfigurationMessage(serviceId,Arrays.asList(confs)));
+	public static <T> void configure(ServiceID serviceId, Setting ... confs) {
+		configure(new Configuration(serviceId,Arrays.asList(confs)));
 	}
 
 	/*

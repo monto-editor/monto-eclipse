@@ -71,7 +71,7 @@ public class MontoParseController extends ParseControllerBase {
 		language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 		services.add(completions = new Service<List<Completion>>(source, Products.COMPLETIONS, language, withException(Completions::decode))
 				.setTimeout(500));
-		services.add(tokens = new Service<List<Token>>(source, Products.TOKENS, language, withException(Tokens::decode)));
+		services.add(tokens = new Service<List<Token>>(source, Products.TOKENS, language, withException(Tokens::decodeTokenMessage)));
 		services.add(outline = new Service<Outline>(source, Products.OUTLINE, language, withException(Outlines::decode))
 				.setTimeout(500));
 		services.add(errors = new Service<List<monto.service.error.Error>>(source, Products.ERRORS, language, withException(Errors::decode))
