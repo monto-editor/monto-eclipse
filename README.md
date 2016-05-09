@@ -12,17 +12,14 @@ The eclipse plugin currently works only with my own broker and not with the
 explain how to get the development environment for the Eclipse-Monto plugin up
 an running.
 
-1. Get the [Monto broker](https://github.com/monto-editor/broker)
-   and follow the installation instructions
+1. Get the [Monto broker](https://github.com/monto-editor/broker) and follow the installation instructions
 2. In Eclipse, install `Eclipse plug-in development environment` from Eclipse's built-in update site.
-3. Add the update site `http://update.rascal-mpl.org/unstable` and install `IMP runtime`
-4. Import this repository as an eclipse project
-5. Start the broker with `./startWithZeroMQ.sh`
+3. Import our [custom IMP runtime](https://github.com/monto-editor/imp.runtime), the [java base services](https://github.com/monto-editor/services-base-java) and this repository as an eclipse project
+5. Start the broker with `./start.sh`
 6. Get a [service](https://github.com/monto-editor) for the language of your choice.
 7. Run the service.
 8. Run the project as an `Eclipse Application`
-9. The only supported languages at the moment are Java and JavaScript, so create a new Java
-   Project in the new eclipse instance, create a new Java class and play around.
+9. The only supported languages at the moment are Java and JavaScript, so create a new Java Project in the new eclipse instance, create a new Java class, right click the new class, select `Open With` --> `IMP Editor` and play around.
 
 
 Code Compass
