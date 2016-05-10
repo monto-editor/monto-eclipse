@@ -104,13 +104,14 @@ public class MontoParseController extends ParseControllerBase {
 				});
 			}
 			
-			Optional<Selection> selection = selections.size() >= 1 ? Optional.of(selections.get(1)) : Optional.empty();
+			Optional<Selection> selection = selections.size() >= 1 ? Optional.of(selections.get(0)) : Optional.empty();
 			
 			versionID.increment();
 			services.forEach(service -> service.invalidateProduct(versionID));
 			SourceMessage version = new SourceMessage(versionID,source,language,contents,selection);
 			Activator.sendMessage(version);
 		} catch (Exception e) {
+			e.printStackTrace();
 			Activator.error(e);
 		}
 		
