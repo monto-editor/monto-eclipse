@@ -34,7 +34,7 @@ import monto.service.configuration.OptionGroup;
 import monto.service.configuration.TextSetting;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.ServiceDescription;
-import monto.service.types.ServiceID;
+import monto.service.types.ServiceId;
 
 public class ServiceConfigurationPage extends PropertyPage implements IWorkbenchPropertyPage {
 
@@ -73,7 +73,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 			Composite composite = new Composite(folder,SWT.NONE);
 			composite.setLayout(new RowLayout(SWT.VERTICAL));
 			service.getOptions().forEach(option -> {
-				createOptions(service.getServiceID(),option,buttons,controls,optionGroups,composite);	
+				createOptions(service.getServiceId(),option,buttons,controls,optionGroups,composite);	
 			});			
 			initializeValues();
 			optionGroups.forEach(pair -> {
@@ -101,7 +101,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 		return folder;
 	}
 	
-	<T> void createOptions(ServiceID serviceID, Option<T> option, Map<String,Button> buttons, Map<String,Control> controls, List<Pair<OptionGroup,Group>> optionGroups, Composite parent) {
+	<T> void createOptions(ServiceId serviceID, Option<T> option, Map<String,Button> buttons, Map<String,Control> controls, List<Pair<OptionGroup,Group>> optionGroups, Composite parent) {
 		IPreferenceStore store = getPreferenceStore();
 		
 		@SuppressWarnings("unchecked")

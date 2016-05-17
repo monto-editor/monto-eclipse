@@ -25,7 +25,7 @@ import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
 import monto.service.discovery.ServiceDescription;
 import monto.service.source.SourceMessage;
-import monto.service.types.ServiceID;
+import monto.service.types.ServiceId;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -79,27 +79,27 @@ public class Activator extends AbstractUIPlugin {
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private <A> void restoreOption(ServiceDescription service, Option<A> option, IPreferenceStore store) {
-		String serviceID = service.getServiceID().toString();
+		String serviceID = service.getServiceId().toString();
 		Activator.debug("restore option: %s", option);
 		option.<Void>match(
 			booleanOption -> {
 				Setting conf = new BooleanSetting(booleanOption.getOptionId(), store.getBoolean(serviceID + booleanOption.getOptionId()));
-				configure(service.getServiceID(), conf);
+				configure(service.getServiceId(), conf);
 				return null;
 			},
 			numberOption -> {
 				Setting conf = new NumberSetting(numberOption.getOptionId(), store.getInt(serviceID + numberOption.getOptionId()));
-				configure(service.getServiceID(), conf);
+				configure(service.getServiceId(), conf);
 				return null;
 			},
 			textOption -> {
 				Setting conf = new TextSetting(textOption.getOptionId(), store.getString(serviceID + textOption.getOptionId()));
-				configure(service.getServiceID(), conf);
+				configure(service.getServiceId(), conf);
 				return null;
 			},
 			xorOption -> {
 				Setting conf = new TextSetting(xorOption.getOptionId(), store.getString(serviceID) + xorOption.getOptionId());
-				configure(service.getServiceID(), conf);
+				configure(service.getServiceId(), conf);
 				return null;
 			},
 			optionGroup -> {
@@ -121,7 +121,7 @@ public class Activator extends AbstractUIPlugin {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public static <T> void configure(ServiceID serviceId, Setting ... confs) {
+	public static <T> void configure(ServiceId serviceId, Setting ... confs) {
 		configure(new Configuration(serviceId,Arrays.asList(confs)));
 	}
 
