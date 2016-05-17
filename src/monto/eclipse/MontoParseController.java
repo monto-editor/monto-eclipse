@@ -104,7 +104,7 @@ public class MontoParseController extends ParseControllerBase {
 				});
 			}
 			
-			Optional<Selection> selection = selections.size() >= 1 ? Optional.of(selections.get(0)) : Optional.empty();
+			Selection selection = selections.size() >= 1 ? selections.get(0) : null;
 			
 			versionID.increment();
 			services.forEach(service -> service.invalidateProduct(versionID));
