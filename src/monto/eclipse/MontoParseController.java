@@ -160,13 +160,13 @@ public class MontoParseController extends ParseControllerBase {
 				errs.forEach(error -> {
 					switch(error.getLevel()) {
 						case "error":
-							addErrorMarker(error.getDescription(), error.getOffset(), error.getLength());
+							addErrorMarker(error.getDescription(), error.getStartOffset(), error.getLength());
 							break;
 						case "warning":
-							addWarningMarker(error.getDescription(), error.getOffset(), error.getLength());
+							addWarningMarker(error.getDescription(), error.getStartOffset(), error.getLength());
 							break;
 						default:
-							addInfoMarker(error.getDescription(), error.getOffset(), error.getLength());
+							addInfoMarker(error.getDescription(), error.getStartOffset(), error.getLength());
 					}
 				});
 				flushMarkers();
