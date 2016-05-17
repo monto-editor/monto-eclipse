@@ -1,31 +1,27 @@
 package monto.eclipse.connection;
 
-import org.json.simple.JSONObject;
-
 import monto.eclipse.Activator;
+import monto.service.gson.GsonMonto;
 import monto.service.source.SourceMessage;
-import monto.service.source.SourceMessages;
 
 public class PublishSource {
 	private Publish connection;
-	
+
 	public PublishSource(Publish connection) {
 		this.connection = connection;
 	}
-	
+
 	public void connect() {
 		connection.connect();
 	}
-	
+
 	public void sendMessage(SourceMessage message) {
 		try {
-			JSONObject encoding = SourceMessages.encode(message);
-			connection.sendMessage(encoding.toJSONString());
+			connection.sendMessage(GsonMonto.getGson().toJson(message));
 		} catch (Exception e) {
 			Activator.error(e);
 		}
 	}
-
 
 	public void close() {
 		connection.close();

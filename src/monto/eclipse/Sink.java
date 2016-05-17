@@ -3,7 +3,7 @@ package monto.eclipse;
 import java.util.Optional;
 
 import monto.service.product.ProductMessage;
-import monto.service.product.ProductMessages;
+import monto.service.gson.GsonMonto;
 
 public class Sink {
 	private Subscribe connection;
@@ -23,7 +23,7 @@ public class Sink {
 		return connection.receiveMessage()
                 .flatMap(msg -> {
                 	try {
-                		return Optional.of((ProductMessage) ProductMessages.decode(msg));
+                		return Optional.of(GsonMonto.getGson().fromJson(msg, ProductMessage.class));
                 	} catch(Exception e) {
                 		return Optional.empty();
                 	}
