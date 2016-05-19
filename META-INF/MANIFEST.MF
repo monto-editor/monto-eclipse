@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Monto
-Bundle-SymbolicName: monto;singleton:=true
+Bundle-SymbolicName: editor-eclipse;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: monto.eclipse.Activator
 Require-Bundle: org.eclipse.imp.runtime;bundle-version="0.2.1",
