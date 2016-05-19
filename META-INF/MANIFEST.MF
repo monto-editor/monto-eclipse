@@ -1,8 +1,8 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Monto
+Bundle-Name: editor-eclipse
 Bundle-SymbolicName: editor-eclipse;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-Activator: monto.eclipse.Activator
 Require-Bundle: org.eclipse.imp.runtime;bundle-version="0.2.1",
  org.eclipse.core.resources;bundle-version="3.9.0",
@@ -19,6 +19,5 @@ Require-Bundle: org.eclipse.imp.runtime;bundle-version="0.2.1",
  services-base-java
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
-Import-Package: com.ibm.icu.text
 Bundle-ClassPath: .,
  lib/javatuples-1.2.jar
