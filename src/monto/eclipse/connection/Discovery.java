@@ -4,11 +4,9 @@ import static monto.eclipse.OptionalUtils.withException;
 
 import java.util.Optional;
 
-import org.json.simple.JSONObject;
-
-import monto.service.discovery.Discoveries;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
+import monto.service.gson.GsonMonto;
 
 public class Discovery {
 	private RequestResponse connection;
@@ -16,11 +14,10 @@ public class Discovery {
 	public Discovery(RequestResponse connection) {
 		this.connection = connection;
 	}
-	
+
 	public Optional<DiscoveryResponse> discoveryRequest(DiscoveryRequest request) {
-		JSONObject encoding = Discoveries.encode(request);
-		Optional<String> response = Optional.ofNullable(connection.request(encoding.toJSONString()));
-		return response.flatMap(withException(Discoveries::decode));
+		Optional<String> response = Optional.ofNullable(connection.request(GsonMonto.toJson(request)));
+		return response.flatMap(withException(str -> GsonMonto.fromJson(str, DiscoveryResponse.class)));
 	}
 
 	public void connect() {

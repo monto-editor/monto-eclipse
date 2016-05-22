@@ -1,10 +1,8 @@
 package monto.eclipse.connection;
 
-import org.json.simple.JSONObject;
-
 import monto.eclipse.Activator;
 import monto.service.configuration.Configuration;
-import monto.service.configuration.Configurations;
+import monto.service.gson.GsonMonto;
 
 public class PublishConfiguration {
 	private Publish connection;
@@ -16,11 +14,10 @@ public class PublishConfiguration {
 	public void bind() {
 		connection.bind();
 	}
-	
+
 	public <T> void sendMessage(Configuration config) {
 		try {
-			JSONObject encoding = Configurations.encodeConfiguration(config);
-			connection.sendMessage(config.getServiceId().toString(), encoding.toJSONString());
+			connection.sendMessage(config.getServiceId().toString(), GsonMonto.toJson(config));
 		} catch (Exception e) {
 			Activator.error(e);
 		}
