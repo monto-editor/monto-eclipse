@@ -13,8 +13,9 @@ explain how to get the development environment for the Eclipse-Monto plugin up
 an running.
 
 1. Get the [Monto broker](https://github.com/monto-editor/broker) and follow the installation instructions
-2. In Eclipse, install `Eclipse plug-in development environment` from Eclipse's built-in update site.
-3. Import our [custom IMP runtime](https://github.com/monto-editor/imp.runtime), the [java base services](https://github.com/monto-editor/services-base-java) and this repository as an eclipse project
+2. In Eclipse, install `Eclipse Plug-in Development Environment` from Eclipse's built-in update site.
+3. If you want attached source code, also install `Eclipse SDK`
+4. Import our [custom IMP runtime](https://github.com/monto-editor/imp.runtime), the [java base services](https://github.com/monto-editor/services-base-java) and this repository as an eclipse project
 5. Start the broker with `./start.sh`
 6. Get a [service](https://github.com/monto-editor) for the language of your choice.
 7. Run the service.
