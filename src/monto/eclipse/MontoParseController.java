@@ -32,7 +32,6 @@ import monto.service.source.SourceMessage;
 import monto.service.token.Token;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
-import monto.service.types.Selection;
 import monto.service.types.Source;
 
 public class MontoParseController extends ParseControllerBase {
@@ -93,19 +92,16 @@ public class MontoParseController extends ParseControllerBase {
 	public Object parse(String documentText, IProgressMonitor monitor) {
 		try {
 			contents = documentText;
-			final List<Selection> selections = new ArrayList<>();
 			if (editor != null) {
 				Display.getDefault().syncExec(() -> {
 					IRegion region = editor.getSelectedRegion();
-					selections.add(new Selection(region.getOffset(), region.getLength()));
+					// TODO Do something with this selection
 				});
 			}
 
-			Selection selection = selections.size() >= 1 ? selections.get(0) : null;
-
 			versionID.increment();
 			services.forEach(service -> service.invalidateProduct(versionID));
-			SourceMessage version = new SourceMessage(versionID, source, language, contents, selection);
+			SourceMessage version = new SourceMessage(versionID, source, language, contents);
 			Activator.sendMessage(version);
 		} catch (Exception e) {
 			e.printStackTrace();
