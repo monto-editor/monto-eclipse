@@ -62,7 +62,7 @@ public class MontoParseController extends ParseControllerBase {
 	@Override
 	public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
 		super.initialize(filePath, project, handler);
-		source = new Source(String.format("/%s/%s", project.getName(), filePath.toPortableString()));
+		source = new Source(filePath.lastSegment());
 		language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 		services.add(completions = new Service<List<Completion>>(source, Products.COMPLETIONS, language,
 				withException(msg -> GsonMonto.fromJsonArray(msg, Completion[].class))).setTimeout(500));
