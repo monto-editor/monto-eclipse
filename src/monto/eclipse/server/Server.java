@@ -7,7 +7,7 @@ import monto.service.product.ProductMessage;
 import monto.service.types.Message;
 
 interface Server {
-	public Either<Exception,ProductMessage> onMessage(List<Message> msg) throws Exception;
-	
-	public void stop();
+  public Either<Exception, ProductMessage> onMessage(List<Message> msg) throws Exception;
+
+  public void stop();
 }

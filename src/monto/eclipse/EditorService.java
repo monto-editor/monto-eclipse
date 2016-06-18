@@ -6,17 +6,17 @@ import org.eclipse.imp.services.base.EditorServiceBase;
 
 public class EditorService extends EditorServiceBase {
 
-	@Override
-	public AnalysisRequired getAnalysisRequired() {
-		return AnalysisRequired.NONE;
-	}
+  @Override
+  public AnalysisRequired getAnalysisRequired() {
+    return AnalysisRequired.NONE;
+  }
 
-	@Override
-	public void update(IParseController parseController, IProgressMonitor monitor) {
-		if(parseController instanceof MontoParseController) {
-			MontoParseController controller = (MontoParseController) parseController;
-			controller.setEditor(this.editor);
-		}
-	}
+  @Override
+  public void update(IParseController parseController, IProgressMonitor monitor) {
+    if (parseController instanceof MontoParseController) {
+      MontoParseController controller = (MontoParseController) parseController;
+      controller.setEditor(this.editor);
+    }
+  }
 
 }
