@@ -12,12 +12,12 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.widgets.Display;
 
-import monto.service.token.Token;
+import monto.service.highlighting.Token;
 
 public class TokenColorer implements ITokenColorer {
 
-  Map<monto.service.token.Font, Font> fontMap = new HashMap<>();
-  Map<monto.service.token.Color, Color> colorMap = new HashMap<>();
+  Map<monto.service.highlighting.Font, Font> fontMap = new HashMap<>();
+  Map<monto.service.highlighting.Color, Color> colorMap = new HashMap<>();
   private Color defaultColor;
   private Font defFont;
 
@@ -47,7 +47,7 @@ public class TokenColorer implements ITokenColorer {
     }
   }
 
-  private Font getFont(monto.service.token.Font font) {
+  private Font getFont(monto.service.highlighting.Font font) {
     return fontMap.computeIfAbsent(font, fnt -> {
       if (defFont.getFontData().length == 0)
         return defFont;
@@ -60,7 +60,7 @@ public class TokenColorer implements ITokenColorer {
   }
 
 
-  private Color getColor(monto.service.token.Color color) {
+  private Color getColor(monto.service.highlighting.Color color) {
     return new Color(Display.getDefault(), color.getRed(), color.getGreen(), color.getBlue());
   }
 
