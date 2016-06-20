@@ -1,7 +1,5 @@
 package monto.eclipse;
 
-import static monto.eclipse.OptionalUtils.withException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -24,12 +22,11 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Display;
 
 import monto.service.completion.Completion;
-import monto.service.gson.GsonMonto;
+import monto.service.error.Error;
+import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
-import monto.service.product.Products;
 import monto.service.region.Region;
 import monto.service.source.SourceMessage;
-import monto.service.token.Token;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
 import monto.service.types.Source;
@@ -43,11 +40,12 @@ public class MontoParseController extends ParseControllerBase {
   private UniversalEditor editor;
 
   private LongKey versionID = new LongKey(0);
-  private Service<Outline> outline;
-  private Service<List<Token>> tokens;
-  private Service<List<Completion>> completions;
-  private Service<List<monto.service.error.Error>> errors;
-  private List<Service<?>> services = new ArrayList<>();
+
+  private ProductCache<Outline> outlineCache;
+  private ProductCache<List<Token>> tokensCache;
+  private ProductCache<List<Completion>> completionsCache;
+  private ProductCache<List<Error>> errorsCache;
+  private SinkDemultiplexer demultiplexer;
 
   private static final Map<String, Object> errorSeverity = new HashMap<>();
   private static final Map<String, Object> warningSeverity = new HashMap<>();
@@ -64,32 +62,21 @@ public class MontoParseController extends ParseControllerBase {
     super.initialize(filePath, project, handler);
     source = new Source(filePath.lastSegment());
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
-    services.add(completions = new Service<List<Completion>>(source, Products.COMPLETIONS, language,
-        withException(msg -> GsonMonto.fromJsonArray(msg, Completion[].class))).setTimeout(500));
-    services.add(tokens = new Service<List<Token>>(source, Products.TOKENS, language,
-        withException(msg -> GsonMonto.fromJsonArray(msg, Token[].class))));
-    services.add(outline = new Service<Outline>(source, Products.OUTLINE, language,
-        withException(msg -> GsonMonto.fromJson(msg, Outline.class))).setTimeout(500));
-    services
-        .add(
-            errors = new Service<List<monto.service.error.Error>>(source, Products.ERRORS, language,
-                withException(
-                    msg -> GsonMonto.fromJsonArray(msg, monto.service.error.Error[].class)))
-                        .setTimeout(500));
-    startServices();
+
+    outlineCache = new ProductCache<Outline>().setTimeout(500);
+    tokensCache = new ProductCache<List<Token>>();
+    completionsCache = new ProductCache<List<Completion>>().setTimeout(500);
+    errorsCache = new ProductCache<List<monto.service.error.Error>>().setTimeout(500);
+
+    demultiplexer = new SinkDemultiplexer(Activator.getDefault().getSink(), source, language,
+        outlineCache, tokensCache, errorsCache, completionsCache);
+
+    demultiplexer.start();
   }
 
   @Override
   public void dispose() {
-    stopServices();
-  }
-
-  private void startServices() {
-    services.forEach(service -> service.start());
-  }
-
-  private void stopServices() {
-    services.forEach(service -> service.stop());
+    demultiplexer.stop();
   }
 
   @Override
@@ -104,9 +91,9 @@ public class MontoParseController extends ParseControllerBase {
       }
 
       versionID.increment();
-      services.forEach(service -> service.invalidateProduct(versionID));
+      demultiplexer.invalidateProducts(versionID);
       SourceMessage version = new SourceMessage(versionID, source, language, contents);
-      Activator.sendMessage(version);
+      Activator.sendSourceMessage(version);
     } catch (Exception e) {
       e.printStackTrace();
       Activator.error(e);
@@ -133,19 +120,19 @@ public class MontoParseController extends ParseControllerBase {
   @SuppressWarnings("rawtypes")
   @Override
   public Iterator getTokenIterator(final IRegion region) {
-    return tokens.getProduct().orElse(new ArrayList<>()).stream()
+    return tokensCache.getProduct().orElse(new ArrayList<>()).stream()
         .filter((token) -> token.inRange(new Region(region.getOffset(), region.getLength())))
         .iterator();
   }
 
   public List<Completion> getCompletions() {
-    return completions.getProduct().orElse(new ArrayList<>());
+    return completionsCache.getProduct().orElse(new ArrayList<>());
   }
 
   @Override
   public Outline getCurrentAst() {
     // Use this method to add markers to the file
-    errors.getProduct().ifPresent(errs -> {
+    errorsCache.getProduct().ifPresent(errs -> {
       clearMarkers();
       errs.forEach(error -> {
         switch (error.getLevel()) {
@@ -162,7 +149,7 @@ public class MontoParseController extends ParseControllerBase {
       flushMarkers();
     });
 
-    return outline.getProduct().orElse(null);
+    return outlineCache.getProduct().orElse(null);
   }
 
   public void setEditor(UniversalEditor editor) {

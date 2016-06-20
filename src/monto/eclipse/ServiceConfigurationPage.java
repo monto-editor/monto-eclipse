@@ -16,21 +16,17 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Spinner;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
-import org.javatuples.Pair;
 
 import monto.service.configuration.BooleanSetting;
 import monto.service.configuration.NumberSetting;
 import monto.service.configuration.Option;
-import monto.service.configuration.OptionGroup;
 import monto.service.configuration.TextSetting;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.ServiceDescription;
@@ -45,7 +41,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
   @SuppressWarnings("unchecked")
   @Override
   protected Control createContents(Composite parent) {
-    DiscoveryRequest request = new DiscoveryRequest();
+    DiscoveryRequest request = new DiscoveryRequest(new ArrayList<>());
     // try {
     // IFileEditorInput editorInput = (IFileEditorInput) getElement();
     // UniversalEditor editor = (UniversalEditor) EditorUtility.isOpenInEditor(editorInput);
@@ -55,7 +51,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
     // }
 
     List<ServiceDescription> services =
-        Activator.discover(request).map(resp -> resp.getServices()).orElse(new ArrayList<>());
+        Activator.getDefault().discover(request).map(resp -> resp.getServices()).orElse(new ArrayList<>());
 
     TabFolder folder = new TabFolder(parent, SWT.BORDER);
     services.forEach(service -> {
@@ -65,32 +61,14 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 
       Map<String, Button> buttons = new HashMap<>();
       controls = new HashMap<>();
-      List<Pair<OptionGroup, Group>> optionGroups = new ArrayList<>();
       TabItem item = new TabItem(folder, SWT.NONE);
       item.setText(service.getLabel());
       Composite composite = new Composite(folder, SWT.NONE);
       composite.setLayout(new RowLayout(SWT.VERTICAL));
       service.getOptions().forEach(option -> {
-        createOptions(service.getServiceId(), option, buttons, controls, optionGroups, composite);
+        createOptions(service.getServiceId(), option, buttons, controls, composite);
       });
       initializeValues();
-      optionGroups.forEach(pair -> {
-        OptionGroup optionGroup = pair.getValue0();
-        Group controlGroup = pair.getValue1();
-        Button button = buttons.get(optionGroup.getRequiredOption());
-        if (button == null) {
-          Activator.debug("Could not find boolean option %s required by option group",
-              optionGroup.getRequiredOption());
-        } else {
-          button.addListener(SWT.Selection, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-              setEnabled(button, controlGroup);
-            }
-          });
-          setEnabled(button, controlGroup);
-        }
-      });
       item.setControl(composite);
       composite.pack();
     });
@@ -100,8 +78,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
   }
 
   <T> void createOptions(ServiceId serviceID, Option<T> option, Map<String, Button> buttons,
-      Map<String, Control> controls, List<Pair<OptionGroup, Group>> optionGroups,
-      Composite parent) {
+      Map<String, Control> controls, Composite parent) {
     IPreferenceStore store = getPreferenceStore();
 
     @SuppressWarnings("unchecked")
@@ -169,9 +146,8 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
     }, optionGroup -> {
       Group group = new Group(parent, SWT.BORDER);
       optionGroup.getMembers().forEach(opt -> {
-        createOptions(serviceID, opt, buttons, controls, optionGroups, group);
+        createOptions(serviceID, opt, buttons, controls, group);
       });
-      optionGroups.add(new Pair<OptionGroup, Group>(optionGroup, group));
       group.setLayout(new RowLayout(SWT.VERTICAL));
       return group;
     });
@@ -214,13 +190,6 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
       else if (control instanceof Combo)
         store.setValue(optionID, ((Combo) control).getSelectionIndex());
     }
-  }
-
-  private void setEnabled(Button button, Group group) {
-    boolean enabled = button.getSelection();
-    group.setEnabled(enabled);
-    for (Control child : group.getChildren())
-      child.setEnabled(enabled);
   }
 
   @Override

@@ -1,5 +1,6 @@
 package monto.eclipse;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -10,22 +11,22 @@ import org.osgi.framework.BundleContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
-import monto.eclipse.connection.Discovery;
-import monto.eclipse.connection.Publish;
-import monto.eclipse.connection.PublishConfiguration;
-import monto.eclipse.connection.PublishSource;
-import monto.eclipse.connection.RequestResponse;
+import monto.ide.SinkSocket;
+import monto.ide.SourceSocket;
 import monto.service.configuration.BooleanSetting;
-import monto.service.configuration.Setting;
 import monto.service.configuration.Configuration;
 import monto.service.configuration.NumberSetting;
 import monto.service.configuration.Option;
+import monto.service.configuration.Setting;
 import monto.service.configuration.TextSetting;
 import monto.service.discovery.DiscoveryRequest;
 import monto.service.discovery.DiscoveryResponse;
 import monto.service.discovery.ServiceDescription;
+import monto.service.gson.MessageFromIde;
 import monto.service.source.SourceMessage;
+import monto.service.types.MessageUnavailableException;
 import monto.service.types.ServiceId;
+import monto.service.types.UnrecongizedMessageException;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -37,9 +38,8 @@ public class Activator extends AbstractUIPlugin {
 
   // The shared instance
   private static Activator plugin;
-  private PublishSource source;
-  private PublishConfiguration config;
-  private Discovery discover;
+  private SourceSocket source;
+  private SinkSocket sink;
   private static Context ctx;
 
   /*
@@ -53,22 +53,19 @@ public class Activator extends AbstractUIPlugin {
 
     ctx = ZMQ.context(1);
 
-    source = new PublishSource(new Publish(ctx, "tcp://localhost:5000"));
+    source = new SourceSocket(ctx, "tcp://localhost:5000");
     source.connect();
 
-    config = new PublishConfiguration(new Publish(ctx, "tcp://localhost:5007"));
-    config.bind();
-
-    discover = new Discovery(new RequestResponse(ctx, "tcp://localhost:5005"));
-    discover.connect();
+    sink = new SinkSocket(ctx, "tcp://localhost:5001");
+    sink.connect();
 
     restoreOptions();
   }
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   private void restoreOptions() {
-    IPreferenceStore store = getDefault().getPreferenceStore();
-    discover(new DiscoveryRequest()).ifPresent(resp -> {
+    IPreferenceStore store = getPreferenceStore();
+    discover(new DiscoveryRequest(new ArrayList<>())).ifPresent(resp -> {
       for (ServiceDescription service : resp.getServices()) {
         for (Option option : service.getOptions()) {
           restoreOption(service, option, store);
@@ -108,16 +105,24 @@ public class Activator extends AbstractUIPlugin {
     });
   }
 
-  public static Sink sink(String service) {
-    return new Sink(new Subscribe(ctx, "tcp://localhost:5001"), service);
-  }
+  public Optional<DiscoveryResponse> discover(DiscoveryRequest request) {
+    source.send(MessageFromIde.discover(request));
 
-  public static Optional<DiscoveryResponse> discover(DiscoveryRequest request) {
-    return getDefault().discover.discoveryRequest(request);
+    try {
+      DiscoveryResponse response =
+          sink.<DiscoveryResponse, RuntimeException>receive(productMessage -> {
+            throw new RuntimeException("Unexpected ProductMessage response");
+          }, discoveryResponse -> discoveryResponse);
+      return Optional.of(response);
+    } catch (UnrecongizedMessageException | MessageUnavailableException | RuntimeException e) {
+      System.err.println("Didn't receive a DiscoveryResponse:");
+      e.printStackTrace();
+      return Optional.empty();
+    }
   }
 
   public static <T> void configure(Configuration config) {
-    getDefault().config.sendMessage(config);
+    getDefault().source.send(MessageFromIde.config(config));
   }
 
   @SuppressWarnings("rawtypes")
@@ -132,11 +137,17 @@ public class Activator extends AbstractUIPlugin {
    */
   public void stop(BundleContext bundle) throws Exception {
     source.close();
-    config.close();
-    discover.close();
     ctx.close();
     plugin = null;
     super.stop(bundle);
+  }
+
+  public SinkSocket getSink() {
+    return sink;
+  }
+
+  public SourceSocket getSource() {
+    return source;
   }
 
   public static Activator getDefault() {
@@ -155,7 +166,15 @@ public class Activator extends AbstractUIPlugin {
     getDefault().getLog().log(new Status(Status.ERROR, PLUGIN_ID, msg, e));
   }
 
-  public static void sendMessage(SourceMessage version) {
-    getDefault().source.sendMessage(version);
+  public static void info(String msg) {
+    getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, msg));
+  }
+
+  public static void warning(String msg) {
+    getDefault().getLog().log(new Status(Status.WARNING, PLUGIN_ID, msg));
+  }
+
+  public static void sendSourceMessage(SourceMessage message) {
+    getDefault().source.send(MessageFromIde.source(message));
   }
 }
