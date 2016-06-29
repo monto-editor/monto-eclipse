@@ -11,6 +11,8 @@ import org.osgi.framework.BundleContext;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMQ.Context;
 
+import monto.eclipse.demultiplex.ProductCache;
+import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.ide.SinkSocket;
 import monto.ide.SourceSocket;
 import monto.service.configuration.BooleanSetting;

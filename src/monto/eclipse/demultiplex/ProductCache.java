@@ -1,10 +1,12 @@
-package monto.eclipse;
+package monto.eclipse.demultiplex;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import monto.eclipse.Activator;
 
 /**
  * Awaits all products of a given services.

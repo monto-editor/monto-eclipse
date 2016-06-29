@@ -1,7 +1,8 @@
-package monto.eclipse;
+package monto.eclipse.demultiplex;
 
 import java.util.List;
 
+import monto.eclipse.Activator;
 import monto.ide.SinkSocket;
 import monto.service.completion.Completion;
 import monto.service.discovery.DiscoveryResponse;

@@ -21,6 +21,7 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.swt.widgets.Display;
 
+import monto.eclipse.demultiplex.VersionIdBasedProductCache;
 import monto.service.completion.Completion;
 import monto.service.error.Error;
 import monto.service.highlighting.Token;
