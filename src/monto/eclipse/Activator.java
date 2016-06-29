@@ -100,7 +100,7 @@ public class Activator extends AbstractUIPlugin {
   @SuppressWarnings({"rawtypes", "unchecked"})
   private void restoreOptions() {
     IPreferenceStore store = getPreferenceStore();
-    discover(new DiscoveryRequest(new ArrayList<>())).ifPresent(resp -> {
+    discover(DiscoveryRequest.create()).ifPresent(resp -> {
       for (ServiceDescription service : resp.getServices()) {
         for (Option option : service.getOptions()) {
           restoreOption(service, option, store);

@@ -41,7 +41,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
   @SuppressWarnings("unchecked")
   @Override
   protected Control createContents(Composite parent) {
-    DiscoveryRequest request = new DiscoveryRequest(new ArrayList<>());
+    DiscoveryRequest request = DiscoveryRequest.create();
     // try {
     // IFileEditorInput editorInput = (IFileEditorInput) getElement();
     // UniversalEditor editor = (UniversalEditor) EditorUtility.isOpenInEditor(editorInput);
