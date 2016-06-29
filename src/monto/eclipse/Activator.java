@@ -24,9 +24,7 @@ import monto.service.discovery.DiscoveryResponse;
 import monto.service.discovery.ServiceDescription;
 import monto.service.gson.MessageFromIde;
 import monto.service.source.SourceMessage;
-import monto.service.types.MessageUnavailableException;
 import monto.service.types.ServiceId;
-import monto.service.types.UnrecongizedMessageException;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -38,9 +36,12 @@ public class Activator extends AbstractUIPlugin {
 
   // The shared instance
   private static Activator plugin;
+
   private SourceSocket source;
   private SinkSocket sink;
   private static Context ctx;
+  private SinkDemultiplexer demultiplexer;
+  private ProductCache<DiscoveryResponse> discoveryCache;
 
   /*
    * (non-Javadoc)
@@ -59,8 +60,40 @@ public class Activator extends AbstractUIPlugin {
     sink = new SinkSocket(ctx, "tcp://localhost:5001");
     sink.connect();
 
+    discoveryCache = new ProductCache<>();
+    demultiplexer = new SinkDemultiplexer(sink).setDiscoveryCache(discoveryCache).start();
+
     restoreOptions();
   }
+
+  public SinkDemultiplexer getDemultiplexer() {
+    return demultiplexer;
+  }
+
+  public Optional<DiscoveryResponse> discover(DiscoveryRequest request) {
+    source.send(MessageFromIde.discover(request));
+    return discoveryCache.getProduct();
+  }
+
+  public static Activator getDefault() {
+    return plugin;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+   */
+  public void stop(BundleContext bundle) throws Exception {
+    demultiplexer.stop();
+    source.close();
+    sink.close();
+    ctx.close();
+    plugin = null;
+    super.stop(bundle);
+  }
+
+
 
   @SuppressWarnings({"rawtypes", "unchecked"})
   private void restoreOptions() {
@@ -105,22 +138,6 @@ public class Activator extends AbstractUIPlugin {
     });
   }
 
-  public Optional<DiscoveryResponse> discover(DiscoveryRequest request) {
-    source.send(MessageFromIde.discover(request));
-
-    try {
-      DiscoveryResponse response =
-          sink.<DiscoveryResponse, RuntimeException>receive(productMessage -> {
-            throw new RuntimeException("Unexpected ProductMessage response");
-          }, discoveryResponse -> discoveryResponse);
-      return Optional.of(response);
-    } catch (UnrecongizedMessageException | MessageUnavailableException | RuntimeException e) {
-      System.err.println("Didn't receive a DiscoveryResponse:");
-      e.printStackTrace();
-      return Optional.empty();
-    }
-  }
-
   public static <T> void configure(Configuration config) {
     getDefault().source.send(MessageFromIde.config(config));
   }
@@ -130,29 +147,7 @@ public class Activator extends AbstractUIPlugin {
     configure(new Configuration(serviceId, Arrays.asList(confs)));
   }
 
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
-   */
-  public void stop(BundleContext bundle) throws Exception {
-    source.close();
-    ctx.close();
-    plugin = null;
-    super.stop(bundle);
-  }
 
-  public SinkSocket getSink() {
-    return sink;
-  }
-
-  public SourceSocket getSource() {
-    return source;
-  }
-
-  public static Activator getDefault() {
-    return plugin;
-  }
 
   public static void debug(String msg, Object... formatArgs) {
     getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, String.format(msg, formatArgs)));

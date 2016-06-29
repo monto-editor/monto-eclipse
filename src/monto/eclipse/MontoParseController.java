@@ -41,11 +41,11 @@ public class MontoParseController extends ParseControllerBase {
 
   private LongKey versionID = new LongKey(0);
 
-  private ProductCache<Outline> outlineCache;
-  private ProductCache<List<Token>> tokensCache;
-  private ProductCache<List<Completion>> completionsCache;
-  private ProductCache<List<Error>> errorsCache;
-  private SinkDemultiplexer demultiplexer;
+  private VersionIdBasedProductCache<Outline> outlineCache;
+  private VersionIdBasedProductCache<List<Token>> tokensCache;
+  private VersionIdBasedProductCache<List<Completion>> completionsCache;
+  private VersionIdBasedProductCache<List<Error>> errorsCache;
+
 
   private static final Map<String, Object> errorSeverity = new HashMap<>();
   private static final Map<String, Object> warningSeverity = new HashMap<>();
@@ -63,20 +63,18 @@ public class MontoParseController extends ParseControllerBase {
     source = new Source(filePath.lastSegment());
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 
-    outlineCache = new ProductCache<Outline>().setTimeout(500);
-    tokensCache = new ProductCache<List<Token>>();
-    completionsCache = new ProductCache<List<Completion>>().setTimeout(500);
-    errorsCache = new ProductCache<List<monto.service.error.Error>>().setTimeout(500);
+    outlineCache = new VersionIdBasedProductCache<>();
+    tokensCache = new VersionIdBasedProductCache<>();
+    completionsCache = new VersionIdBasedProductCache<>();
+    errorsCache = new VersionIdBasedProductCache<>();
 
-    demultiplexer = new SinkDemultiplexer(Activator.getDefault().getSink(), source, language,
-        outlineCache, tokensCache, errorsCache, completionsCache);
+    outlineCache.setTimeout(500);
+    tokensCache.setTimeout(500);
+    completionsCache.setTimeout(500);
+    errorsCache.setTimeout(500);
 
-    demultiplexer.start();
-  }
-
-  @Override
-  public void dispose() {
-    demultiplexer.stop();
+    Activator.getDefault().getDemultiplexer().setTarget(source, language)
+        .setProductCaches(outlineCache, tokensCache, errorsCache, completionsCache);
   }
 
   @Override
@@ -91,7 +89,7 @@ public class MontoParseController extends ParseControllerBase {
       }
 
       versionID.increment();
-      demultiplexer.invalidateProducts(versionID);
+      Activator.getDefault().getDemultiplexer().invalidateProducts(versionID);
       SourceMessage version = new SourceMessage(versionID, source, language, contents);
       Activator.sendSourceMessage(version);
     } catch (Exception e) {

@@ -6,9 +6,6 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import monto.service.product.ProductMessage;
-import monto.service.types.LongKey;
-
 /**
  * Awaits all products of a given services.
  * 
@@ -16,13 +13,11 @@ import monto.service.types.LongKey;
  * {@link #getProduct() getProduct}.
  */
 public class ProductCache<A> {
-
-  private Lock lock;
-  private Condition arrived;
-  private Optional<A> product;
-  private LongKey versionID;
-  private long timeout;
-  private Fetch state;
+  protected Lock lock;
+  protected Condition arrived;
+  protected Optional<A> product;
+  protected long timeout;
+  protected Fetch state;
 
   public ProductCache() {
     this.lock = new ReentrantLock();
@@ -31,19 +26,17 @@ public class ProductCache<A> {
     this.product = Optional.empty();
   }
 
-  void invalidateProduct(LongKey newVersionID) {
+  protected void invalidateProduct() {
     withLock(() -> {
       this.product = Optional.empty();
       setState(Fetch.PENDING);
-      versionID = newVersionID;
       arrived.signalAll();
     });
   }
 
-  void onProductMessage(A product, ProductMessage message) {
+  protected void onProductMessage(A product) {
     withLock(() -> {
-      if ((state == Fetch.PENDING || state == Fetch.WAITING)
-          && message.getId().upToDate(versionID)) {
+      if ((state == Fetch.PENDING || state == Fetch.WAITING)) {
         this.product = Optional.of(product);
         setState(Fetch.ARRIVED);
         arrived.signalAll();
@@ -76,7 +69,7 @@ public class ProductCache<A> {
   }
 
 
-  private void withLock(Runnable runnable) {
+  protected void withLock(Runnable runnable) {
     lock.lock();
     try {
       runnable.run();
@@ -85,20 +78,19 @@ public class ProductCache<A> {
     }
   }
 
-  public ProductCache<A> setTimeout(long timeout) {
+  public void setTimeout(long timeout) {
     this.timeout = timeout;
-    return this;
   }
 
-  private void setState(Fetch state) {
+  protected void setState(Fetch state) {
     this.state = state;
   }
 
-  private Fetch getState() {
+  protected Fetch getState() {
     return state;
   }
 
-  private enum Fetch {
+  protected enum Fetch {
     /**
      * Represents a state, where a new product is requested, that is not yet available and no one is
      * waiting on it.
