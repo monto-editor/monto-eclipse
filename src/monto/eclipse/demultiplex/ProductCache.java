@@ -17,21 +17,24 @@ import monto.eclipse.Activator;
 public class ProductCache<A> {
   protected Lock lock;
   protected Condition arrived;
-  protected Optional<A> product;
+  protected A product;
   protected long timeout;
   protected Fetch state;
+  protected String logProductTag;
 
-  public ProductCache() {
+  public ProductCache(String logProductTag) {
     this.lock = new ReentrantLock();
     this.arrived = lock.newCondition();
     this.timeout = 100;
-    this.product = Optional.empty();
+    this.product = null;
+    this.state = Fetch.PENDING;
+    this.logProductTag = logProductTag;
   }
 
-  protected void invalidateProduct() {
+  public void invalidateProduct() {
     withLock(() -> {
-      this.product = Optional.empty();
-      setState(Fetch.PENDING);
+      this.product = null;
+      this.state = Fetch.PENDING;
       arrived.signalAll();
     });
   }
@@ -39,8 +42,8 @@ public class ProductCache<A> {
   protected void onProductMessage(A product) {
     withLock(() -> {
       if ((state == Fetch.PENDING || state == Fetch.WAITING)) {
-        this.product = Optional.of(product);
-        setState(Fetch.ARRIVED);
+        this.product = product;
+        this.state = Fetch.ARRIVED;
         arrived.signalAll();
       }
     });
@@ -51,12 +54,12 @@ public class ProductCache<A> {
       lock.lock();
       try {
 
-        setState(Fetch.WAITING);
+        this.state = Fetch.WAITING;
 
         arrived.await(timeout, TimeUnit.MILLISECONDS);
 
-        if (getState() != Fetch.PENDING && getState() != Fetch.ARRIVED)
-          setState(Fetch.LOST);
+        if (state != Fetch.PENDING && state != Fetch.ARRIVED)
+          this.state = Fetch.LOST;
 
       } catch (InterruptedException e) {
         Activator.error("service got interupted: %s", e);
@@ -65,9 +68,9 @@ public class ProductCache<A> {
       }
     }
 
-    Activator.debug("%s: getProduct() -> %s", getState(), product);
+    Activator.debug("%s: <%s> getProduct() -> %s", state, logProductTag, product);
 
-    return product;
+    return Optional.ofNullable(product);
   }
 
 
@@ -82,14 +85,6 @@ public class ProductCache<A> {
 
   public void setTimeout(long timeout) {
     this.timeout = timeout;
-  }
-
-  protected void setState(Fetch state) {
-    this.state = state;
-  }
-
-  protected Fetch getState() {
-    return state;
   }
 
   protected enum Fetch {

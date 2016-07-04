@@ -1,7 +1,5 @@
 package monto.eclipse.demultiplex;
 
-import java.util.Optional;
-
 import monto.service.types.LongKey;
 
 /**
@@ -11,12 +9,16 @@ import monto.service.types.LongKey;
  * {@link #getProduct() getProduct}.
  */
 public class VersionIdBasedProductCache<A> extends ProductCache<A> {
+  public VersionIdBasedProductCache(String logProductTag) {
+    super(logProductTag);
+  }
+
   protected LongKey versionID;
 
   protected void invalidateProduct(LongKey newVersionID) {
     withLock(() -> {
-      super.product = Optional.empty();
-      setState(Fetch.PENDING);
+      super.product = null;
+      this.state = Fetch.PENDING;
       versionID = newVersionID;
       arrived.signalAll();
     });
@@ -25,8 +27,8 @@ public class VersionIdBasedProductCache<A> extends ProductCache<A> {
   protected void onProductMessage(A product, LongKey versionId) {
     withLock(() -> {
       if ((state == Fetch.PENDING || state == Fetch.WAITING) && versionId.upToDate(versionID)) {
-        this.product = Optional.of(product);
-        setState(Fetch.ARRIVED);
+        this.product = product;
+        this.state = Fetch.ARRIVED;
         arrived.signalAll();
       }
     });
@@ -40,9 +42,8 @@ public class VersionIdBasedProductCache<A> extends ProductCache<A> {
 
   @Override
   @Deprecated
-  protected void invalidateProduct() {
+  public void invalidateProduct() {
     throw new RuntimeException("use invalidateProduct(LongKey newVersionID)");
   }
-
 
 }

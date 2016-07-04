@@ -64,10 +64,10 @@ public class MontoParseController extends ParseControllerBase {
     source = new Source(filePath.lastSegment());
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 
-    outlineCache = new VersionIdBasedProductCache<>();
-    tokensCache = new VersionIdBasedProductCache<>();
-    completionsCache = new VersionIdBasedProductCache<>();
-    errorsCache = new VersionIdBasedProductCache<>();
+    outlineCache = new VersionIdBasedProductCache<>("outline");
+    tokensCache = new VersionIdBasedProductCache<>("tokens");
+    completionsCache = new VersionIdBasedProductCache<>("completions");
+    errorsCache = new VersionIdBasedProductCache<>("errors");
 
     outlineCache.setTimeout(500);
     tokensCache.setTimeout(500);
