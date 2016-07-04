@@ -82,6 +82,7 @@ public class SinkDemultiplexer {
         try {
           while (running) {
             sink.receive(productMessage -> {
+              Activator.debug("received ProductMessage: %s", productMessage);
               if (productMessage.getSource().equals(source)
                   && productMessage.getLanguage().equals(language)) {
                 if (productMessage.getProduct().equals(Products.OUTLINE)) {
@@ -109,7 +110,10 @@ public class SinkDemultiplexer {
                     "Ignoring a ProductMessage of unexpected source %s or language %s",
                     productMessage.getSource(), productMessage.getLanguage()));
               }
-            }, discoveryCache::onProductMessage);
+            }, discoveryResponse -> {
+              Activator.debug("Received DiscoveryResponse: %s", discoveryResponse);
+              discoveryCache.onProductMessage(discoveryResponse);
+            });
           }
           sink.close();
         } catch (Exception e) {
