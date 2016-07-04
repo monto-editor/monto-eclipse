@@ -1,8 +1,9 @@
 package monto.eclipse;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -43,7 +44,7 @@ public class Activator extends AbstractUIPlugin {
   private SinkSocket sink;
   private static Context ctx;
   private SinkDemultiplexer demultiplexer;
-  private ProductCache<DiscoveryResponse> discoveryCache;
+  private ProductCache<DiscoveryResponse> discoveryResponseCache;
 
   /*
    * (non-Javadoc)
@@ -62,10 +63,13 @@ public class Activator extends AbstractUIPlugin {
     sink = new SinkSocket(ctx, "tcp://localhost:5001");
     sink.connect();
 
-    discoveryCache = new ProductCache<>();
-    demultiplexer = new SinkDemultiplexer(sink).setDiscoveryCache(discoveryCache).start();
+    discoveryResponseCache = new ProductCache<>("discoveryResponse");
+    discoveryResponseCache.setTimeout(500);
+    demultiplexer = new SinkDemultiplexer(sink).setDiscoveryCache(discoveryResponseCache).start();
 
-    restoreOptions();
+    discover(DiscoveryRequest.create()).ifPresent(discoverResponse -> {
+      sendConfigurationsFromStore(discoverResponse.get());
+    });
   }
 
   public SinkDemultiplexer getDemultiplexer() {
@@ -74,7 +78,32 @@ public class Activator extends AbstractUIPlugin {
 
   public Optional<DiscoveryResponse> discover(DiscoveryRequest request) {
     source.send(MessageFromIde.discover(request));
-    return discoveryCache.getProduct();
+    discoveryResponseCache.invalidateProduct();
+    Optional<DiscoveryResponse> maybeDiscoverResponse = discoveryResponseCache.getProduct();
+    maybeDiscoverResponse.ifPresent(discoverResponse -> {
+      discoverResponse.get().forEach(serviceDescription -> {
+        setStoreDefaults(serviceDescription.getServiceId(), serviceDescription.getOptions(),
+            getPreferenceStore());
+      });
+    });
+    return maybeDiscoverResponse;
+  }
+
+  @SuppressWarnings("rawtypes")
+  private void setStoreDefaults(ServiceId serviceId, List<Option> options, IPreferenceStore store) {
+    for (Option<?> option : options) {
+      option.matchVoid(booleanOption -> {
+        store.setDefault(Activator.getStoreKey(serviceId, option), booleanOption.getDefaultValue());
+      }, numberOption -> {
+        store.setDefault(Activator.getStoreKey(serviceId, option), numberOption.getDefaultValue());
+      }, textOption -> {
+        store.setDefault(Activator.getStoreKey(serviceId, option), textOption.getDefaultValue());
+      }, xorOption -> {
+        store.setDefault(Activator.getStoreKey(serviceId, option), xorOption.getDefaultValue());
+      }, optionGroup -> {
+        setStoreDefaults(serviceId, optionGroup.getMembers(), store);
+      });
+    }
   }
 
   public static Activator getDefault() {
@@ -95,61 +124,43 @@ public class Activator extends AbstractUIPlugin {
     super.stop(bundle);
   }
 
-
-
-  @SuppressWarnings({"rawtypes", "unchecked"})
-  private void restoreOptions() {
-    IPreferenceStore store = getPreferenceStore();
-    discover(DiscoveryRequest.create()).ifPresent(resp -> {
-      for (ServiceDescription service : resp.getServices()) {
-        for (Option option : service.getOptions()) {
-          restoreOption(service, option, store);
-        }
-      }
-    });
+  public static void sendConfigurationsFromStore(List<ServiceDescription> serviceDescriptions) {
+    IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+    List<Configuration> configurations = serviceDescriptions.stream().map(serviceDescription -> {
+      return new Configuration(serviceDescription.getServiceId(),
+          getStoreSettings(serviceDescription.getServiceId(), serviceDescription.getOptions(),
+              store).collect(Collectors.toList()));
+    }).collect(Collectors.toList());
+    Activator.getDefault().source.send(MessageFromIde.config(configurations));
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private <A> void restoreOption(ServiceDescription service, Option<A> option,
+
+  @SuppressWarnings("rawtypes")
+  private static Stream<Setting> getStoreSettings(ServiceId serviceId, List<Option> options,
       IPreferenceStore store) {
-    String serviceID = service.getServiceId().toString();
-    Activator.debug("restore option: %s", option);
-    option.<Void>match(booleanOption -> {
-      Setting conf = new BooleanSetting(booleanOption.getOptionId(),
-          store.getBoolean(serviceID + booleanOption.getOptionId()));
-      configure(service.getServiceId(), conf);
-      return null;
-    }, numberOption -> {
-      Setting conf = new NumberSetting(numberOption.getOptionId(),
-          store.getInt(serviceID + numberOption.getOptionId()));
-      configure(service.getServiceId(), conf);
-      return null;
-    }, textOption -> {
-      Setting conf = new TextSetting(textOption.getOptionId(),
-          store.getString(serviceID + textOption.getOptionId()));
-      configure(service.getServiceId(), conf);
-      return null;
-    }, xorOption -> {
-      Setting conf = new TextSetting(xorOption.getOptionId(),
-          store.getString(serviceID) + xorOption.getOptionId());
-      configure(service.getServiceId(), conf);
-      return null;
-    }, optionGroup -> {
-      optionGroup.getMembers().forEach(opt -> restoreOption(service, opt, store));
-      return null;
+    return options.stream().flatMap(option -> {
+      return ((Option<?>) option).match(booleanOption -> {
+        return Stream.of(new BooleanSetting(booleanOption.getOptionId(),
+            store.getBoolean(Activator.getStoreKey(serviceId, booleanOption))));
+      }, numberOption -> {
+        return Stream.of(new NumberSetting(numberOption.getOptionId(),
+            store.getInt(Activator.getStoreKey(serviceId, numberOption))));
+      }, textOption -> {
+        return Stream.of(new TextSetting(textOption.getOptionId(),
+            store.getString(Activator.getStoreKey(serviceId, textOption))));
+      }, xorOption -> {
+        return Stream.of(new TextSetting(xorOption.getOptionId(),
+            store.getString(Activator.getStoreKey(serviceId, xorOption))));
+      }, optionGroup -> {
+        return getStoreSettings(serviceId, optionGroup.getMembers(), store);
+      });
     });
-  }
-
-  public static <T> void configure(Configuration config) {
-    getDefault().source.send(MessageFromIde.config(config));
   }
 
   @SuppressWarnings("rawtypes")
-  public static <T> void configure(ServiceId serviceId, Setting... confs) {
-    configure(new Configuration(serviceId, Arrays.asList(confs)));
+  public static String getStoreKey(ServiceId serviceId, Option option) {
+    return serviceId.toString() + option.toString();
   }
-
-
 
   public static void debug(String msg, Object... formatArgs) {
     getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, String.format(msg, formatArgs)));
