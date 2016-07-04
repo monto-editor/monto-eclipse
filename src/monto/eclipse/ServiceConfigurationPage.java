@@ -51,7 +51,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
         ArrayList<Pair<Option, Control>> optionControlPairs = new ArrayList<>();
         controlMap.put(serviceDescription.getServiceId(), optionControlPairs);
         serviceDescription.getOptions().forEach(option -> {
-          createOptions(serviceDescription.getServiceId(), option, optionControlPairs, composite);
+          createControls(serviceDescription.getServiceId(), option, optionControlPairs, composite);
         });
 
         item.setControl(composite);
@@ -63,7 +63,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
     return folder;
   }
 
-  <T> void createOptions(ServiceId serviceId, Option<T> option,
+  <T> void createControls(ServiceId serviceId, Option<T> option,
       List<Pair<Option, Control>> controlPairList, Composite parent) {
     IPreferenceStore store = getPreferenceStore();
     String storeKey = Activator.getStoreKey(serviceId, option);
@@ -97,8 +97,9 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
       return combo;
     }, optionGroup -> {
       Group group = new Group(parent, SWT.BORDER);
+      group.setText(optionGroup.getLabel());
       optionGroup.getMembers().forEach(memberOption -> {
-        createOptions(serviceId, memberOption, controlPairList, group);
+        createControls(serviceId, memberOption, controlPairList, group);
       });
       group.setLayout(new RowLayout(SWT.VERTICAL));
       return group;
