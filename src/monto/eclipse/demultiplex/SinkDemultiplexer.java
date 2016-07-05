@@ -12,7 +12,6 @@ import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
 import monto.service.product.Products;
 import monto.service.types.Language;
-import monto.service.types.LongKey;
 import monto.service.types.Source;
 
 /**
@@ -60,15 +59,6 @@ public class SinkDemultiplexer {
 
   public SinkDemultiplexer setDiscoveryCache(ProductCache<DiscoveryResponse> discoveryCache) {
     this.discoveryCache = discoveryCache;
-
-    return this;
-  }
-
-  public SinkDemultiplexer invalidateProducts(LongKey newVersionID) {
-    outlineCache.invalidateProduct(newVersionID);
-    tokensCache.invalidateProduct(newVersionID);
-    errorsCache.invalidateProduct(newVersionID);
-    completionsCache.invalidateProduct(newVersionID);
 
     return this;
   }

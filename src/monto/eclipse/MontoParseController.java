@@ -40,7 +40,7 @@ public class MontoParseController extends ParseControllerBase {
   private final ISourcePositionLocator sourcePositionLocator = new SourcePositionLocator();
   private UniversalEditor editor;
 
-  private LongKey versionID = new LongKey(0);
+  private LongKey versionId = new LongKey(0);
 
   private VersionIdBasedProductCache<Outline> outlineCache;
   private VersionIdBasedProductCache<List<Token>> tokensCache;
@@ -89,9 +89,9 @@ public class MontoParseController extends ParseControllerBase {
         });
       }
 
-      versionID.increment();
-      Activator.getDefault().getDemultiplexer().invalidateProducts(versionID);
-      SourceMessage version = new SourceMessage(versionID, source, language, contents);
+      versionId.increment();
+      invalidateAllProducts(versionId);
+      SourceMessage version = new SourceMessage(versionId, source, language, contents);
       Activator.sendSourceMessage(version);
     } catch (Exception e) {
       e.printStackTrace();
@@ -153,6 +153,12 @@ public class MontoParseController extends ParseControllerBase {
 
   public void setEditor(UniversalEditor editor) {
     this.editor = editor;
+  
+  private void invalidateAllProducts(LongKey newVersionId) {
+    outlineCache.invalidateProduct(newVersionId);
+    tokensCache.invalidateProduct(newVersionId);
+    errorsCache.invalidateProduct(newVersionId);
+    completionsCache.invalidateProduct(newVersionId);
   }
 
   private void addErrorMarker(String message, int startOffset, int length) {
