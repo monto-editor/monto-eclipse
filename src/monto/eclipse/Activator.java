@@ -16,6 +16,7 @@ import monto.eclipse.demultiplex.ProductCache;
 import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.ide.SinkSocket;
 import monto.ide.SourceSocket;
+import monto.service.command.CommandMessage;
 import monto.service.configuration.BooleanSetting;
 import monto.service.configuration.Configuration;
 import monto.service.configuration.NumberSetting;
@@ -106,23 +107,6 @@ public class Activator extends AbstractUIPlugin {
     }
   }
 
-  public static Activator getDefault() {
-    return plugin;
-  }
-
-  /*
-   * (non-Javadoc)
-   * 
-   * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
-   */
-  public void stop(BundleContext bundle) throws Exception {
-    demultiplexer.stop();
-    source.close();
-    sink.close();
-    ctx.close();
-    plugin = null;
-    super.stop(bundle);
-  }
 
   public static void sendConfigurationsFromStore(List<ServiceDescription> serviceDescriptions) {
     IPreferenceStore store = Activator.getDefault().getPreferenceStore();
@@ -162,6 +146,32 @@ public class Activator extends AbstractUIPlugin {
     return serviceId.toString() + option.toString();
   }
 
+  public static void sendSourceMessage(SourceMessage message) {
+    getDefault().source.send(MessageFromIde.source(message));
+  }
+
+  public static void sendCommandMessage(CommandMessage commandMessage) {
+    getDefault().source.send(MessageFromIde.command(commandMessage));
+  }
+
+  public static Activator getDefault() {
+    return plugin;
+  }
+
+  /*
+   * (non-Javadoc)
+   * 
+   * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
+   */
+  public void stop(BundleContext bundle) throws Exception {
+    demultiplexer.stop();
+    source.close();
+    sink.close();
+    ctx.close();
+    plugin = null;
+    super.stop(bundle);
+  }
+
   public static void debug(String msg, Object... formatArgs) {
     getDefault().getLog().log(new Status(Status.INFO, PLUGIN_ID, String.format(msg, formatArgs)));
   }
@@ -180,9 +190,5 @@ public class Activator extends AbstractUIPlugin {
 
   public static void warning(String msg) {
     getDefault().getLog().log(new Status(Status.WARNING, PLUGIN_ID, msg));
-  }
-
-  public static void sendSourceMessage(SourceMessage message) {
-    getDefault().source.send(MessageFromIde.source(message));
   }
 }
