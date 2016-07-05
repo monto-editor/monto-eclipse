@@ -19,9 +19,14 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
+import org.eclipse.swt.custom.CaretEvent;
+import org.eclipse.swt.custom.CaretListener;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
+import monto.service.command.CommandMessage;
 import monto.service.completion.Completion;
 import monto.service.error.Error;
 import monto.service.highlighting.Token;
@@ -30,6 +35,7 @@ import monto.service.region.Region;
 import monto.service.source.SourceMessage;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
+import monto.service.types.ServiceId;
 import monto.service.types.Source;
 
 public class MontoParseController extends ParseControllerBase {
@@ -82,13 +88,6 @@ public class MontoParseController extends ParseControllerBase {
   public Object parse(String documentText, IProgressMonitor monitor) {
     try {
       contents = documentText;
-      if (editor != null) {
-        Display.getDefault().syncExec(() -> {
-          IRegion region = editor.getSelectedRegion();
-          // TODO Do something with this selection
-        });
-      }
-
       versionId.increment();
       invalidateAllProducts(versionId);
       SourceMessage version = new SourceMessage(versionId, source, language, contents);
@@ -153,6 +152,17 @@ public class MontoParseController extends ParseControllerBase {
 
   public void setEditor(UniversalEditor editor) {
     this.editor = editor;
+    Display.getDefault().syncExec(() -> {
+      ((StyledText) editor.getAdapter(Control.class)).addCaretListener(new CaretListener() {
+        public void caretMoved(CaretEvent event) {
+          completionsCache.invalidateProduct(versionId);
+          Activator.sendCommandMessage(
+              CommandMessage.createSourcePosition(new ServiceId("javaCodeCompletion"), source,
+                  new Region(event.caretOffset, 0)));
+        };
+      });
+    });
+  }
   
   private void invalidateAllProducts(LongKey newVersionId) {
     outlineCache.invalidateProduct(newVersionId);
