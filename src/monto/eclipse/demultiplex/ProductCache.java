@@ -39,7 +39,7 @@ public class ProductCache<A> {
     });
   }
 
-  protected void onProductMessage(A product) {
+  public void onProductMessage(A product) {
     withLock(() -> {
       if ((state == Fetch.PENDING || state == Fetch.WAITING)) {
         this.product = product;

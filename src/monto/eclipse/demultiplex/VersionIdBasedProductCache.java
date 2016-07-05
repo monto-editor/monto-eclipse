@@ -15,7 +15,7 @@ public class VersionIdBasedProductCache<A> extends ProductCache<A> {
 
   protected LongKey versionID;
 
-  protected void invalidateProduct(LongKey newVersionID) {
+  public void invalidateProduct(LongKey newVersionID) {
     withLock(() -> {
       super.product = null;
       this.state = Fetch.PENDING;
@@ -24,8 +24,9 @@ public class VersionIdBasedProductCache<A> extends ProductCache<A> {
     });
   }
 
-  protected void onProductMessage(A product, LongKey versionId) {
+  public void onProductMessage(A product, LongKey versionId) {
     withLock(() -> {
+      System.out.printf("state: %s version: %s newversion: %s", state.toString(), this.versionID, versionId);
       if ((state == Fetch.PENDING || state == Fetch.WAITING) && versionId.upToDate(versionID)) {
         this.product = product;
         this.state = Fetch.ARRIVED;
@@ -36,7 +37,7 @@ public class VersionIdBasedProductCache<A> extends ProductCache<A> {
 
   @Override
   @Deprecated
-  protected void onProductMessage(A product) {
+  public void onProductMessage(A product) {
     throw new RuntimeException("use onProductMessage(A product, LongKey versionId)");
   }
 
