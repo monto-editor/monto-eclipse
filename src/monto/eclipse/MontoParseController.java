@@ -19,11 +19,6 @@ import org.eclipse.imp.parser.SimpleAnnotationTypeInfo;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.swt.custom.CaretEvent;
-import org.eclipse.swt.custom.CaretListener;
-import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Display;
 
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
 import monto.service.command.CommandMessage;
@@ -124,6 +119,11 @@ public class MontoParseController extends ParseControllerBase {
   }
 
   public List<Completion> getCompletions() {
+    completionsCache.invalidateProduct(versionId);
+    IRegion region = editor.getSelectedRegion();
+    Activator
+        .sendCommandMessage(CommandMessage.createSourcePosition(new ServiceId("javaCodeCompletion"),
+            source, new Region(region.getOffset(), region.getLength())));
     return completionsCache.getProduct().orElse(new ArrayList<>());
   }
 
@@ -152,18 +152,8 @@ public class MontoParseController extends ParseControllerBase {
 
   public void setEditor(UniversalEditor editor) {
     this.editor = editor;
-    Display.getDefault().syncExec(() -> {
-      ((StyledText) editor.getAdapter(Control.class)).addCaretListener(new CaretListener() {
-        public void caretMoved(CaretEvent event) {
-          completionsCache.invalidateProduct(versionId);
-          Activator.sendCommandMessage(
-              CommandMessage.createSourcePosition(new ServiceId("javaCodeCompletion"), source,
-                  new Region(event.caretOffset, 0)));
-        };
-      });
-    });
   }
-  
+
   private void invalidateAllProducts(LongKey newVersionId) {
     outlineCache.invalidateProduct(newVersionId);
     tokensCache.invalidateProduct(newVersionId);
