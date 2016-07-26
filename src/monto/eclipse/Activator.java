@@ -166,7 +166,7 @@ public class Activator extends AbstractUIPlugin {
   public void stop(BundleContext bundle) throws Exception {
     demultiplexer.stop();
     source.close();
-    sink.close();
+    // demultiplexer closes sink once thread shuts down
     ctx.close();
     plugin = null;
     super.stop(bundle);

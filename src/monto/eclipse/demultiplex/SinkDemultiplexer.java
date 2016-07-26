@@ -116,7 +116,8 @@ public class SinkDemultiplexer {
     return this;
   }
 
-  public void stop() {
+  public void stop() throws InterruptedException {
     running = false;
+    thread.join();
   }
 }
