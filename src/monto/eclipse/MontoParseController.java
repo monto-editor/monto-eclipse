@@ -42,6 +42,7 @@ public class MontoParseController extends ParseControllerBase {
   private UniversalEditor editor;
 
   private LongKey versionId = new LongKey(0);
+  private int codeCompletionSessionId = 0;
 
   private VersionIdBasedProductCache<Outline> outlineCache;
   private VersionIdBasedProductCache<List<Token>> tokensCache;
@@ -122,7 +123,7 @@ public class MontoParseController extends ParseControllerBase {
     completionsCache.invalidateProduct(versionId);
     IRegion region = editor.getSelectedRegion();
     Activator
-        .sendCommandMessage(CommandMessage.createSourcePosition(new ServiceId("javaCodeCompletion"),
+        .sendCommandMessage(CommandMessage.createSourcePosition(0, codeCompletionSessionId++, new ServiceId("javaCodeCompletion"),
             source, new Region(region.getOffset(), region.getLength())));
     return completionsCache.getProduct().orElse(new ArrayList<>());
   }
