@@ -22,7 +22,7 @@ import org.eclipse.jface.text.IRegion;
 
 import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
-import monto.service.command.CommandMessage;
+import monto.service.command.SourcePositionContent;
 import monto.service.completion.Completion;
 import monto.service.error.Error;
 import monto.service.gson.GsonMonto;
@@ -45,7 +45,7 @@ public class MontoParseController extends ParseControllerBase {
   private UniversalEditor editor;
 
   private LongKey versionId = new LongKey(0);
-  private int codeCompletionSessionId = 0;
+  private int codeCompletionCommandMessageId = 0;
 
   private VersionIdBasedProductCache<Outline> outlineCache;
   private VersionIdBasedProductCache<List<Token>> tokensCache;
@@ -132,7 +132,7 @@ public class MontoParseController extends ParseControllerBase {
   public List<Completion> getCompletions() {
     completionsCache.invalidateProduct(versionId);
     IRegion region = editor.getSelectedRegion();
-    Activator.sendCommandMessage(CommandMessage.createSourcePosition(0, codeCompletionSessionId++,
+    Activator.sendCommandMessage(SourcePositionContent.createCommandMessage(codeCompletionCommandMessageId++, 0,
         new ServiceId("javaCodeCompletion"), source,
         new Region(region.getOffset(), region.getLength())));
     return completionsCache.getProduct().orElse(new ArrayList<>());
