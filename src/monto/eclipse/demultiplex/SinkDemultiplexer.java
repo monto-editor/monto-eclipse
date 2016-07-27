@@ -1,18 +1,16 @@
 package monto.eclipse.demultiplex;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 import monto.eclipse.Activator;
 import monto.ide.SinkSocket;
-import monto.service.completion.Completion;
 import monto.service.discovery.DiscoveryResponse;
-import monto.service.error.Error;
-import monto.service.gson.GsonMonto;
-import monto.service.highlighting.Token;
-import monto.service.outline.Outline;
-import monto.service.product.Products;
-import monto.service.types.Language;
-import monto.service.types.Source;
+import monto.service.product.ProductMessage;
+import monto.service.types.Product;
 
 /**
  * Awaits all products of a given services.
@@ -25,42 +23,34 @@ public class SinkDemultiplexer {
   private Thread thread;
   private boolean running;
 
-  private Source source;
-  private Language language;
-
-  private VersionIdBasedProductCache<Outline> outlineCache;
-  private VersionIdBasedProductCache<List<Token>> tokensCache;
-  private VersionIdBasedProductCache<List<Error>> errorsCache;
-  private VersionIdBasedProductCache<List<Completion>> completionsCache;
-  private ProductCache<DiscoveryResponse> discoveryCache;
+  private Map<Product, List<Consumer<ProductMessage>>> productListeners;
+  private List<Consumer<DiscoveryResponse>> discoveryListeners;
 
   public SinkDemultiplexer(SinkSocket sink) {
     this.sink = sink;
+    this.productListeners = new HashMap<>();
+    this.discoveryListeners = new ArrayList<>();
   }
 
-  public SinkDemultiplexer setTarget(Source source, Language language) {
-    this.source = source;
-    this.language = language;
-
-    return this;
+  public void addProductListener(Product product, Consumer<ProductMessage> consumer) {
+    if (!productListeners.containsKey(product)) {
+      productListeners.put(product, new ArrayList<>());
+    }
+    productListeners.get(product).add(consumer);
   }
 
-  public SinkDemultiplexer setProductCaches(VersionIdBasedProductCache<Outline> outlineCache,
-      VersionIdBasedProductCache<List<Token>> tokensCache,
-      VersionIdBasedProductCache<List<Error>> errorsCache,
-      VersionIdBasedProductCache<List<Completion>> completionsCache) {
-    this.outlineCache = outlineCache;
-    this.tokensCache = tokensCache;
-    this.errorsCache = errorsCache;
-    this.completionsCache = completionsCache;
-
-    return this;
+  public void removeProductListener(Product product, Consumer<Product> consumer) {
+    if (productListeners.containsKey(product)) {
+      productListeners.get(product).remove(consumer);
+    }
   }
 
-  public SinkDemultiplexer setDiscoveryCache(ProductCache<DiscoveryResponse> discoveryCache) {
-    this.discoveryCache = discoveryCache;
+  public void addDiscoveryListener(Consumer<DiscoveryResponse> consumer) {
+    discoveryListeners.add(consumer);
+  }
 
-    return this;
+  public void removeDiscoveryListener(Consumer<DiscoveryResponse> consumer) {
+    discoveryListeners.remove(consumer);
   }
 
   public SinkDemultiplexer start() {
@@ -73,36 +63,22 @@ public class SinkDemultiplexer {
           while (running) {
             sink.receive(productMessage -> {
               Activator.debug("received ProductMessage: %s", productMessage);
-              if (productMessage.getSource().equals(source)
-                  && productMessage.getLanguage().equals(language)) {
-                if (productMessage.getProduct().equals(Products.OUTLINE)) {
-                  outlineCache.onProductMessage(GsonMonto.fromJson(productMessage, Outline.class),
-                      productMessage.getId());
-                } else if (productMessage.getProduct().equals(Products.TOKENS)) {
-                  tokensCache.onProductMessage(
-                      GsonMonto.fromJsonArray(productMessage, Token[].class),
-                      productMessage.getId());
-                } else if (productMessage.getProduct().equals(Products.ERRORS)) {
-                  errorsCache.onProductMessage(
-                      GsonMonto.fromJsonArray(productMessage, Error[].class),
-                      productMessage.getId());
-                } else if (productMessage.getProduct().equals(Products.COMPLETIONS)) {
-                  completionsCache.onProductMessage(
-                      GsonMonto.fromJsonArray(productMessage, Completion[].class),
-                      productMessage.getId());
-                } else {
-                  Activator.info(String.format(
-                      "Ignoring a unexpected ProductMessage of type %s from service %s",
-                      productMessage.getProduct(), productMessage.getServiceId()));
-                }
+              List<Consumer<ProductMessage>> listeners =
+                  productListeners.get(productMessage.getProduct());
+              // TODO: check, if source and language of productMessage match the opened file?
+
+              if (listeners == null) {
+                Activator.debug("Ignoring ProductMessage %s, because not listener wants it", productMessage);
               } else {
-                Activator.info(String.format(
-                    "Ignoring a ProductMessage of unexpected source %s or language %s",
-                    productMessage.getSource(), productMessage.getLanguage()));
+                for (Consumer<ProductMessage> consumer : listeners) {
+                  consumer.accept(productMessage);
+                }                
               }
             }, discoveryResponse -> {
               Activator.debug("Received DiscoveryResponse: %s", discoveryResponse);
-              discoveryCache.onProductMessage(discoveryResponse);
+              for (Consumer<DiscoveryResponse> consumer : discoveryListeners) {
+                consumer.accept(discoveryResponse);
+              }
             });
           }
           sink.close();

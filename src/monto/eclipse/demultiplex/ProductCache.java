@@ -5,6 +5,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 
 import monto.eclipse.Activator;
 
@@ -14,19 +15,21 @@ import monto.eclipse.Activator;
  * The class mediates between a thread that polls the connection and the UI thread that calls
  * {@link #getProduct() getProduct}.
  */
-public class ProductCache<A> {
+public class ProductCache<I, P> {
   protected Lock lock;
   protected Condition arrived;
-  protected A product;
+  protected P product;
+  protected Function<I, P> messageDeserializer;
   protected long timeout;
   protected Fetch state;
   protected String logProductTag;
 
-  public ProductCache(String logProductTag) {
+  public ProductCache(String logProductTag, Function<I, P> messageDeserializer) {
     this.lock = new ReentrantLock();
     this.arrived = lock.newCondition();
     this.timeout = 100;
     this.product = null;
+    this.messageDeserializer = messageDeserializer;
     this.state = Fetch.PENDING;
     this.logProductTag = logProductTag;
   }
@@ -39,17 +42,19 @@ public class ProductCache<A> {
     });
   }
 
-  public void onProductMessage(A product) {
+  public void onProductMessage(I incoming) {
+    P newProduct = messageDeserializer.apply(incoming);
+
     withLock(() -> {
       if ((state == Fetch.PENDING || state == Fetch.WAITING)) {
-        this.product = product;
+        this.product = newProduct;
         this.state = Fetch.ARRIVED;
         arrived.signalAll();
       }
     });
   }
 
-  public Optional<A> getProduct() {
+  public Optional<P> getProduct() {
     if (state == Fetch.PENDING) {
       lock.lock();
       try {

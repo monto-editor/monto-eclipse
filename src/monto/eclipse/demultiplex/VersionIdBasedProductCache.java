@@ -1,5 +1,8 @@
 package monto.eclipse.demultiplex;
 
+import java.util.function.Function;
+
+import monto.service.product.ProductMessage;
 import monto.service.types.LongKey;
 
 /**
@@ -8,9 +11,9 @@ import monto.service.types.LongKey;
  * The class mediates between a thread that polls the connection and the UI thread that calls
  * {@link #getProduct() getProduct}.
  */
-public class VersionIdBasedProductCache<A> extends ProductCache<A> {
-  public VersionIdBasedProductCache(String logProductTag) {
-    super(logProductTag);
+public class VersionIdBasedProductCache<P> extends ProductCache<ProductMessage, P> {
+  public VersionIdBasedProductCache(String logProductTag, Function<ProductMessage, P> productMessageDeserializer) {
+    super(logProductTag, productMessageDeserializer);
   }
 
   protected LongKey versionId;
@@ -24,21 +27,18 @@ public class VersionIdBasedProductCache<A> extends ProductCache<A> {
     });
   }
 
-  public void onProductMessage(A product, LongKey versionId) {
+  @Override
+  public void onProductMessage(ProductMessage productMessage) {
+    LongKey newVersionId = productMessage.getId();
+    P newProduct = messageDeserializer.apply(productMessage);
     withLock(() -> {
-      System.out.printf("state: %s version: %s newVersion: %s", state.toString(), this.versionId, versionId);
-      if ((state == Fetch.PENDING || state == Fetch.WAITING) && versionId.upToDate(this.versionId)) {
-        this.product = product;
+      System.out.printf("state: %s version: %s newVersion: %s", state.toString(), this.versionId, newVersionId);
+      if ((state == Fetch.PENDING || state == Fetch.WAITING) && newVersionId.upToDate(this.versionId)) {
+        this.product = newProduct;
         this.state = Fetch.ARRIVED;
         arrived.signalAll();
       }
     });
-  }
-
-  @Override
-  @Deprecated
-  public void onProductMessage(A product) {
-    throw new RuntimeException("use onProductMessage(A product, LongKey versionId)");
   }
 
   @Override

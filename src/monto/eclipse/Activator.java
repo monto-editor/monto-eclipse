@@ -2,6 +2,7 @@ package monto.eclipse;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,7 +46,7 @@ public class Activator extends AbstractUIPlugin {
   private SinkSocket sink;
   private static Context ctx;
   private SinkDemultiplexer demultiplexer;
-  private ProductCache<DiscoveryResponse> discoveryResponseCache;
+  private ProductCache<DiscoveryResponse, DiscoveryResponse> discoveryResponseCache;
 
   /*
    * (non-Javadoc)
@@ -64,9 +65,12 @@ public class Activator extends AbstractUIPlugin {
     sink = new SinkSocket(ctx, "tcp://localhost:5001");
     sink.connect();
 
-    discoveryResponseCache = new ProductCache<>("discoveryResponse");
+    discoveryResponseCache = new ProductCache<DiscoveryResponse, DiscoveryResponse>("discoveryResponse", Function.identity());
     discoveryResponseCache.setTimeout(500);
-    demultiplexer = new SinkDemultiplexer(sink).setDiscoveryCache(discoveryResponseCache).start();
+
+    demultiplexer = new SinkDemultiplexer(sink);
+    demultiplexer.addDiscoveryListener(discoveryResponseCache::onProductMessage);
+    demultiplexer.start();
 
     discover(DiscoveryRequest.create()).ifPresent(discoverResponse -> {
       sendConfigurationsFromStore(discoverResponse.get());
@@ -165,8 +169,8 @@ public class Activator extends AbstractUIPlugin {
    */
   public void stop(BundleContext bundle) throws Exception {
     demultiplexer.stop();
-    source.close();
     // demultiplexer closes sink once thread shuts down
+    source.close();
     ctx.close();
     plugin = null;
     super.stop(bundle);

@@ -20,12 +20,15 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 
+import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
 import monto.service.command.CommandMessage;
 import monto.service.completion.Completion;
 import monto.service.error.Error;
+import monto.service.gson.GsonMonto;
 import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
+import monto.service.product.Products;
 import monto.service.region.Region;
 import monto.service.source.SourceMessage;
 import monto.service.types.Language;
@@ -66,18 +69,25 @@ public class MontoParseController extends ParseControllerBase {
     source = new Source(filePath.lastSegment());
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 
-    outlineCache = new VersionIdBasedProductCache<>("outline");
-    tokensCache = new VersionIdBasedProductCache<>("tokens");
-    completionsCache = new VersionIdBasedProductCache<>("completions");
-    errorsCache = new VersionIdBasedProductCache<>("errors");
+    outlineCache = new VersionIdBasedProductCache<>("outline",
+        productMessage -> GsonMonto.fromJson(productMessage, Outline.class));
+    tokensCache = new VersionIdBasedProductCache<>("tokens",
+        productMessage -> GsonMonto.fromJsonArray(productMessage, Token[].class));
+    completionsCache = new VersionIdBasedProductCache<>("completions",
+        productMessage -> GsonMonto.fromJsonArray(productMessage, Completion[].class));
+    errorsCache = new VersionIdBasedProductCache<>("errors",
+        productMessage -> GsonMonto.fromJsonArray(productMessage, Error[].class));
 
     outlineCache.setTimeout(500);
     tokensCache.setTimeout(500);
     completionsCache.setTimeout(500);
     errorsCache.setTimeout(500);
 
-    Activator.getDefault().getDemultiplexer().setTarget(source, language)
-        .setProductCaches(outlineCache, tokensCache, errorsCache, completionsCache);
+    SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
+    demultiplexer.addProductListener(Products.OUTLINE, outlineCache::onProductMessage);
+    demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage);
+    demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
+    demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage);
   }
 
   @Override
@@ -122,9 +132,9 @@ public class MontoParseController extends ParseControllerBase {
   public List<Completion> getCompletions() {
     completionsCache.invalidateProduct(versionId);
     IRegion region = editor.getSelectedRegion();
-    Activator
-        .sendCommandMessage(CommandMessage.createSourcePosition(0, codeCompletionSessionId++, new ServiceId("javaCodeCompletion"),
-            source, new Region(region.getOffset(), region.getLength())));
+    Activator.sendCommandMessage(CommandMessage.createSourcePosition(0, codeCompletionSessionId++,
+        new ServiceId("javaCodeCompletion"), source,
+        new Region(region.getOffset(), region.getLength())));
     return completionsCache.getProduct().orElse(new ArrayList<>());
   }
 
