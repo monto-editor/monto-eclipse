@@ -38,10 +38,9 @@ public class ContentProposer implements IContentProposer {
       return new CompletionProposal[0];
 
     return completions.stream()
-        .map(comp -> new CompletionProposal(comp.getReplacement(), comp.getInsertionOffset(), 0,
-            comp.getReplacement().length(), getImage(comp.getIcon()), comp.getDescription(), null,
-            null))
+        .map(comp -> new CompletionProposal(comp.getReplacement(), comp.getDeleteBeginOffset(),
+            comp.getDeleteLength(), comp.getReplacement().length(), getImage(comp.getIcon()),
+            comp.getDescription(), null, null))
         .toArray(size -> new CompletionProposal[size]);
   }
-
 }
