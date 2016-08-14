@@ -8,6 +8,7 @@ import java.util.function.Consumer;
 
 import monto.eclipse.Activator;
 import monto.ide.SinkSocket;
+import monto.service.command.CommandUpdate;
 import monto.service.discovery.DiscoveryResponse;
 import monto.service.product.ProductMessage;
 import monto.service.types.Product;
@@ -24,11 +25,13 @@ public class SinkDemultiplexer {
   private boolean running;
 
   private Map<Product, List<Consumer<ProductMessage>>> productListeners;
+  private Map<String, List<Consumer<CommandUpdate>>> commandUpdateListeners;
   private List<Consumer<DiscoveryResponse>> discoveryListeners;
 
   public SinkDemultiplexer(SinkSocket sink) {
     this.sink = sink;
     this.productListeners = new HashMap<>();
+    this.commandUpdateListeners = new HashMap<>();
     this.discoveryListeners = new ArrayList<>();
   }
 
@@ -38,10 +41,23 @@ public class SinkDemultiplexer {
     }
     productListeners.get(product).add(consumer);
   }
-
+  
   public void removeProductListener(Product product, Consumer<Product> consumer) {
     if (productListeners.containsKey(product)) {
       productListeners.get(product).remove(consumer);
+    }
+  }
+
+  public void addCommandUpdateListener(String tag, Consumer<CommandUpdate> consumer) {
+    if (!productListeners.containsKey(tag)) {
+      commandUpdateListeners.put(tag, new ArrayList<>());
+    }
+    commandUpdateListeners.get(tag).add(consumer);
+  }
+  
+  public void removeCommandUpdateListener(String tag, Consumer<CommandUpdate> consumer) {
+    if (productListeners.containsKey(tag)) {
+      productListeners.get(tag).remove(consumer);
     }
   }
 
@@ -72,6 +88,18 @@ public class SinkDemultiplexer {
               } else {
                 for (Consumer<ProductMessage> consumer : listeners) {
                   consumer.accept(productMessage);
+                }                
+              }
+            }, commandUpdate -> {
+              Activator.debug("Received CommandUpdate: %s", commandUpdate);
+              List<Consumer<CommandUpdate>> listeners =
+                  commandUpdateListeners.get(commandUpdate.getTag());
+
+              if (listeners == null) {
+                Activator.debug("Ignoring CommandUpdate %s, because not listener wants it", commandUpdate);
+              } else {
+                for (Consumer<CommandUpdate> consumer : listeners) {
+                  consumer.accept(commandUpdate);
                 }                
               }
             }, discoveryResponse -> {
