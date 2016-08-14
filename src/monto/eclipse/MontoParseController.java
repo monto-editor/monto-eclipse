@@ -22,7 +22,7 @@ import org.eclipse.jface.text.IRegion;
 
 import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
-import monto.service.command.SourcePositionContent;
+import monto.service.completion.SourcePositionContent;
 import monto.service.completion.Completion;
 import monto.service.error.Error;
 import monto.service.gson.GsonMonto;
