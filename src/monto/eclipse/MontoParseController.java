@@ -88,10 +88,6 @@ public class MontoParseController extends ParseControllerBase {
     demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage);
     demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
     demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage);
-    
-    demultiplexer.addCommandUpdateListener("commandUpdate", commandUpdate -> {
-      System.out.printf("Received CommandUpdate: %s\n", commandUpdate);
-    });
   }
 
   @Override
