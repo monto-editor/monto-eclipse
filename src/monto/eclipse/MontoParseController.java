@@ -30,6 +30,7 @@ import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
 import monto.service.product.Products;
 import monto.service.region.Region;
+import monto.service.run.StreamOutput;
 import monto.service.source.SourceMessage;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
@@ -51,7 +52,6 @@ public class MontoParseController extends ParseControllerBase {
   private VersionIdBasedProductCache<List<Token>> tokensCache;
   private VersionIdBasedProductCache<List<Completion>> completionsCache;
   private VersionIdBasedProductCache<List<Error>> errorsCache;
-
 
   private static final Map<String, Object> errorSeverity = new HashMap<>();
   private static final Map<String, Object> warningSeverity = new HashMap<>();
@@ -88,6 +88,12 @@ public class MontoParseController extends ParseControllerBase {
     demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage);
     demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
     demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage);
+
+
+    demultiplexer.addProductListener(Products.STREAM_OUTPUT, productMessage -> {
+      StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
+      System.out.print(streamOutput.getData());
+    });
   }
 
   @Override
@@ -132,8 +138,8 @@ public class MontoParseController extends ParseControllerBase {
   public List<Completion> getCompletions() {
     completionsCache.invalidateProduct(versionId);
     IRegion region = editor.getSelectedRegion();
-    Activator.sendCommandMessage(SourcePositionContent.createCommandMessage(codeCompletionCommandMessageId++, 0,
-        new ServiceId("javaCodeCompletion"), source,
+    Activator.sendCommandMessage(SourcePositionContent.createCommandMessage(
+        codeCompletionCommandMessageId++, 0, new ServiceId("javaCodeCompletion"), source,
         new Region(region.getOffset(), region.getLength())));
     return completionsCache.getProduct().orElse(new ArrayList<>());
   }
