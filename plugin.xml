@@ -93,4 +93,48 @@
             language="monto">
       </editorService>
    </extension>
+   <extension
+         point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+            id="monto.eclipse.launchConfig"
+            name="Monto Launch Configuration"
+            delegate="monto.eclipse.launching.LaunchConfigurationDelegate"
+            modes="run">
+      </launchConfigurationType>
+   </extension>
+
+<!--
+   <extension point="org.eclipse.debug.core.sourceLocators">
+      <sourceLocator
+         name="Monto Source Locator"
+         class="monto.eclipse.launching.SourceLocator"
+         id="monto.eclipse.sourceLocator">
+      </sourceLocator>
+   </extension>
+   <extension point="org.eclipse.debug.core.sourcePathComputers">
+      <sourcePathComputer
+         id="monto.eclipse.sourcePathComputer"
+         class="monto.eclipse.launching.SourcePathComputer">
+      </sourcePathComputer>
+   </extension>
+   -->
+   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+            id="monto.eclipse.launchConfigurationIcon"
+            configTypeID="monto.eclipse.launchConfig"
+            icon="icons/monto128.png">
+      </launchConfigurationTypeImage>
+   </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+            type="monto.eclipse.launchConfig"
+            class="monto.eclipse.launching.LaunchConfigurationTabGroup"
+            id="monto.eclipse.launching.launchConfigurationTabGroup">
+            <launchMode
+                  mode="run"
+                  description="Run a Monto application.">
+            </launchMode>
+      </launchConfigurationTabGroup>
+   </extension>
 </plugin>
