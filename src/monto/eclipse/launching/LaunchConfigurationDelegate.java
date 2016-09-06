@@ -7,10 +7,8 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
 import monto.eclipse.Activator;
-import monto.service.gson.GsonMonto;
 import monto.service.product.Products;
 import monto.service.run.LaunchConfiguration;
-import monto.service.run.StreamOutput;
 import monto.service.types.ServiceId;
 import monto.service.types.Source;
 
@@ -26,9 +24,12 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
 
       launchSessionIdCounter += 1;
 
-      MontoProcess process = new MontoProcess(launch);
+      MontoProcess process = new MontoProcess(launch, launchSessionIdCounter);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.STREAM_OUTPUT,
           process::onStreamOutputProduct);
+
+      Activator.getDefault().getDemultiplexer().addProductListener(Products.PROCESS_TERMINATED,
+          process::onProcessTerminatedProduct);
 
       launch.addProcess(process);
 

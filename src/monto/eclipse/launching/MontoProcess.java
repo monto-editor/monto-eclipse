@@ -1,26 +1,36 @@
 package monto.eclipse.launching;
 
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.Launch;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamsProxy;
 
+import monto.eclipse.Activator;
 import monto.service.gson.GsonMonto;
 import monto.service.product.ProductMessage;
 import monto.service.run.ProcessTerminated;
 import monto.service.run.StreamOutput;
+import monto.service.run.StreamOutput.SourceStream;
 
 public class MontoProcess implements IProcess {
 
   private ILaunch launch;
+  private int sessionId;
   private MontoStreamProxy streamProxy;
   private boolean terminated;
   private int exitCode;
 
-  public MontoProcess(ILaunch launch) {
+  public MontoProcess(ILaunch launch, int sessionId) {
     this.launch = launch;
+    this.sessionId = sessionId;
+
     this.streamProxy = new MontoStreamProxy();
     this.terminated = false;
+    this.exitCode = -1999;
   }
 
   @Override
@@ -47,7 +57,7 @@ public class MontoProcess implements IProcess {
 
   @Override
   public String getLabel() {
-    return "session" + "X";
+    return "session" + sessionId;
   }
 
   @Override
@@ -75,26 +85,37 @@ public class MontoProcess implements IProcess {
 
   @Override
   public int getExitValue() throws DebugException {
+    if (!terminated) {
+      throw new DebugException(new Status(IStatus.ERROR, Activator.PLUGIN_ID,
+          "Can't get exit value of running Monto process"));
+    }
     return exitCode;
   }
 
-  void onTerminationProduct(ProductMessage productMessage) {
+  void onProcessTerminatedProduct(ProductMessage productMessage) {
     ProcessTerminated processTerminated =
         GsonMonto.fromJson(productMessage, ProcessTerminated.class);
-    terminated = true;
-    exitCode = processTerminated.getExitCode();
+    if (sessionId == processTerminated.getSession()) {
+      terminated = true;
+      exitCode = processTerminated.getExitCode();
+      System.out.println("Process " + sessionId + " terminated");
+      if (launch instanceof Launch) {
+        Launch castedLaunch = (Launch) launch;
+        castedLaunch
+            .handleDebugEvents(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
+        System.out.println("Launch cast successful");
+      }
+    }
   }
 
   void onStreamOutputProduct(ProductMessage productMessage) {
     StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
     System.out.println(streamOutput);
-    switch (streamOutput.getSourceStream()) {
-      case OUT:
-        streamProxy.getOutputStreamMonitor().fireEvent(streamOutput.getData());
-        break;
-      case ERR:
-        streamProxy.getErrorStreamMonitor().fireEvent(streamOutput.getData());
-        break;
+    SourceStream sourceStream = streamOutput.getSourceStream();
+    if (sourceStream == SourceStream.OUT) {
+      streamProxy.getOutputStreamMonitor().fireEvent(streamOutput.getData());
+    } else if (sourceStream == SourceStream.ERR) {
+      streamProxy.getErrorStreamMonitor().fireEvent(streamOutput.getData());
     }
   }
 }
