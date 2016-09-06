@@ -66,7 +66,8 @@ public class MontoParseController extends ParseControllerBase {
   @Override
   public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
     super.initialize(filePath, project, handler);
-    source = new Source(filePath.lastSegment()); // TODO change to real physical name
+    source = new Source(filePath.toString());
+    // toString() includes to src/ directory, which is correct for the physical name of a Source
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 
     outlineCache = new VersionIdBasedProductCache<>("outline",
