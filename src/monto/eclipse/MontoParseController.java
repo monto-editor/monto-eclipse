@@ -30,6 +30,7 @@ import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
 import monto.service.product.Products;
 import monto.service.region.Region;
+import monto.service.source.LogicalSourceName;
 import monto.service.source.SourceMessage;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
@@ -65,7 +66,7 @@ public class MontoParseController extends ParseControllerBase {
   @Override
   public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
     super.initialize(filePath, project, handler);
-    source = new Source(filePath.lastSegment());
+    source = new Source(filePath.lastSegment()); // TODO change to real physical name
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 
     outlineCache = new VersionIdBasedProductCache<>("outline",
@@ -87,6 +88,22 @@ public class MontoParseController extends ParseControllerBase {
     demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage);
     demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
     demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage);
+    demultiplexer.addProductListener(Products.LOGICAL_SOURCE_NAME, productMessage -> {
+      if (!source.getLogicalName().isPresent() && productMessage.getSource().equals(source)) {
+        // resend SourceMessage with logical name
+        LogicalSourceName logicalSourceName =
+            GsonMonto.fromJson(productMessage.getContents(), LogicalSourceName.class);
+        source = logicalSourceName.getSourceWithLogicalName();
+        versionId.increment();
+        invalidateAllProducts(versionId);
+        Activator.sendSourceMessage(new SourceMessage(versionId, source,
+            productMessage.getLanguage(), logicalSourceName.getOriginalContents()));
+        System.out.println("Sent logical sourcename out");
+      } else {
+        System.out.println("not sending logical sourcename out");
+      }
+
+    });
   }
 
   @Override
@@ -95,8 +112,8 @@ public class MontoParseController extends ParseControllerBase {
       contents = documentText;
       versionId.increment();
       invalidateAllProducts(versionId);
-      SourceMessage version = new SourceMessage(versionId, source, language, contents);
-      Activator.sendSourceMessage(version);
+      SourceMessage sourceMessage = new SourceMessage(versionId, source, language, contents);
+      Activator.sendSourceMessage(sourceMessage);
     } catch (Exception e) {
       e.printStackTrace();
       Activator.error(e);
