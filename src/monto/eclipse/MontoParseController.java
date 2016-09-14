@@ -30,7 +30,6 @@ import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
 import monto.service.product.Products;
 import monto.service.region.Region;
-import monto.service.source.LogicalSourceName;
 import monto.service.source.SourceMessage;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
@@ -92,18 +91,14 @@ public class MontoParseController extends ParseControllerBase {
     demultiplexer.addProductListener(Products.LOGICAL_SOURCE_NAME, productMessage -> {
       if (!source.getLogicalName().isPresent() && productMessage.getSource().equals(source)) {
         // resend SourceMessage with logical name
-        LogicalSourceName logicalSourceName =
-            GsonMonto.fromJson(productMessage.getContents(), LogicalSourceName.class);
-        source = logicalSourceName.getSourceWithLogicalName();
-        versionId.increment();
-        invalidateAllProducts(versionId);
-        Activator.sendSourceMessage(new SourceMessage(versionId, source,
-            productMessage.getLanguage(), logicalSourceName.getOriginalContents()));
+        Source sourceWithLogicalName =
+            GsonMonto.fromJson(productMessage.getContents(), Source.class);
+        source = sourceWithLogicalName;
+        parse(contents, null);
         System.out.println("Sent logical sourcename out");
       } else {
         System.out.println("not sending logical sourcename out");
       }
-
     });
   }
 
@@ -149,7 +144,8 @@ public class MontoParseController extends ParseControllerBase {
   public List<Completion> getCompletions() {
     completionsCache.invalidateProduct(versionId);
     IRegion region = editor.getSelectedRegion();
-    // TODO: don't hardcode serviceId here, but rather filter received services at discovery by product and language
+    // TODO: don't hardcode serviceId here, but rather filter received services at discovery by
+    // product and language
     Activator.sendCommandMessage(SourcePositionContent.createCommandMessage(
         codeCompletionCommandMessageId++, 0, new ServiceId("javaCodeCompletion"), source,
         new Region(region.getOffset(), region.getLength())));
