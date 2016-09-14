@@ -1,16 +1,22 @@
 package monto.eclipse;
 
+import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.editor.quickfix.IAnnotation;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.IPathEntry;
+import org.eclipse.imp.model.ISourceEntity;
+import org.eclipse.imp.model.ISourceFolder;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
@@ -65,8 +71,9 @@ public class MontoParseController extends ParseControllerBase {
   @Override
   public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
     super.initialize(filePath, project, handler);
-    source = new Source(filePath.toString());
-    // toString() includes to src/ directory, which is correct for the physical name of a Source
+    source = new Source(project.getName() + File.separator + filePath.toString());
+    // filePath.toString() includes to src/ directory,
+    // which is correct for the physical name of a Source
     language = new Language(LanguageRegistry.findLanguage(getPath(), getDocument()).getName());
 
     outlineCache = new VersionIdBasedProductCache<>("outline",
