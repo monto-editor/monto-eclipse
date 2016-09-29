@@ -1,22 +1,17 @@
 package monto.eclipse;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.editor.quickfix.IAnnotation;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.model.IPathEntry;
-import org.eclipse.imp.model.ISourceEntity;
-import org.eclipse.imp.model.ISourceFolder;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
@@ -29,7 +24,7 @@ import org.eclipse.jface.text.IRegion;
 import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
 import monto.service.completion.Completion;
-import monto.service.completion.SourcePositionContent;
+import monto.service.completion.CompletionRequest;
 import monto.service.error.Error;
 import monto.service.gson.GsonMonto;
 import monto.service.highlighting.Token;
@@ -153,7 +148,7 @@ public class MontoParseController extends ParseControllerBase {
     IRegion region = editor.getSelectedRegion();
     // TODO: don't hardcode serviceId here, but rather filter received services at discovery by
     // product and language
-    Activator.sendCommandMessage(SourcePositionContent.createCommandMessage(
+    Activator.sendCommandMessage(CompletionRequest.createCommandMessage(
         codeCompletionCommandMessageId++, 0, new ServiceId("javaCodeCompletion"), source,
         new Region(region.getOffset(), region.getLength())));
     return completionsCache.getProduct().orElse(new ArrayList<>());

@@ -8,7 +8,7 @@ import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
 import monto.eclipse.Activator;
 import monto.service.product.Products;
-import monto.service.run.LaunchConfiguration;
+import monto.service.launching.LaunchConfiguration;
 import monto.service.types.ServiceId;
 import monto.service.types.Source;
 

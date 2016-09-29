@@ -12,9 +12,9 @@ import org.eclipse.debug.core.model.IStreamsProxy;
 import monto.eclipse.Activator;
 import monto.service.gson.GsonMonto;
 import monto.service.product.ProductMessage;
-import monto.service.run.ProcessTerminated;
-import monto.service.run.StreamOutput;
-import monto.service.run.StreamOutput.SourceStream;
+import monto.service.launching.ProcessTerminated;
+import monto.service.launching.StreamOutput;
+import monto.service.launching.StreamOutput.SourceStream;
 
 public class MontoProcess implements IProcess {
 
@@ -103,19 +103,20 @@ public class MontoProcess implements IProcess {
         Launch castedLaunch = (Launch) launch;
         castedLaunch
             .handleDebugEvents(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
-        System.out.println("Launch cast successful");
       }
     }
   }
 
   void onStreamOutputProduct(ProductMessage productMessage) {
     StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
-    System.out.println(streamOutput);
-    SourceStream sourceStream = streamOutput.getSourceStream();
-    if (sourceStream == SourceStream.OUT) {
-      streamProxy.getOutputStreamMonitor().fireEvent(streamOutput.getData());
-    } else if (sourceStream == SourceStream.ERR) {
-      streamProxy.getErrorStreamMonitor().fireEvent(streamOutput.getData());
+    if (sessionId == streamOutput.getSession()) {
+      System.out.println(streamOutput);
+      SourceStream sourceStream = streamOutput.getSourceStream();
+      if (sourceStream == SourceStream.OUT) {
+        streamProxy.getOutputStreamMonitor().fireEvent(streamOutput.getData());
+      } else if (sourceStream == SourceStream.ERR) {
+        streamProxy.getErrorStreamMonitor().fireEvent(streamOutput.getData());
+      }
     }
   }
 }
