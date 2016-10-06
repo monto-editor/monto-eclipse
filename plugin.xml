@@ -122,7 +122,7 @@
       <launchConfigurationTypeImage
             id="monto.eclipse.launchConfigurationIcon"
             configTypeID="monto.eclipse.launchConfig"
-            icon="icons/monto128.png">
+            icon="icons/monto16.png">
       </launchConfigurationTypeImage>
    </extension>
    <extension
