@@ -7,22 +7,22 @@ import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
-public class MontoEclipseStackFrame extends MontoEclipseDebugElement implements IStackFrame {
+public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
-  private MontoEclipseThread thread;
-  private MontoEclipseVariable[] variables;
+  private MontoThread thread;
+  private MontoVariable[] variables;
   private final String name;
 
-  public MontoEclipseStackFrame(MontoEclipseDebugTarget debugTarget, String name) {
+  public MontoStackFrame(MontoDebugTarget debugTarget, String name) {
     super(debugTarget);
     this.name = name;
   }
   
-  void _setThread(MontoEclipseThread thread) {
+  void _setThread(MontoThread thread) {
     this.thread = thread;
   }
   
-  void _setVariables(MontoEclipseVariable[] variables) {
+  void _setVariables(MontoVariable[] variables) {
     this.variables = variables;
   }
 

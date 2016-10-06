@@ -23,13 +23,13 @@ import monto.service.launching.debug.HitBreakpoint;
 import monto.service.launching.debug.Thread;
 import monto.service.product.ProductMessage;
 
-public class MontoEclipseDebugTarget implements IDebugTarget {
+public class MontoDebugTarget implements IDebugTarget {
   private final int sessionId;
   private final ILaunch launch;
   private final MontoProcess process;
-  private List<MontoEclipseThread> threads;
+  private List<MontoThread> threads;
 
-  public MontoEclipseDebugTarget(int sessionId, ILaunch launch, MontoProcess process) {
+  public MontoDebugTarget(int sessionId, ILaunch launch, MontoProcess process) {
     this.sessionId = sessionId;
     this.launch = launch;
     this.process = process;
@@ -157,7 +157,7 @@ public class MontoEclipseDebugTarget implements IDebugTarget {
 
   @Override
   public IThread[] getThreads() throws DebugException {
-    return threads.stream().toArray(MontoEclipseThread[]::new);
+    return threads.stream().toArray(MontoThread[]::new);
   }
 
   @Override
@@ -182,7 +182,7 @@ public class MontoEclipseDebugTarget implements IDebugTarget {
   void onBreakpointHit(ProductMessage productMessage) {
     HitBreakpoint hitBreakpoint = GsonMonto.fromJson(productMessage, HitBreakpoint.class);
     
-    MontoEclipseThread hitThread = convertMontoToEclipseThread(this, hitBreakpoint.getHitThread());
+    MontoThread hitThread = convertMontoToEclipseThread(this, hitBreakpoint.getHitThread());
     threads.clear();
     threads.add(hitThread);
     for (Thread montoThread : hitBreakpoint.getOtherThreads()) {
@@ -192,29 +192,29 @@ public class MontoEclipseDebugTarget implements IDebugTarget {
     //TODO: maybe convert jsonelement directly to Monto Eclipse classes
   }
 
-  private MontoEclipseThread convertMontoToEclipseThread(MontoEclipseDebugTarget debugTarget,
+  private MontoThread convertMontoToEclipseThread(MontoDebugTarget debugTarget,
       Thread montoThread) {
-    MontoEclipseThread thread = new MontoEclipseThread(debugTarget, montoThread.getName());
+    MontoThread thread = new MontoThread(debugTarget, montoThread.getName());
 
-    MontoEclipseStackFrame[] stackFrames =
+    MontoStackFrame[] stackFrames =
         montoThread.getStackFrames().stream().map(montoStackFrame -> {
-          MontoEclipseStackFrame stackFrame =
-              new MontoEclipseStackFrame(debugTarget, montoStackFrame.getName());
+          MontoStackFrame stackFrame =
+              new MontoStackFrame(debugTarget, montoStackFrame.getName());
 
-          MontoEclipseVariable[] variables = montoStackFrame.getVariables().stream().map(montoVariable -> {
-            MontoEclipseVariable variable = new MontoEclipseVariable(debugTarget,
+          MontoVariable[] variables = montoStackFrame.getVariables().stream().map(montoVariable -> {
+            MontoVariable variable = new MontoVariable(debugTarget,
                 montoVariable.getName(), montoVariable.getType());
-            MontoEclipseValue value = new MontoEclipseValue(debugTarget, montoVariable.getValue());
+            MontoValue value = new MontoValue(debugTarget, montoVariable.getValue());
 
             variable._setValue(value);
-            value._setVariables(new MontoEclipseVariable[] {variable});
+            value._setVariables(new MontoVariable[] {variable});
             return variable;
-          }).toArray(MontoEclipseVariable[]::new);
+          }).toArray(MontoVariable[]::new);
           
           stackFrame._setThread(thread);
           stackFrame._setVariables(variables);
           return stackFrame;
-        }).toArray(MontoEclipseStackFrame[]::new);
+        }).toArray(MontoStackFrame[]::new);
 
     thread._setStackFrames(stackFrames);
     return thread;

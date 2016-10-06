@@ -7,10 +7,10 @@ import org.eclipse.debug.core.model.IDebugTarget;
 
 import monto.eclipse.Activator;
 
-public class MontoEclipseDebugElement implements IDebugElement {
-  protected final MontoEclipseDebugTarget debugTarget;
+public class MontoDebugElement implements IDebugElement {
+  protected final MontoDebugTarget debugTarget;
   
-  public MontoEclipseDebugElement(MontoEclipseDebugTarget debugTarget) {
+  public MontoDebugElement(MontoDebugTarget debugTarget) {
     this.debugTarget = debugTarget;
   }
   

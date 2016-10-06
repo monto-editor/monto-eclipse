@@ -10,7 +10,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 
 import monto.eclipse.Activator;
-import monto.eclipse.launching.debug.MontoEclipseDebugTarget;
+import monto.eclipse.launching.debug.MontoDebugTarget;
 import monto.service.product.Products;
 import monto.service.launching.DebugLaunchConfiguration;
 import monto.service.launching.LaunchConfiguration;
@@ -35,7 +35,7 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
     } else if (mode.equals("debug")) {
       debugSessionIdCounter += 1;
       MontoProcess process = createMontoProcess(launch, debugSessionIdCounter);
-      MontoEclipseDebugTarget debugTarget = new MontoEclipseDebugTarget(debugSessionIdCounter, launch, process);
+      MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, launch, process);
       launch.addDebugTarget(debugTarget);
 
       String mainClass =

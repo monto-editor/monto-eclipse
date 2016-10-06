@@ -6,17 +6,17 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
-public class MontoEclipseThread extends MontoEclipseDebugElement implements IThread {
+public class MontoThread extends MontoDebugElement implements IThread {
 
   private final String name;
-  private MontoEclipseStackFrame[] stackFrames;
+  private MontoStackFrame[] stackFrames;
 
-  public MontoEclipseThread(MontoEclipseDebugTarget debugTarget, String name) {
+  public MontoThread(MontoDebugTarget debugTarget, String name) {
     super(debugTarget);
     this.name = name;
   }
   
-  void _setStackFrames(MontoEclipseStackFrame[] stackFrames) {
+  void _setStackFrames(MontoStackFrame[] stackFrames) {
     this.stackFrames = stackFrames;
   }
 

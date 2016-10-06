@@ -7,19 +7,19 @@ import org.eclipse.debug.core.model.IVariable;
 
 import monto.eclipse.Activator;
 
-public class MontoEclipseVariable extends MontoEclipseDebugElement implements IVariable {
+public class MontoVariable extends MontoDebugElement implements IVariable {
 
-  private MontoEclipseValue value;
+  private MontoValue value;
   private final String name;
   private final String type;
 
-  public MontoEclipseVariable(MontoEclipseDebugTarget debugTarget, String name, String type) {
+  public MontoVariable(MontoDebugTarget debugTarget, String name, String type) {
     super(debugTarget);
     this.name = name;
     this.type = type;
   }
 
-  void _setValue(MontoEclipseValue value) {
+  void _setValue(MontoValue value) {
     this.value = value;
   }
 

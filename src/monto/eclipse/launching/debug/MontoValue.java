@@ -4,17 +4,17 @@ import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
 
-public class MontoEclipseValue extends MontoEclipseDebugElement implements IValue {
+public class MontoValue extends MontoDebugElement implements IValue {
 
   private final String value;
-  private MontoEclipseVariable[] variables;
+  private MontoVariable[] variables;
 
-  public MontoEclipseValue(MontoEclipseDebugTarget debugTarget, String value) {
+  public MontoValue(MontoDebugTarget debugTarget, String value) {
     super(debugTarget);
     this.value = value;
   }
   
-  void _setVariables(MontoEclipseVariable[] variables) {
+  void _setVariables(MontoVariable[] variables) {
     this.variables = variables;
   }
 
