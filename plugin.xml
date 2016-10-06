@@ -99,7 +99,7 @@
             id="monto.eclipse.launchConfig"
             name="Monto Launch Configuration"
             delegate="monto.eclipse.launching.LaunchConfigurationDelegate"
-            modes="run">
+            modes="run,debug">
       </launchConfigurationType>
    </extension>
 
@@ -134,6 +134,10 @@
             <launchMode
                   mode="run"
                   description="Run a Monto application.">
+            </launchMode>
+            <launchMode
+                  mode="debug"
+                  description="Debug a Monto application.">
             </launchMode>
       </launchConfigurationTabGroup>
    </extension>
