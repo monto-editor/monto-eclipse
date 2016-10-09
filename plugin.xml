@@ -118,6 +118,8 @@
       </sourcePathComputer>
    </extension>
    -->
+   
+   <!-- <LAUNCH CONFIGURATION STUFF> -->
    <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
             id="monto.eclipse.launchConfigurationIcon"
@@ -141,4 +143,33 @@
             </launchMode>
       </launchConfigurationTabGroup>
    </extension>
+   <!-- <LAUNCH CONFIGURATION STUFF> -->
+   
+   <!-- <BREAKPOINT STUFF> -->
+   <!-- ??? id is prefixed with plugin id (which is monto) -->
+   <extension
+      id="monto.eclipse.launching.debug.lineBreakpoint.marker"
+      point="org.eclipse.core.resources.markers">
+      <super type="org.eclipse.debug.core.lineBreakpointMarker"/>
+      <persistent value="true"/>
+   </extension>
+
+   <extension point="org.eclipse.debug.core.breakpoints">
+      <breakpoint
+         markerType="monto.eclipse.launching.debug.lineBreakpoint.marker"
+         class="monto.eclipse.launching.debug.MontoLineBreakpoint"
+         id="monto.eclipse.launching.debug.lineBreakpoint">
+      </breakpoint>
+   </extension>
+   
+   
+   <!--adaptableType="org.eclipse.imp.UniversalEditor">-->
+   <extension point="org.eclipse.core.runtime.adapters">
+      <factory
+         class="monto.eclipse.launching.debug.MontoBreakpointAdapterFactory"
+         adaptableType="org.eclipse.ui.texteditor.ITextEditor">
+         <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
+      </factory>
+   </extension>
+   <!-- </BREAKPOINT STUFF> -->
 </plugin>
