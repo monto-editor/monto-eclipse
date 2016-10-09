@@ -1,175 +1,178 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <plugin>
-   <extension
-         point="org.eclipse.imp.runtime.languageDescription">
-      <language
-            description="Monto Plugin for Eclipse"
-            extensions="monto"
-            language="Monto">
-      </language>
-  </extension>
-  <extension
-     point="org.eclipse.imp.runtime.languageDescription">
-      <language
-          derivedFrom="Monto"
-          description="Java"
-          extensions="java"
-          language="java">
-      </language>
-   </extension>
-  <extension
-        point="org.eclipse.imp.runtime.languageDescription">
-     <language
-           derivedFrom="Monto"
-           description="JavaScript"
-           extensions="js"
-           language="javascript">
-     </language>
-  </extension>
-  <extension
-        point="org.eclipse.imp.runtime.languageDescription">
-     <language
-           derivedFrom="Monto"
-           description="Haskell"
-           extensions="hs"
-           language="haskell">
-     </language>
-  </extension>
-   <extension
-         point="org.eclipse.imp.runtime.parser">
-      <parser
-            class="monto.eclipse.MontoParseController"
-            language="Monto">
-      </parser>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.tokenColorer">
-      <tokenColorer
-            class="monto.eclipse.color.TokenColorer"
-            language="Monto">
-      </tokenColorer>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.modelTreeBuilder">
-      <treeBuilder
-            class="monto.eclipse.outline.TreeModelBuilder"
-            language="Monto">
-      </treeBuilder>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.labelProvider">
-      <labelProvider
-            class="monto.eclipse.outline.LabelProvider"
-            language="Monto">
-      </labelProvider>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.contentProposer">
-      <proposer
-            class="monto.eclipse.completion.ContentProposer"
-            language="Monto">
-      </proposer>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.editorActionContributions">
-      <editorActionContributor
-            class="monto.eclipse.EditorContribution"
-            language="Monto">
-      </editorActionContributor>
-   </extension>
-   <extension
-         point="org.eclipse.ui.propertyPages">
-      <page
-            class="monto.eclipse.ServiceConfigurationPage"
-            id="monto.services.configurationpage"
-            name="Monto Services">
-      </page>
-   </extension>
-   <extension
-         point="org.eclipse.imp.runtime.editorService">
-      <editorService
-            class="monto.eclipse.EditorService"
-            language="monto">
-      </editorService>
-   </extension>
-   <extension
-         point="org.eclipse.debug.core.launchConfigurationTypes">
-      <launchConfigurationType
-            id="monto.eclipse.launchConfig"
-            name="Monto Launch Configuration"
-            delegate="monto.eclipse.launching.LaunchConfigurationDelegate"
-            modes="run,debug">
-      </launchConfigurationType>
-   </extension>
+	<extension
+			point="org.eclipse.imp.runtime.languageDescription">
+		<language
+				description="Monto Plugin for Eclipse"
+				extensions="monto"
+				language="Monto">
+		</language>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.languageDescription">
+		<language
+				derivedFrom="Monto"
+				description="Java"
+				extensions="java"
+				language="java">
+		</language>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.languageDescription">
+		<language
+				derivedFrom="Monto"
+				description="JavaScript"
+				extensions="js"
+				language="javascript">
+		</language>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.languageDescription">
+		<language
+				derivedFrom="Monto"
+				description="Haskell"
+				extensions="hs"
+				language="haskell">
+		</language>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.parser">
+		<parser
+				class="monto.eclipse.MontoParseController"
+				language="Monto">
+		</parser>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.tokenColorer">
+		<tokenColorer
+				class="monto.eclipse.color.TokenColorer"
+				language="Monto">
+		</tokenColorer>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.modelTreeBuilder">
+		<treeBuilder
+				class="monto.eclipse.outline.TreeModelBuilder"
+				language="Monto">
+		</treeBuilder>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.labelProvider">
+		<labelProvider
+				class="monto.eclipse.outline.LabelProvider"
+				language="Monto">
+		</labelProvider>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.contentProposer">
+		<proposer
+				class="monto.eclipse.completion.ContentProposer"
+				language="Monto">
+		</proposer>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.editorActionContributions">
+		<editorActionContributor
+				class="monto.eclipse.EditorContribution"
+				language="Monto">
+		</editorActionContributor>
+	</extension>
+	<extension
+			point="org.eclipse.ui.propertyPages">
+		<page
+				class="monto.eclipse.ServiceConfigurationPage"
+				id="monto.services.configurationpage"
+				name="Monto Services">
+		</page>
+	</extension>
+	<extension
+			point="org.eclipse.imp.runtime.editorService">
+		<editorService
+				class="monto.eclipse.EditorService"
+				language="monto">
+		</editorService>
+	</extension>
+	<extension
+			point="org.eclipse.debug.core.launchConfigurationTypes">
+		<launchConfigurationType
+				id="monto.eclipse.launchConfig"
+				name="Monto Launch Configuration"
+				delegate="monto.eclipse.launching.LaunchConfigurationDelegate"
+				modes="run,debug">
+		</launchConfigurationType>
+	</extension>
 
 <!--
-   <extension point="org.eclipse.debug.core.sourceLocators">
-      <sourceLocator
-         name="Monto Source Locator"
-         class="monto.eclipse.launching.SourceLocator"
-         id="monto.eclipse.sourceLocator">
-      </sourceLocator>
-   </extension>
-   <extension point="org.eclipse.debug.core.sourcePathComputers">
-      <sourcePathComputer
-         id="monto.eclipse.sourcePathComputer"
-         class="monto.eclipse.launching.SourcePathComputer">
-      </sourcePathComputer>
-   </extension>
-   -->
-   
-   <!-- <LAUNCH CONFIGURATION STUFF> -->
-   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-      <launchConfigurationTypeImage
-            id="monto.eclipse.launchConfigurationIcon"
-            configTypeID="monto.eclipse.launchConfig"
-            icon="icons/monto16.png">
-      </launchConfigurationTypeImage>
-   </extension>
-   <extension
-         point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-      <launchConfigurationTabGroup
-            type="monto.eclipse.launchConfig"
-            class="monto.eclipse.launching.LaunchConfigurationTabGroup"
-            id="monto.eclipse.launching.launchConfigurationTabGroup">
-            <launchMode
-                  mode="run"
-                  description="Run a Monto application.">
-            </launchMode>
-            <launchMode
-                  mode="debug"
-                  description="Debug a Monto application.">
-            </launchMode>
-      </launchConfigurationTabGroup>
-   </extension>
-   <!-- <LAUNCH CONFIGURATION STUFF> -->
-   
-   <!-- <BREAKPOINT STUFF> -->
-   <!-- ??? id is prefixed with plugin id (which is monto) -->
-   <extension
-      id="monto.eclipse.launching.debug.lineBreakpoint.marker"
-      point="org.eclipse.core.resources.markers">
-      <super type="org.eclipse.debug.core.lineBreakpointMarker"/>
-      <persistent value="true"/>
-   </extension>
+	<extension point="org.eclipse.debug.core.sourceLocators">
+		<sourceLocator
+			name="Monto Source Locator"
+			class="monto.eclipse.launching.SourceLocator"
+			id="monto.eclipse.sourceLocator">
+		</sourceLocator>
+	</extension>
+	<extension point="org.eclipse.debug.core.sourcePathComputers">
+		<sourcePathComputer
+			id="monto.eclipse.sourcePathComputer"
+			class="monto.eclipse.launching.SourcePathComputer">
+		</sourcePathComputer>
+	</extension>
+	-->
+	
+	<!-- <LAUNCH CONFIGURATION STUFF> -->
+	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+		<launchConfigurationTypeImage
+				id="monto.eclipse.launchConfigurationIcon"
+				configTypeID="monto.eclipse.launchConfig"
+				icon="icons/monto16.png">
+		</launchConfigurationTypeImage>
+	</extension>
+	<extension
+			point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+		<launchConfigurationTabGroup
+				type="monto.eclipse.launchConfig"
+				class="monto.eclipse.launching.LaunchConfigurationTabGroup"
+				id="monto.eclipse.launching.launchConfigurationTabGroup">
+			<launchMode
+					mode="run"
+					description="Run a Monto application.">
+			</launchMode>
+			<launchMode
+					mode="debug"
+					description="Debug a Monto application.">
+			</launchMode>
+		</launchConfigurationTabGroup>
+	</extension>
+	<!-- <LAUNCH CONFIGURATION STUFF> -->
+	
+	<!-- <BREAKPOINT STUFF> -->
+	<!-- ??? id is prefixed with plugin id (which is monto) -->
+	<extension
+			id="monto.eclipse.launching.debug.lineBreakpoint.marker"
+			point="org.eclipse.core.resources.markers">
+		<super
+				type="org.eclipse.debug.core.lineBreakpointMarker"/>
+		<persistent
+				value="true"/>
+	</extension>
 
-   <extension point="org.eclipse.debug.core.breakpoints">
-      <breakpoint
-         markerType="monto.eclipse.launching.debug.lineBreakpoint.marker"
-         class="monto.eclipse.launching.debug.MontoLineBreakpoint"
-         id="monto.eclipse.launching.debug.lineBreakpoint">
-      </breakpoint>
-   </extension>
-   
-   
-   <!--adaptableType="org.eclipse.imp.UniversalEditor">-->
-   <extension point="org.eclipse.core.runtime.adapters">
-      <factory
-         class="monto.eclipse.launching.debug.MontoBreakpointAdapterFactory"
-         adaptableType="org.eclipse.ui.texteditor.ITextEditor">
-         <adapter type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
-      </factory>
-   </extension>
-   <!-- </BREAKPOINT STUFF> -->
+	<extension point="org.eclipse.debug.core.breakpoints">
+		<breakpoint
+				markerType="monto.eclipse.launching.debug.lineBreakpoint.marker"
+				class="monto.eclipse.launching.debug.MontoLineBreakpoint"
+				id="monto.eclipse.launching.debug.lineBreakpoint">
+		</breakpoint>
+	</extension>
+
+	<!--adaptableType="org.eclipse.imp.UniversalEditor">-->
+	<extension
+			point="org.eclipse.core.runtime.adapters">
+		<factory
+				class="monto.eclipse.launching.debug.MontoBreakpointAdapterFactory"
+				adaptableType="org.eclipse.ui.texteditor.ITextEditor">
+			<adapter
+					type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
+		</factory>
+	</extension>
+	<!-- </BREAKPOINT STUFF> -->
 </plugin>
