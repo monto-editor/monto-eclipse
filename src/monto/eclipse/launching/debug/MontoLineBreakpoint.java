@@ -10,6 +10,8 @@ import monto.eclipse.Activator;
 
 public class MontoLineBreakpoint extends LineBreakpoint {
 
+  public MontoLineBreakpoint() {}
+
   public MontoLineBreakpoint(IResource resource, int lineNumber) throws CoreException {
     // run(getMarkerRule(resource), (IProgressMonitor monitor) -> {
     // IMarker marker = resource.createMarker("example.debug.core.pda.markerType.lineBreakpoint");

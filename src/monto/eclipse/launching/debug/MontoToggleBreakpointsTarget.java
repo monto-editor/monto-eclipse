@@ -8,34 +8,38 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.texteditor.ITextEditor;
 
 import monto.eclipse.Activator;
 
-public class MontoLineBreakpointAdapter implements IToggleBreakpointsTarget {
+public class MontoToggleBreakpointsTarget implements IToggleBreakpointsTarget {
 
   @Override
   public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection)
       throws CoreException {
-    if (part != null && part instanceof ITextEditor) {
-      ITextEditor textEditor = (ITextEditor) part;
+    System.out.println("MontoToggleBreakpointsTarget.toggleLineBreakpoints()");
+    if (part != null && part instanceof UniversalEditor) {
+      UniversalEditor textEditor = (UniversalEditor) part;
       IResource resource = (IResource) textEditor.getEditorInput().getAdapter(IResource.class);
       ITextSelection textSelection = (ITextSelection) selection;
       int lineNumber = textSelection.getStartLine();
+
+      // delete old breakpoints in lineNumber
       IBreakpoint[] oldBreakpoints =
           DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(Activator.PLUGIN_ID);
-      if (oldBreakpoints.length > 0) {
-        // delete them
-        for (IBreakpoint oldBreakpoint : oldBreakpoints) {
-          if (resource.equals(oldBreakpoint.getMarker().getResource())
-              && ((ILineBreakpoint) oldBreakpoint).getLineNumber() == (lineNumber + 1)) {
-            oldBreakpoint.delete();
-          }
+      boolean deletedBreakPoints = false;
+      for (IBreakpoint oldBreakpoint : oldBreakpoints) {
+        if (resource.equals(oldBreakpoint.getMarker().getResource())
+            && ((ILineBreakpoint) oldBreakpoint).getLineNumber() == (lineNumber + 1)) {
+          deletedBreakPoints = true;
+          oldBreakpoint.delete();
         }
-      } else {
+      }
+
+      if (!deletedBreakPoints) {
         // create new one
         DebugPlugin.getDefault().getBreakpointManager()
             .addBreakpoint(new MontoLineBreakpoint(resource, lineNumber + 1));

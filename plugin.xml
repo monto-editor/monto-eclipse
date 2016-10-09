@@ -118,7 +118,7 @@
 		</sourcePathComputer>
 	</extension>
 	-->
-	
+
 	<!-- <LAUNCH CONFIGURATION STUFF> -->
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
 		<launchConfigurationTypeImage
@@ -144,7 +144,7 @@
 		</launchConfigurationTabGroup>
 	</extension>
 	<!-- <LAUNCH CONFIGURATION STUFF> -->
-	
+
 	<!-- <BREAKPOINT STUFF> -->
 	<!-- ??? id is prefixed with plugin id (which is monto) -->
 	<extension
@@ -164,15 +164,11 @@
 		</breakpoint>
 	</extension>
 
-	<!--adaptableType="org.eclipse.imp.UniversalEditor">-->
 	<extension
-			point="org.eclipse.core.runtime.adapters">
-		<factory
-				class="monto.eclipse.launching.debug.MontoBreakpointAdapterFactory"
-				adaptableType="org.eclipse.ui.texteditor.ITextEditor">
-			<adapter
-					type="org.eclipse.debug.ui.actions.IToggleBreakpointsTarget"/>
-		</factory>
+			point="org.eclipse.debug.ui.toggleBreakpointsTargetFactories">
+		<toggleTargetFactory
+				id="monto.eclipse.launching.debug.toggleBreakpointsTargetFactory"
+				class="monto.eclipse.launching.debug.MontoToggleBreakpointsTargetFactory"/>
 	</extension>
 	<!-- </BREAKPOINT STUFF> -->
 </plugin>
