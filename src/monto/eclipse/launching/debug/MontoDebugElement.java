@@ -9,11 +9,11 @@ import monto.eclipse.Activator;
 
 public class MontoDebugElement implements IDebugElement {
   protected final MontoDebugTarget debugTarget;
-  
+
   public MontoDebugElement(MontoDebugTarget debugTarget) {
     this.debugTarget = debugTarget;
   }
-  
+
   @Override
   public <T> T getAdapter(Class<T> adapter) {
     return Adapters.adapt(this, adapter);

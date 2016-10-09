@@ -12,6 +12,7 @@ import org.eclipse.debug.core.model.IStreamsProxy;
 import monto.eclipse.Activator;
 import monto.service.gson.GsonMonto;
 import monto.service.product.ProductMessage;
+import monto.service.types.Source;
 import monto.service.launching.ProcessTerminated;
 import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
@@ -93,9 +94,11 @@ public class MontoProcess implements IProcess {
   }
 
   void onProcessTerminatedProduct(ProductMessage productMessage) {
-    ProcessTerminated processTerminated =
-        GsonMonto.fromJson(productMessage, ProcessTerminated.class);
-    if (sessionId == processTerminated.getSession()) {
+    Integer messageSessionId = getSessionIdFromFakeSource(productMessage.getSource());
+    if (messageSessionId != null && sessionId == messageSessionId) {
+      ProcessTerminated processTerminated =
+          GsonMonto.fromJson(productMessage, ProcessTerminated.class);
+
       terminated = true;
       exitCode = processTerminated.getExitCode();
       System.out.println("Process " + sessionId + " terminated");
@@ -108,8 +111,10 @@ public class MontoProcess implements IProcess {
   }
 
   void onStreamOutputProduct(ProductMessage productMessage) {
-    StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
-    if (sessionId == streamOutput.getSession()) {
+    Integer messageSessionId = getSessionIdFromFakeSource(productMessage.getSource());
+    if (messageSessionId != null && sessionId == messageSessionId) {
+      StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
+
       System.out.println(streamOutput);
       SourceStream sourceStream = streamOutput.getSourceStream();
       if (sourceStream == SourceStream.OUT) {
@@ -118,5 +123,13 @@ public class MontoProcess implements IProcess {
         streamProxy.getErrorStreamMonitor().fireEvent(streamOutput.getData());
       }
     }
+  }
+
+  private Integer getSessionIdFromFakeSource(Source source) {
+    String[] parts = source.getPhysicalName().split(":");
+    if (parts.length != 3) {
+      return null;
+    }
+    return Integer.valueOf(parts[2]);
   }
 }
