@@ -97,9 +97,6 @@ public class MontoParseController extends ParseControllerBase {
             GsonMonto.fromJson(productMessage.getContents(), Source.class);
         source = sourceWithLogicalName;
         parse(contents, null);
-        System.out.println("Sent logical sourcename out");
-      } else {
-        System.out.println("not sending logical sourcename out");
       }
     });
   }

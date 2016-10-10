@@ -68,7 +68,7 @@ public class SinkDemultiplexer {
               // TODO: check, if source and language of productMessage match the opened file?
 
               if (listeners == null) {
-                Activator.debug("Ignoring ProductMessage %s, because not listener wants it", productMessage);
+                Activator.debug("Ignoring ProductMessage %s, because no listener wants it", productMessage);
               } else {
                 for (Consumer<ProductMessage> consumer : listeners) {
                   consumer.accept(productMessage);
