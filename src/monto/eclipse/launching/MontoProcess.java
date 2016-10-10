@@ -4,18 +4,18 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.Launch;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamsProxy;
 
 import monto.eclipse.Activator;
 import monto.service.gson.GsonMonto;
-import monto.service.product.ProductMessage;
-import monto.service.types.Source;
 import monto.service.launching.ProcessTerminated;
 import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
+import monto.service.product.ProductMessage;
+import monto.service.types.Source;
 
 public class MontoProcess implements IProcess {
 
@@ -102,11 +102,8 @@ public class MontoProcess implements IProcess {
       terminated = true;
       exitCode = processTerminated.getExitCode();
       System.out.println("Process " + sessionId + " terminated");
-      if (launch instanceof Launch) {
-        Launch castedLaunch = (Launch) launch;
-        castedLaunch
-            .handleDebugEvents(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
-      }
+      DebugPlugin.getDefault()
+          .fireDebugEventSet(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
     }
   }
 
