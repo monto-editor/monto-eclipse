@@ -21,7 +21,6 @@ import monto.service.launching.DebugLaunchConfiguration;
 import monto.service.launching.LaunchConfiguration;
 import monto.service.launching.debug.Breakpoint;
 import monto.service.product.Products;
-import monto.service.types.Product;
 import monto.service.types.ServiceId;
 import monto.service.types.Source;
 
@@ -44,7 +43,8 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
       debugSessionIdCounter += 1;
       MontoProcess process = createMontoProcess(launch, debugSessionIdCounter);
       MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, launch, process);
-      Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT, debugTarget::onBreakpointHit);
+      Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
+          debugTarget::onBreakpointHit);
       launch.addDebugTarget(debugTarget);
 
       String mainClass =
@@ -76,7 +76,7 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
                                 * MontoParseController should be used
                                 */), breakpoints));
 
-      debugTarget.fireEvent(DebugEvent.CREATE, DebugEvent.UNSPECIFIED);
+      debugTarget.fireEvent(DebugEvent.CREATE);
     }
   }
 

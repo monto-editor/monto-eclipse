@@ -7,7 +7,6 @@ import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -15,20 +14,21 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
-import monto.eclipse.Activator;
 import monto.eclipse.launching.MontoProcess;
 import monto.service.gson.GsonMonto;
 import monto.service.launching.debug.HitBreakpoint;
 import monto.service.launching.debug.Thread;
 import monto.service.product.ProductMessage;
 
-public class MontoDebugTarget implements IDebugTarget {
+public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget {
   private final int sessionId;
   private final ILaunch launch;
   private final MontoProcess process;
   private List<MontoThread> threads;
 
   public MontoDebugTarget(int sessionId, ILaunch launch, MontoProcess process) {
+    super(null);
+    super.debugTarget = this;
     this.sessionId = sessionId;
     this.launch = launch;
     this.process = process;
@@ -37,24 +37,8 @@ public class MontoDebugTarget implements IDebugTarget {
   }
 
   @Override
-  public String getModelIdentifier() {
-    return Activator.PLUGIN_ID;
-  }
-
-  @Override
-  public IDebugTarget getDebugTarget() {
-    return this;
-  }
-
-  @Override
   public ILaunch getLaunch() {
     return launch;
-  }
-
-  @Override
-  public <T> T getAdapter(Class<T> adapter) {
-    System.out.printf("MontoDebugTarget.getAdapter(%s)\n", adapter);
-    return null;
   }
 
   @Override
@@ -173,47 +157,43 @@ public class MontoDebugTarget implements IDebugTarget {
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
     return true;
   }
-  
-  public void fireEvent(int eventKindId, int eventDetailId) {
-    DebugPlugin.getDefault().fireDebugEventSet(new DebugEvent[]{new DebugEvent(this, eventKindId, eventDetailId)});
-  }
 
   public void onBreakpointHit(ProductMessage productMessage) {
     HitBreakpoint hitBreakpoint = GsonMonto.fromJson(productMessage, HitBreakpoint.class);
-    
+
+    // TODO check sessionId
+
     MontoThread hitThread = convertMontoToEclipseThread(this, hitBreakpoint.getHitThread());
     threads.clear();
     threads.add(hitThread);
     for (Thread montoThread : hitBreakpoint.getOtherThreads()) {
       threads.add(convertMontoToEclipseThread(this, montoThread));
     }
-    fireEvent(DebugEvent.SUSPEND, DebugEvent.BREAKPOINT);
-    //TODO: maybe convert jsonelement directly to Monto Eclipse classes
+    threads.forEach(thread -> thread.fireEvent(DebugEvent.SUSPEND, DebugEvent.BREAKPOINT));
+    // TODO: maybe convert jsonelement directly to Monto Eclipse classes
   }
 
   private MontoThread convertMontoToEclipseThread(MontoDebugTarget debugTarget,
       Thread montoThread) {
     MontoThread thread = new MontoThread(debugTarget, montoThread.getName());
 
-    MontoStackFrame[] stackFrames =
-        montoThread.getStackFrames().stream().map(montoStackFrame -> {
-          MontoStackFrame stackFrame =
-              new MontoStackFrame(debugTarget, montoStackFrame.getName());
+    MontoStackFrame[] stackFrames = montoThread.getStackFrames().stream().map(montoStackFrame -> {
+      MontoStackFrame stackFrame = new MontoStackFrame(debugTarget, montoStackFrame.getName());
 
-          MontoVariable[] variables = montoStackFrame.getVariables().stream().map(montoVariable -> {
-            MontoVariable variable = new MontoVariable(debugTarget,
-                montoVariable.getName(), montoVariable.getType());
-            MontoValue value = new MontoValue(debugTarget, montoVariable.getValue());
+      MontoVariable[] variables = montoStackFrame.getVariables().stream().map(montoVariable -> {
+        MontoVariable variable =
+            new MontoVariable(debugTarget, montoVariable.getName(), montoVariable.getType());
+        MontoValue value = new MontoValue(debugTarget, montoVariable.getValue());
 
-            variable._setValue(value);
-            value._setVariables(new MontoVariable[] {variable});
-            return variable;
-          }).toArray(MontoVariable[]::new);
-          
-          stackFrame._setThread(thread);
-          stackFrame._setVariables(variables);
-          return stackFrame;
-        }).toArray(MontoStackFrame[]::new);
+        variable._setValue(value);
+        value._setVariables(new MontoVariable[] {variable});
+        return variable;
+      }).toArray(MontoVariable[]::new);
+
+      stackFrame._setThread(thread);
+      stackFrame._setVariables(variables);
+      return stackFrame;
+    }).toArray(MontoStackFrame[]::new);
 
     thread._setStackFrames(stackFrames);
     return thread;
