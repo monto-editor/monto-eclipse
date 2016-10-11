@@ -15,19 +15,20 @@ import monto.service.launching.ProcessTerminated;
 import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
 import monto.service.product.ProductMessage;
-import monto.service.types.Source;
 
 public class MontoProcess implements IProcess {
 
   private ILaunch launch;
   private int sessionId;
+  private String mode;
   private MontoStreamProxy streamProxy;
   private boolean terminated;
   private int exitCode;
 
-  public MontoProcess(ILaunch launch, int sessionId) {
+  public MontoProcess(ILaunch launch, int sessionId, String mode) {
     this.launch = launch;
     this.sessionId = sessionId;
+    this.mode = mode;
 
     this.streamProxy = new MontoStreamProxy();
     this.terminated = false;
@@ -61,7 +62,7 @@ public class MontoProcess implements IProcess {
 
   @Override
   public String getLabel() {
-    return "session" + sessionId;
+    return String.format("Monto %s session %d", mode, sessionId);
   }
 
   @Override
@@ -97,8 +98,7 @@ public class MontoProcess implements IProcess {
   }
 
   void onProcessTerminatedProduct(ProductMessage productMessage) {
-    Integer messageSessionId = getSessionIdFromFakeSource(productMessage.getSource());
-    if (messageSessionId != null && sessionId == messageSessionId) {
+    if (productMessage.matchesFakeSource(mode, sessionId)) {
       ProcessTerminated processTerminated =
           GsonMonto.fromJson(productMessage, ProcessTerminated.class);
 
@@ -111,8 +111,7 @@ public class MontoProcess implements IProcess {
   }
 
   void onStreamOutputProduct(ProductMessage productMessage) {
-    Integer messageSessionId = getSessionIdFromFakeSource(productMessage.getSource());
-    if (messageSessionId != null && sessionId == messageSessionId) {
+    if (productMessage.matchesFakeSource(mode, sessionId)) {
       StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
 
       System.out.println(streamOutput);
@@ -123,13 +122,5 @@ public class MontoProcess implements IProcess {
         streamProxy.getErrorStreamMonitor().fireEvent(streamOutput.getData());
       }
     }
-  }
-
-  private Integer getSessionIdFromFakeSource(Source source) {
-    String[] parts = source.getPhysicalName().split(":");
-    if (parts.length != 3) {
-      return null;
-    }
-    return Integer.valueOf(parts[2]);
   }
 }
