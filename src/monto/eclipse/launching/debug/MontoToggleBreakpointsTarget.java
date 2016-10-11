@@ -63,7 +63,7 @@ public class MontoToggleBreakpointsTarget implements IToggleBreakpointsTarget {
   public void toggleMethodBreakpoints(IWorkbenchPart part, ISelection selection)
       throws CoreException {
     throw new DebugException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-        "MontoLineBreakPointAdapter doesn't support method breakpoints"));
+        "MontoToggleBreakpointsTarget doesn't support method breakpoints"));
   }
 
   @Override
@@ -74,7 +74,7 @@ public class MontoToggleBreakpointsTarget implements IToggleBreakpointsTarget {
   @Override
   public void toggleWatchpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
     throw new DebugException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-        "MontoLineBreakPointAdapter doesn't support watchpoints"));
+        "MontoToggleBreakpointsTarget doesn't support watchpoints"));
   }
 
   @Override
