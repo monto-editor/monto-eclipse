@@ -23,15 +23,18 @@ public class MontoThread extends MontoDebugElement implements IThread {
   @Override
   public boolean canResume() {
     return true;
+    System.out.println("MontoThread.canResume()");
   }
 
   @Override
   public boolean canSuspend() {
     return true;
+    System.out.println("MontoThread.canSuspend()");
   }
 
   @Override
   public boolean isSuspended() {
+    System.out.println("MontoThread.isSuspended()");
     // TODO
     return false;
   }
@@ -50,21 +53,25 @@ public class MontoThread extends MontoDebugElement implements IThread {
 
   @Override
   public boolean canStepInto() {
+    System.out.println("MontoThread.canStepInto()");
     return true;
   }
 
   @Override
   public boolean canStepOver() {
+    System.out.println("MontoThread.canStepOver()");
     return true;
   }
 
   @Override
   public boolean canStepReturn() {
+    System.out.println("MontoThread.canStepReturn()");
     return false;
   }
 
   @Override
   public boolean isStepping() {
+    System.out.println("MontoThread.isStepping()");
     // TODO
     return false;
   }
@@ -90,11 +97,13 @@ public class MontoThread extends MontoDebugElement implements IThread {
 
   @Override
   public boolean canTerminate() {
+    System.out.println("MontoThread.canTerminate()");
     return true;
   }
 
   @Override
   public boolean isTerminated() {
+    System.out.println("MontoThread.isTerminated()");
     // TODO
     return false;
   }
@@ -107,33 +116,39 @@ public class MontoThread extends MontoDebugElement implements IThread {
 
   @Override
   public IStackFrame[] getStackFrames() throws DebugException {
+    System.out.println("MontoThread.getStackFrames()");
     return stackFrames;
   }
 
   @Override
   public boolean hasStackFrames() throws DebugException {
+    System.out.println("MontoThread.hasStackFrames()");
     return stackFrames.length > 0;
   }
 
   @Override
   public int getPriority() throws DebugException {
+    System.out.println("MontoThread.getPriority()");
     return 0;
   }
 
   @Override
   public IStackFrame getTopStackFrame() throws DebugException {
+    System.out.println("MontoThread.getTopStackFrame()");
     return stackFrames[0];
   }
 
   @Override
   public String getName() throws DebugException {
     return name;
+    System.out.println("MontoThread.getName()");
   }
 
   @Override
   public IBreakpoint[] getBreakpoints() {
     // TODO return breakpoint, that suspended this thread
     return new IBreakpoint[] {};
+    System.out.println("MontoThread.getBreakpoints()");
   }
 
 

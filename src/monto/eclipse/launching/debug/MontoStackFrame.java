@@ -28,21 +28,25 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public boolean canStepInto() {
+    System.out.println("MontoStackFrame.canStepInto()");
     return false;
   }
 
   @Override
   public boolean canStepOver() {
+    System.out.println("MontoStackFrame.canStepOver()");
     return false;
   }
 
   @Override
   public boolean canStepReturn() {
+    System.out.println("MontoStackFrame.canStepReturn()");
     return false;
   }
 
   @Override
   public boolean isStepping() {
+    System.out.println("MontoStackFrame.isStepping()");
     return false;
   }
 
@@ -66,16 +70,19 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public boolean canResume() {
+    System.out.println("MontoStackFrame.canResume()");
     return false;
   }
 
   @Override
   public boolean canSuspend() {
+    System.out.println("MontoStackFrame.canSuspend()");
     return false;
   }
 
   @Override
   public boolean isSuspended() {
+    System.out.println("MontoStackFrame.isSuspended()");
     return false;
   }
 
@@ -93,11 +100,13 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public boolean canTerminate() {
+    System.out.println("MontoStackFrame.canTerminate()");
     return false;
   }
 
   @Override
   public boolean isTerminated() {
+    System.out.println("MontoStackFrame.isTerminated()");
     return false;
   }
 
@@ -109,49 +118,58 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public IThread getThread() {
+    System.out.println("MontoStackFrame.getThread()");
     return thread;
   }
 
   @Override
   public IVariable[] getVariables() throws DebugException {
+    System.out.println("MontoStackFrame.getVariables()");
     return variables;
   }
 
   @Override
   public boolean hasVariables() throws DebugException {
+    System.out.println("MontoStackFrame.hasVariables()");
     return variables.length > 0;
   }
 
   @Override
   public int getLineNumber() throws DebugException {
+    System.out.println("MontoStackFrame.getLineNumber()");
     // TODO
     return -1;
   }
 
   @Override
   public int getCharStart() throws DebugException {
+    System.out.println("MontoStackFrame.getCharStart()");
     // TODO
     return -1;
   }
 
   @Override
   public int getCharEnd() throws DebugException {
+    System.out.println("MontoStackFrame.getCharEnd()");
     // TODO
     return -1;
   }
 
   @Override
   public String getName() throws DebugException {
+    System.out.println("MontoStackFrame.getName()");
     return name;
   }
 
   @Override
   public IRegisterGroup[] getRegisterGroups() throws DebugException {
+    System.out.println("MontoStackFrame.getRegisterGroups()");
     return new IRegisterGroup[] {};
   }
 
   @Override
   public boolean hasRegisterGroups() throws DebugException {
+    System.out.println("MontoStackFrame.hasRegisterGroups()");
     return false;
   }
 

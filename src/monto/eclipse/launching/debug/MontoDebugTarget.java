@@ -44,10 +44,12 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public boolean canTerminate() {
     return true;
+    System.out.println("MontoDebugTarget.canTerminate()");
   }
 
   @Override
   public boolean isTerminated() {
+    System.out.println("MontoDebugTarget.isTerminated()");
     return process.isTerminated();
   }
 
@@ -61,18 +63,21 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean canResume() {
+    System.out.println("MontoDebugTarget.canResume()");
     // TODO
     return false;
   }
 
   @Override
   public boolean canSuspend() {
+    System.out.println("MontoDebugTarget.canSuspend()");
     // TODO
     return false;
   }
 
   @Override
   public boolean isSuspended() {
+    System.out.println("MontoDebugTarget.isSuspended()");
     // TODO
     return false;
   }
@@ -107,6 +112,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean canDisconnect() {
+    System.out.println("MontoDebugTarget.canDisconnect()");
     // TODO
     return false;
   }
@@ -119,11 +125,13 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean isDisconnected() {
+    System.out.println("MontoDebugTarget.isDisconnected()");
     return false;
   }
 
   @Override
   public boolean supportsStorageRetrieval() {
+    System.out.println("MontoDebugTarget.supportsStorageRetrieval()");
     return false;
   }
 
@@ -135,17 +143,20 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public IProcess getProcess() {
+    System.out.println("MontoDebugTarget.getProcess()");
     return process;
   }
 
   @Override
   public IThread[] getThreads() throws DebugException {
+    System.out.println("MontoDebugTarget.getThreads()");
     return threads.stream().toArray(MontoThread[]::new);
   }
 
   @Override
   public boolean hasThreads() throws DebugException {
     return false;
+    System.out.println("MontoDebugTarget.hasThreads()");
   }
 
   @Override
@@ -155,10 +166,12 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean supportsBreakpoint(IBreakpoint breakpoint) {
+    System.out.println("MontoDebugTarget.supportsBreakpoint()");
     return true;
   }
 
   public void onBreakpointHit(ProductMessage productMessage) {
+    System.out.println("MontoDebugTarget.onBreakpointHit()");
     HitBreakpoint hitBreakpoint = GsonMonto.fromJson(productMessage, HitBreakpoint.class);
 
     // TODO check sessionId

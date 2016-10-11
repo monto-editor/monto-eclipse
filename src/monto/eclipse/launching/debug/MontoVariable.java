@@ -37,36 +37,43 @@ public class MontoVariable extends MontoDebugElement implements IVariable {
 
   @Override
   public boolean supportsValueModification() {
+    System.out.println("MontoVariable.supportsValueModification()");
     return false;
   }
 
   @Override
   public boolean verifyValue(String expression) throws DebugException {
+    System.out.println("MontoVariable.verifyValue()");
     return false;
   }
 
   @Override
   public boolean verifyValue(IValue value) throws DebugException {
+    System.out.println("MontoVariable.verifyValue()");
     return false;
   }
 
   @Override
   public IValue getValue() throws DebugException {
+    System.out.println("MontoVariable.getValue()");
     return value;
   }
 
   @Override
   public String getName() throws DebugException {
+    System.out.println("MontoVariable.getName()");
     return name;
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
+    System.out.println("MontoVariable.getReferenceTypeName()");
     return type;
   }
 
   @Override
   public boolean hasValueChanged() throws DebugException {
+    System.out.println("MontoVariable.hasValueChanged()");
     return false;
   }
 

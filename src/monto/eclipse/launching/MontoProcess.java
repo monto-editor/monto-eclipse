@@ -42,17 +42,20 @@ public class MontoProcess implements IProcess {
 
   @Override
   public boolean canTerminate() {
+    System.out.println("MontoProcess.canTerminate()");
     // TODO: implement termination
     return false;
   }
 
   @Override
   public boolean isTerminated() {
+    System.out.println("MontoProcess.isTerminated()");
     return terminated;
   }
 
   @Override
   public void terminate() throws DebugException {
+    System.out.println("MontoProcess.terminate()");
     // TODO: send terminate CommandMessage
   }
 
