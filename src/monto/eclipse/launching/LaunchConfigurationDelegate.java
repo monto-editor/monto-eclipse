@@ -33,18 +33,21 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
       IProgressMonitor monitor) throws CoreException {
     if (mode.equals("run")) {
       runSessionIdCounter += 1;
-      launch.addProcess(createMontoProcess(launch, runSessionIdCounter));
+      launch.addProcess(createMontoProcess(launch, runSessionIdCounter, mode));
 
       String mainClass =
           configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_MAIN_CLASS, "");
       Activator.sendCommandMessage(LaunchConfiguration.createCommandMessage(runSessionIdCounter, 1,
           new ServiceId("javaRunner"), mode, new Source(mainClass)));
+      // Source should not be created here, instead Source of opened MontoParseController should be
+      // used, so that correct logical name is attached
     } else if (mode.equals("debug")) {
       debugSessionIdCounter += 1;
-      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter);
+      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter, mode);
       MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, launch, process);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
           debugTarget::onBreakpointHit);
+      launch.addProcess(process);
       launch.addDebugTarget(debugTarget);
 
       String mainClass =
@@ -69,19 +72,17 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
             return Stream.empty();
           }).collect(Collectors.toList());
 
-      Activator.sendCommandMessage(DebugLaunchConfiguration.createCommandMessage(
-          debugSessionIdCounter, 1, new ServiceId("javaDebugger"), mode,
-          new Source(mainClass /*
-                                * TODO: Source should not be created here, instead Source of opened
-                                * MontoParseController should be used
-                                */), breakpoints));
-
+      Activator
+          .sendCommandMessage(DebugLaunchConfiguration.createCommandMessage(debugSessionIdCounter,
+              1, new ServiceId("javaDebugger"), mode, new Source(mainClass), breakpoints));
+      // Source should not be created here, instead Source of opened MontoParseController should be
+      // used, so that correct logical name is attached
       debugTarget.fireEvent(DebugEvent.CREATE);
     }
   }
 
-  MontoProcess createMontoProcess(ILaunch launch, int sessionId) {
-    MontoProcess process = new MontoProcess(launch, runSessionIdCounter);
+  MontoProcess createMontoProcess(ILaunch launch, int sessionId, String mode) {
+    MontoProcess process = new MontoProcess(launch, runSessionIdCounter, mode);
     Activator.getDefault().getDemultiplexer().addProductListener(Products.STREAM_OUTPUT,
         process::onStreamOutputProduct);
 
