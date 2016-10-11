@@ -18,7 +18,6 @@ public class MontoDebugElement extends PlatformObject implements IDebugElement {
 
   @Override
   public <T> T getAdapter(Class<T> adapter) {
-    System.out.printf("MontoDebugElement.getAdapter(%s)\n", adapter);
     return super.getAdapter(adapter);
   }
 
