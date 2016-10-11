@@ -1,6 +1,7 @@
 package monto.eclipse.launching;
 
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
@@ -16,7 +17,7 @@ import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
 import monto.service.product.ProductMessage;
 
-public class MontoProcess implements IProcess {
+public class MontoProcess extends PlatformObject implements IProcess {
 
   private ILaunch launch;
   private int sessionId;
@@ -37,8 +38,7 @@ public class MontoProcess implements IProcess {
 
   @Override
   public <T> T getAdapter(Class<T> adapter) {
-    System.out.printf("MontoProcess.getAdapter(%s)\n", adapter);
-    return null;
+    return super.getAdapter(adapter);
   }
 
   @Override
