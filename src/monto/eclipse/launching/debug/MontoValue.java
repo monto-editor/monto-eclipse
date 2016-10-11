@@ -20,8 +20,9 @@ public class MontoValue extends MontoDebugElement implements IValue {
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    return variables[0].getReferenceTypeName();
     System.out.println("MontoValue.getReferenceTypeName()");
+    // never called
+    return null;
   }
 
   @Override
@@ -44,8 +45,8 @@ public class MontoValue extends MontoDebugElement implements IValue {
 
   @Override
   public boolean hasVariables() throws DebugException {
-    return true;
     System.out.println("MontoValue.hasVariables()");
+    return variables.length > 0;
   }
 
 }

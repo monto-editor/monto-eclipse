@@ -7,6 +7,7 @@ import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IDebugTarget;
@@ -14,8 +15,10 @@ import org.eclipse.debug.core.model.IMemoryBlock;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
+import monto.eclipse.Activator;
 import monto.eclipse.launching.MontoProcess;
 import monto.service.gson.GsonMonto;
+import monto.service.launching.debug.Breakpoint;
 import monto.service.launching.debug.HitBreakpoint;
 import monto.service.launching.debug.Thread;
 import monto.service.product.ProductMessage;
@@ -25,6 +28,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   private final ILaunch launch;
   private final MontoProcess process;
   private List<MontoThread> threads;
+  private boolean isSuspended;
 
   public MontoDebugTarget(int sessionId, ILaunch launch, MontoProcess process) {
     super(null);
@@ -32,8 +36,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     this.sessionId = sessionId;
     this.launch = launch;
     this.process = process;
-
     this.threads = new ArrayList<>();
+    this.isSuspended = false;
   }
 
   @Override
@@ -43,8 +47,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean canTerminate() {
-    return true;
     System.out.println("MontoDebugTarget.canTerminate()");
+    return process.canTerminate();
   }
 
   @Override
@@ -79,7 +83,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   public boolean isSuspended() {
     System.out.println("MontoDebugTarget.isSuspended()");
     // TODO
-    return false;
+    return isSuspended;
   }
 
   @Override
@@ -155,8 +159,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean hasThreads() throws DebugException {
-    return false;
     System.out.println("MontoDebugTarget.hasThreads()");
+    return !threads.isEmpty();
   }
 
   @Override
@@ -174,21 +178,32 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     System.out.println("MontoDebugTarget.onBreakpointHit()");
     HitBreakpoint hitBreakpoint = GsonMonto.fromJson(productMessage, HitBreakpoint.class);
 
-    // TODO check sessionId
+    if (productMessage.matchesFakeSource("debug", sessionId)) {
+      isSuspended = true;
 
-    MontoThread hitThread = convertMontoToEclipseThread(this, hitBreakpoint.getHitThread());
-    threads.clear();
-    threads.add(hitThread);
-    for (Thread montoThread : hitBreakpoint.getOtherThreads()) {
-      threads.add(convertMontoToEclipseThread(this, montoThread));
+      MontoThread hitThread = convertMontoToEclipseThread(this, hitBreakpoint.getHitThread());
+      threads.clear();
+      threads.add(hitThread);
+      for (Thread montoThread : hitBreakpoint.getOtherThreads()) {
+        threads.add(convertMontoToEclipseThread(this, montoThread));
+      }
+      threads.forEach(thread -> thread.fireEvent(DebugEvent.SUSPEND, DebugEvent.BREAKPOINT));
     }
-    threads.forEach(thread -> thread.fireEvent(DebugEvent.SUSPEND, DebugEvent.BREAKPOINT));
-    // TODO: maybe convert jsonelement directly to Monto Eclipse classes
   }
 
   private MontoThread convertMontoToEclipseThread(MontoDebugTarget debugTarget,
       Thread montoThread) {
     MontoThread thread = new MontoThread(debugTarget, montoThread.getName());
+    
+    MontoLineBreakpoint suspendingBreakpoint =
+        findEclipseLineBreakpoint(montoThread.getSuspendingBreakpoint());
+    MontoLineBreakpoint[] suspendingBreakpoints;
+    if (suspendingBreakpoint == null) {
+      suspendingBreakpoints = new MontoLineBreakpoint[] {};
+    } else {
+      suspendingBreakpoints = new MontoLineBreakpoint[] {suspendingBreakpoint};
+    }
+    thread._setSuspendingBreakpoints(suspendingBreakpoints);
 
     MontoStackFrame[] stackFrames = montoThread.getStackFrames().stream().map(montoStackFrame -> {
       MontoStackFrame stackFrame = new MontoStackFrame(debugTarget, montoStackFrame.getName());
@@ -199,7 +214,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
         MontoValue value = new MontoValue(debugTarget, montoVariable.getValue());
 
         variable._setValue(value);
-        value._setVariables(new MontoVariable[] {variable});
+        // variables in value represent inner fields
+        value._setVariables(new MontoVariable[] {});
         return variable;
       }).toArray(MontoVariable[]::new);
 
@@ -212,4 +228,24 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     return thread;
   }
 
+  private MontoLineBreakpoint findEclipseLineBreakpoint(Breakpoint breakpoint) {
+    if (breakpoint != null) {
+      IBreakpoint[] eclipseBreakpoints =
+          DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(Activator.PLUGIN_ID);
+
+      for (IBreakpoint eclipseBreakpoint : eclipseBreakpoints) {
+        if (eclipseBreakpoint instanceof MontoLineBreakpoint) {
+          MontoLineBreakpoint eclipseMontoBreakpoint = (MontoLineBreakpoint) eclipseBreakpoint;
+          try {
+            if (eclipseMontoBreakpoint.getSource().equals(breakpoint.getSource())
+                && eclipseMontoBreakpoint.getLineNumber() == breakpoint.getLineNumber()) {
+              return eclipseMontoBreakpoint;
+            }
+          } catch (DebugException ignored) {
+          }
+        }
+      }
+    }
+    return null;
+  }
 }

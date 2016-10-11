@@ -10,33 +10,38 @@ public class MontoThread extends MontoDebugElement implements IThread {
 
   private final String name;
   private MontoStackFrame[] stackFrames;
+  private MontoLineBreakpoint[] suspendingBreakpoints;
 
   public MontoThread(MontoDebugTarget debugTarget, String name) {
     super(debugTarget);
     this.name = name;
   }
-  
+
   void _setStackFrames(MontoStackFrame[] stackFrames) {
     this.stackFrames = stackFrames;
+  }
+  
+  void _setSuspendingBreakpoints(MontoLineBreakpoint[] suspendingBreakpoints) {
+    this.suspendingBreakpoints = suspendingBreakpoints;
   }
 
   @Override
   public boolean canResume() {
-    return true;
     System.out.println("MontoThread.canResume()");
+    return isSuspended();
   }
 
   @Override
   public boolean canSuspend() {
-    return true;
     System.out.println("MontoThread.canSuspend()");
+    return !isSuspended();
   }
 
   @Override
   public boolean isSuspended() {
     System.out.println("MontoThread.isSuspended()");
     // TODO
-    return false;
+    return debugTarget.isSuspended();
   }
 
   @Override
@@ -135,21 +140,22 @@ public class MontoThread extends MontoDebugElement implements IThread {
   @Override
   public IStackFrame getTopStackFrame() throws DebugException {
     System.out.println("MontoThread.getTopStackFrame()");
-    return stackFrames[0];
+    if (stackFrames.length > 0) {
+      return stackFrames[0];
+    }
+    return null;
   }
 
   @Override
   public String getName() throws DebugException {
-    return name;
     System.out.println("MontoThread.getName()");
+    return "MontoThread [" + name + "]";
   }
 
   @Override
   public IBreakpoint[] getBreakpoints() {
-    // TODO return breakpoint, that suspended this thread
-    return new IBreakpoint[] {};
     System.out.println("MontoThread.getBreakpoints()");
+    return suspendingBreakpoints;
   }
-
 
 }
