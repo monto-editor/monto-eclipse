@@ -17,41 +17,43 @@ import org.eclipse.debug.core.model.ILaunchConfigurationDelegate;
 import monto.eclipse.Activator;
 import monto.eclipse.launching.debug.MontoDebugTarget;
 import monto.eclipse.launching.debug.MontoLineBreakpoint;
+import monto.service.command.CommandMessage;
+import monto.service.command.Commands;
+import monto.service.gson.GsonMonto;
 import monto.service.launching.DebugLaunchConfiguration;
 import monto.service.launching.LaunchConfiguration;
 import monto.service.launching.debug.Breakpoint;
 import monto.service.product.Products;
-import monto.service.types.ServiceId;
+import monto.service.types.Language;
 import monto.service.types.Source;
 
 public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate {
   private static int runSessionIdCounter = 0;
-  private static int debugSessionIdCounter = 0;
+  private static int debugSessionIdCounter = 1000000000;
 
   @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
+    String mainClassPhysicalName =
+        configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_PHYSICAL_NAME, "");
+    String mainClassLogicalName =
+        configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_LOGICAL_NAME, "");
+    String mainClassLanguage =
+        configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_LAGUAGE, "");
+
+    Source source = new Source(mainClassPhysicalName, mainClassLogicalName);
+    Language language = new Language(mainClassLanguage);
+
     if (mode.equals("run")) {
       runSessionIdCounter += 1;
-      launch.addProcess(createMontoProcess(launch, runSessionIdCounter, mode));
 
-      String mainClass =
-          configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_MAIN_CLASS, "");
-      Activator.sendCommandMessage(LaunchConfiguration.createCommandMessage(runSessionIdCounter, 1,
-          new ServiceId("javaRunner"), mode, new Source(mainClass)));
-      // Source should not be created here, instead Source of opened MontoParseController should be
-      // used, so that correct logical name is attached
+      Activator.sendCommandMessage(
+          new CommandMessage(runSessionIdCounter, 1, Commands.RUN_LAUNCH_CONFIGURATION, language,
+              GsonMonto.toJsonTree(new LaunchConfiguration(source))));
+
+      launch.addProcess(createMontoProcess(launch, runSessionIdCounter, mode));
     } else if (mode.equals("debug")) {
       debugSessionIdCounter += 1;
-      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter, mode);
-      MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, launch, process);
-      Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
-          debugTarget::onBreakpointHit);
-      launch.addProcess(process);
-      launch.addDebugTarget(debugTarget);
-
-      String mainClass =
-          configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_MAIN_CLASS, "");
 
       IBreakpoint[] eclipseBreakpoints =
           DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(Activator.PLUGIN_ID);
@@ -72,11 +74,16 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
             return Stream.empty();
           }).collect(Collectors.toList());
 
-      Activator
-          .sendCommandMessage(DebugLaunchConfiguration.createCommandMessage(debugSessionIdCounter,
-              1, new ServiceId("javaDebugger"), mode, new Source(mainClass), breakpoints));
-      // Source should not be created here, instead Source of opened MontoParseController should be
-      // used, so that correct logical name is attached
+      Activator.sendCommandMessage(new CommandMessage(debugSessionIdCounter, 1,
+          Commands.DEBUG_LAUNCH_CONFIGURATION, language,
+          GsonMonto.toJsonTree(new DebugLaunchConfiguration(source, breakpoints))));
+      
+      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter, mode);
+      MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, launch, process);
+      Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
+          debugTarget::onBreakpointHit);
+      launch.addProcess(process);
+      launch.addDebugTarget(debugTarget);
       debugTarget.fireEvent(DebugEvent.CREATE);
     }
   }

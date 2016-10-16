@@ -15,10 +15,13 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
 public class MainClassLaunchConfigurationTab extends AbstractLaunchConfigurationTab {
-  public static final String ATTR_MAIN_CLASS = "montoMainClass";
+  public static final String ATTR_PHYSICAL_NAME = "montoMainClassPhysical";
+  public static final String ATTR_LOGICAL_NAME = "montoMainClassLogical";
+  public static final String ATTR_LAGUAGE = "montoMainClassLanguage";
 
-  private Text mainClassNameText;
-  private String lastSavedMainClassText;
+  private Text physicalNameText;
+  private Text logicalNameText;
+  private Text languageText;
 
   @Override
   public void createControl(Composite parent) {
@@ -30,22 +33,24 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
     control.setLayoutData(gd);
 
     setupMainClassControls(control);
-    lastSavedMainClassText = "";
     setControl(control);
   }
 
   private void setupMainClassControls(Composite parent) {
-    Label label = new Label(parent, SWT.NONE);
-    label.setText("Main class:");
-    GridData gdLabel = new GridData(SWT.LEAD);
-    gdLabel.horizontalSpan = 1;
-    label.setLayoutData(gdLabel);
 
-    mainClassNameText = new Text(parent, SWT.BORDER);
-    GridData gdText = new GridData(GridData.FILL_HORIZONTAL);
-    gdText.horizontalSpan = 1;
-    mainClassNameText.setLayoutData(gdText);
-    mainClassNameText.addModifyListener(e -> {
+    // PHYSICAL NAME UI ELEMENTS
+
+    Label physicalNameLabel = new Label(parent, SWT.NONE);
+    physicalNameLabel.setText("Physical name of main class:");
+    GridData gdPhysicalNameLabel = new GridData(SWT.LEAD);
+    gdPhysicalNameLabel.horizontalSpan = 1;
+    physicalNameLabel.setLayoutData(gdPhysicalNameLabel);
+
+    physicalNameText = new Text(parent, SWT.BORDER);
+    GridData gdPhysicalNameText = new GridData(GridData.FILL_HORIZONTAL);
+    gdPhysicalNameText.horizontalSpan = 1;
+    physicalNameText.setLayoutData(gdPhysicalNameText);
+    physicalNameText.addModifyListener(e -> {
       updateLaunchConfigurationDialog();
       /*
        * updateLaunchConfigurationDialog() triggers a performApply(). The resulting
@@ -57,10 +62,45 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
        */
     });
 
+    // LOGICAL NAME UI ELEMENTS
+
+    Label logicalNameLabel = new Label(parent, SWT.NONE);
+    logicalNameLabel.setText("Logical name of main class:");
+    GridData gdLogicalNameLabel = new GridData(SWT.LEAD);
+    gdLogicalNameLabel.horizontalSpan = 1;
+    logicalNameLabel.setLayoutData(gdLogicalNameLabel);
+
+    logicalNameText = new Text(parent, SWT.BORDER);
+    GridData gdLogicalNameText = new GridData(GridData.FILL_HORIZONTAL);
+    gdLogicalNameText.horizontalSpan = 1;
+    logicalNameText.setLayoutData(gdLogicalNameText);
+    logicalNameText.addModifyListener(e -> {
+      updateLaunchConfigurationDialog();
+    });
+
+    // LANGUAGE UI ELEMENTS
+
+    Label languageLabel = new Label(parent, SWT.NONE);
+    languageLabel.setText("Project language:");
+    GridData gdLanguageLabel = new GridData(SWT.LEAD);
+    gdLanguageLabel.horizontalSpan = 1;
+    languageLabel.setLayoutData(gdLanguageLabel);
+
+    languageText = new Text(parent, SWT.BORDER);
+    GridData gdLanguageText = new GridData(GridData.FILL_HORIZONTAL);
+    gdLanguageText.horizontalSpan = 1;
+    languageText.setLayoutData(gdLanguageText);
+    languageText.addModifyListener(e -> {
+      updateLaunchConfigurationDialog();
+    });
+    
+    // BROWSE BUTTON
+
     Button browseButton = createPushButton(parent, "Browse", null);
-    GridData gdButton = new GridData(SWT.TRAIL);
-    gdButton.horizontalSpan = 1;
-    browseButton.setLayoutData(gdButton);
+    GridData gdBrowseButton = new GridData(SWT.TRAIL);
+    gdBrowseButton.horizontalSpan = 1;
+    gdBrowseButton.verticalSpan = 3;
+    browseButton.setLayoutData(gdBrowseButton);
 
     browseButton.addSelectionListener(new SelectionAdapter() {
       @Override
@@ -68,29 +108,39 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
         System.out.println("Browse class dialog should open here.");
       }
     });
+
   }
 
   @Override
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
-    configuration.setAttribute(ATTR_MAIN_CLASS, "");
+    configuration.setAttribute(ATTR_PHYSICAL_NAME, "");
+    configuration.setAttribute(ATTR_LOGICAL_NAME, "");
+    configuration.setAttribute(ATTR_LAGUAGE, "");
   }
 
   @Override
   public void initializeFrom(ILaunchConfiguration configuration) {
-    lastSavedMainClassText = "";
+    String physicalName = "";
+    String logicalName = "";
+    String language = "";
 
     try {
-      lastSavedMainClassText = configuration.getAttribute(ATTR_MAIN_CLASS, "");
+      physicalName = configuration.getAttribute(ATTR_PHYSICAL_NAME, "");
+      logicalName = configuration.getAttribute(ATTR_LOGICAL_NAME, "");
+      language = configuration.getAttribute(ATTR_LAGUAGE, "");
     } catch (CoreException ignored) {
     }
 
-    mainClassNameText.setText(lastSavedMainClassText);
+    physicalNameText.setText(physicalName);
+    logicalNameText.setText(logicalName);
+    languageText.setText(language);
   }
 
   @Override
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-    lastSavedMainClassText = mainClassNameText.getText();
-    configuration.setAttribute(ATTR_MAIN_CLASS, lastSavedMainClassText);
+    configuration.setAttribute(ATTR_PHYSICAL_NAME, physicalNameText.getText());
+    configuration.setAttribute(ATTR_LOGICAL_NAME, physicalNameText.getText());
+    configuration.setAttribute(ATTR_LAGUAGE, languageText.getText());
   }
 
   @Override

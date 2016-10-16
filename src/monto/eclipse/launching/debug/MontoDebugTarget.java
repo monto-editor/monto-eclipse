@@ -60,9 +60,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public void terminate() throws DebugException {
     System.out.println("MontoDebugTarget.terminate()");
-    // Activator.sendCommandMessage(TerminateProcess.createCommandMessage(sessionId, /* TODO */ 1,
-    // new ServiceId("javaDebugger")));
-    // TODO
+    // TODO send terminate CommandMessage
   }
 
   @Override

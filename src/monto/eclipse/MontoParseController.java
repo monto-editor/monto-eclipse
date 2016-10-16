@@ -23,6 +23,8 @@ import org.eclipse.jface.text.IRegion;
 
 import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.eclipse.demultiplex.VersionIdBasedProductCache;
+import monto.service.command.CommandMessage;
+import monto.service.command.Commands;
 import monto.service.completion.Completion;
 import monto.service.completion.CompletionRequest;
 import monto.service.error.Error;
@@ -34,7 +36,6 @@ import monto.service.region.Region;
 import monto.service.source.SourceMessage;
 import monto.service.types.Language;
 import monto.service.types.LongKey;
-import monto.service.types.ServiceId;
 import monto.service.types.Source;
 
 public class MontoParseController extends ParseControllerBase {
@@ -46,7 +47,7 @@ public class MontoParseController extends ParseControllerBase {
   private UniversalEditor editor;
 
   private LongKey versionId = new LongKey(0);
-  private int codeCompletionCommandMessageId = 0;
+  private int codeCompletionCommandSessionId = 0;
 
   private VersionIdBasedProductCache<Outline> outlineCache;
   private VersionIdBasedProductCache<List<Token>> tokensCache;
@@ -116,7 +117,7 @@ public class MontoParseController extends ParseControllerBase {
 
     return null;
   }
-  
+
   public Source getSource() {
     return source;
   }
@@ -147,11 +148,11 @@ public class MontoParseController extends ParseControllerBase {
   public List<Completion> getCompletions() {
     completionsCache.invalidateProduct(versionId);
     IRegion region = editor.getSelectedRegion();
-    // TODO: don't hardcode serviceId here, but rather filter received services at discovery by
-    // product and language
-    Activator.sendCommandMessage(CompletionRequest.createCommandMessage(
-        codeCompletionCommandMessageId++, 0, new ServiceId("javaCodeCompletion"), source,
-        new Region(region.getOffset(), region.getLength())));
+    // each CompletionRequest is it's own session, so the id is irrelevant (=0)
+    Activator.sendCommandMessage(new CommandMessage(codeCompletionCommandSessionId++, 0,
+        Commands.CODE_COMPLETION_REQUEST, language, GsonMonto.toJsonTree(
+            new CompletionRequest(source, new Region(region.getOffset(), region.getLength())))));
+
     return completionsCache.getProduct().orElse(new ArrayList<>());
   }
 
