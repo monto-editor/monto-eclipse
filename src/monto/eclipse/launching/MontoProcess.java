@@ -16,11 +16,13 @@ import monto.service.launching.ProcessTerminated;
 import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
 import monto.service.product.ProductMessage;
+import monto.service.types.Source;
 
 public class MontoProcess extends PlatformObject implements IProcess {
 
   private ILaunch launch;
   private int sessionId;
+  private Source sessionSource;
   private String mode;
   private MontoStreamProxy streamProxy;
   private boolean terminated;
@@ -29,6 +31,7 @@ public class MontoProcess extends PlatformObject implements IProcess {
   public MontoProcess(ILaunch launch, int sessionId, String mode) {
     this.launch = launch;
     this.sessionId = sessionId;
+    this.sessionSource = new Source(String.format("session:%s:%s", mode, sessionId));
     this.mode = mode;
 
     this.streamProxy = new MontoStreamProxy();
@@ -98,7 +101,7 @@ public class MontoProcess extends PlatformObject implements IProcess {
   }
 
   void onProcessTerminatedProduct(ProductMessage productMessage) {
-    if (productMessage.matchesFakeSource(mode, sessionId)) {
+    if (productMessage.getSource().equals(sessionSource)) {
       ProcessTerminated processTerminated =
           GsonMonto.fromJson(productMessage, ProcessTerminated.class);
 
@@ -111,7 +114,7 @@ public class MontoProcess extends PlatformObject implements IProcess {
   }
 
   void onStreamOutputProduct(ProductMessage productMessage) {
-    if (productMessage.matchesFakeSource(mode, sessionId)) {
+    if (productMessage.getSource().equals(sessionSource)) {
       StreamOutput streamOutput = GsonMonto.fromJson(productMessage, StreamOutput.class);
 
       System.out.println(streamOutput);

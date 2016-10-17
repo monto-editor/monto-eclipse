@@ -22,9 +22,11 @@ import monto.service.launching.debug.Breakpoint;
 import monto.service.launching.debug.HitBreakpoint;
 import monto.service.launching.debug.Thread;
 import monto.service.product.ProductMessage;
+import monto.service.types.Source;
 
 public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget {
   private final int sessionId;
+  private final Source sessionSource;
   private final ILaunch launch;
   private final MontoProcess process;
   private List<MontoThread> threads;
@@ -38,6 +40,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     this.process = process;
     this.threads = new ArrayList<>();
     this.isSuspended = false;
+    this.sessionSource = new Source("debug:session:" + sessionId);
   }
 
   @Override
@@ -176,7 +179,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     System.out.println("MontoDebugTarget.onBreakpointHit()");
     HitBreakpoint hitBreakpoint = GsonMonto.fromJson(productMessage, HitBreakpoint.class);
 
-    if (productMessage.matchesFakeSource("debug", sessionId)) {
+    if (productMessage.getSource().equals(sessionSource)) {
       isSuspended = true;
 
       MontoThread hitThread = convertMontoToEclipseThread(this, hitBreakpoint.getHitThread());
