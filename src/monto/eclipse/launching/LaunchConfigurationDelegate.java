@@ -89,7 +89,7 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
   }
 
   MontoProcess createMontoProcess(ILaunch launch, int sessionId, String mode) {
-    MontoProcess process = new MontoProcess(launch, runSessionIdCounter, mode);
+    MontoProcess process = new MontoProcess(launch, sessionId, mode);
     Activator.getDefault().getDemultiplexer().addProductListener(Products.STREAM_OUTPUT,
         process::onStreamOutputProduct);
 
