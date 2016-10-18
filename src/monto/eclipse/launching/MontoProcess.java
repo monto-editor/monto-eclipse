@@ -37,7 +37,7 @@ public class MontoProcess extends PlatformObject implements IProcess {
   public MontoProcess(ILaunch launch, int sessionId, String mode, Language language) {
     this.launch = launch;
     this.sessionId = sessionId;
-    this.sessionSource = new Source(String.format("session:%s:%s", mode, sessionId));
+    this.sessionSource = new Source(String.format("session:%s", sessionId));
     this.mode = mode;
     this.language = language;
 

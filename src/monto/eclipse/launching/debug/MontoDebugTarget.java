@@ -41,7 +41,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     super(null);
     super.debugTarget = this;
     this.sessionId = sessionId;
-    this.sessionSource = new Source("session:debug:" + sessionId);
+    this.sessionSource = new Source("session:" + sessionId);
     this.language = language;
     this.launch = launch;
     this.process = process;
