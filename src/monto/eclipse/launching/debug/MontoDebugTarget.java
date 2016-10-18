@@ -16,6 +16,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IThread;
 
 import monto.eclipse.Activator;
+import monto.eclipse.demultiplex.SinkDemultiplexer;
 import monto.eclipse.launching.MontoProcess;
 import monto.service.command.CommandMessage;
 import monto.service.command.Commands;
@@ -24,6 +25,7 @@ import monto.service.launching.debug.Breakpoint;
 import monto.service.launching.debug.HitBreakpoint;
 import monto.service.launching.debug.Thread;
 import monto.service.product.ProductMessage;
+import monto.service.product.Products;
 import monto.service.types.Language;
 import monto.service.types.Source;
 
@@ -275,5 +277,17 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
       }
     }
     return null;
+  }
+
+  public void onProcessTerminated(ProductMessage productMessage) {
+    System.out.println("MontoDebugTarget.onProcessTerminated()");
+
+    if (productMessage.getSource().equals(sessionSource)) {
+      DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
+      SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
+      demultiplexer.removeProductListener(Products.HIT_BREAKPOINT, this::onBreakpointHit);
+      demultiplexer.removeProductListener(Products.THREADS_RESUMED, this::onThreadsResumed);
+      demultiplexer.removeProductListener(Products.PROCESS_TERMINATED, this::onProcessTerminated);
+    }
   }
 }

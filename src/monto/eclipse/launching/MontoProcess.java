@@ -18,6 +18,7 @@ import monto.service.launching.ProcessTerminated;
 import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
 import monto.service.product.ProductMessage;
+import monto.service.product.Products;
 import monto.service.types.Language;
 import monto.service.types.Source;
 
@@ -64,8 +65,8 @@ public class MontoProcess extends PlatformObject implements IProcess {
   @Override
   public void terminate() throws DebugException {
     System.out.println("MontoProcess.terminate()");
-    Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.TERMINATE_PROCESS,
-        language, null));
+    Activator.sendCommandMessage(
+        new CommandMessage(sessionId, 0, Commands.TERMINATE_PROCESS, language, null));
   }
 
   @Override
@@ -115,6 +116,12 @@ public class MontoProcess extends PlatformObject implements IProcess {
       System.out.println("Process " + sessionId + " terminated");
       DebugPlugin.getDefault()
           .fireDebugEventSet(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
+
+      // deregister product listeners
+      Activator.getDefault().getDemultiplexer().removeProductListener(Products.PROCESS_TERMINATED,
+          this::onProcessTerminatedProduct);
+      Activator.getDefault().getDemultiplexer().removeProductListener(Products.STREAM_OUTPUT,
+          this::onStreamOutputProduct);
     }
   }
 

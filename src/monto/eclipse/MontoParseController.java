@@ -31,6 +31,7 @@ import monto.service.error.Error;
 import monto.service.gson.GsonMonto;
 import monto.service.highlighting.Token;
 import monto.service.outline.Outline;
+import monto.service.product.ProductMessage;
 import monto.service.product.Products;
 import monto.service.region.Region;
 import monto.service.source.SourceMessage;
@@ -91,15 +92,17 @@ public class MontoParseController extends ParseControllerBase {
     demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage);
     demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
     demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage);
-    demultiplexer.addProductListener(Products.LOGICAL_SOURCE_NAME, productMessage -> {
-      if (!source.getLogicalName().isPresent() && productMessage.getSource().equals(source)) {
-        // resend SourceMessage with logical name
-        Source sourceWithLogicalName =
-            GsonMonto.fromJson(productMessage.getContents(), Source.class);
-        source = sourceWithLogicalName;
-        parse(contents, null);
-      }
-    });
+    demultiplexer.addProductListener(Products.LOGICAL_SOURCE_NAME,
+        this::onLogicalSourceNameProductMessage);
+  }
+
+  void onLogicalSourceNameProductMessage(ProductMessage productMessage) {
+    if (!source.getLogicalName().isPresent() && productMessage.getSource().equals(source)) {
+      // resend SourceMessage with logical name
+      Source sourceWithLogicalName = GsonMonto.fromJson(productMessage.getContents(), Source.class);
+      source = sourceWithLogicalName;
+      parse(contents, null);
+    }
   }
 
   @Override
@@ -215,4 +218,15 @@ public class MontoParseController extends ParseControllerBase {
   private void flushMarkers() {
     getHandler().endMessages();
   }
+
+  @Override
+  public void dispose() {
+    SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
+    demultiplexer.removeProductListener(Products.OUTLINE, outlineCache::onProductMessage);
+    demultiplexer.removeProductListener(Products.TOKENS, tokensCache::onProductMessage);
+    demultiplexer.removeProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
+    demultiplexer.removeProductListener(Products.ERRORS, errorsCache::onProductMessage);
+    demultiplexer.removeProductListener(Products.LOGICAL_SOURCE_NAME, this::onLogicalSourceNameProductMessage);
+  }
+
 }
