@@ -104,7 +104,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public boolean canResume() {
-    return /*!isTerminated() &&*/ !isSuspended;
+    return !isTerminated() && isSuspended;
   }
 
   @Override
