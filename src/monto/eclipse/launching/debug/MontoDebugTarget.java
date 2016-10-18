@@ -48,6 +48,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     this.threads = new ArrayList<>();
 
     this.isSuspended = false;
+
+    DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
   }
 
 
@@ -170,19 +172,25 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
     System.out.printf("MontoDebugTarget.breakpointAdded(%s)\n", breakpoint);
-    // TODO
+//    if (breakpoint instanceof MontoLineBreakpoint) {
+//      MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
+//      Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.ADD_BREAKPOINT,
+//          language, GsonMonto.toJsonTree(montoLineBreakpoint)));
+//    }
   }
 
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
     System.out.printf("MontoDebugTarget.breakpointRemoved(%s, %s)\n", breakpoint, delta);
-    // TODO
+//    if (breakpoint instanceof MontoLineBreakpoint) {
+//      MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
+//      Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.REMOVE_BREAKPOINT,
+//          language, GsonMonto.toJsonTree(montoLineBreakpoint)));
+//    }
   }
 
   @Override
-  public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-    System.out.printf("MontoDebugTarget.breakpointChanged(%s, %s)\n", breakpoint, delta);
-  }
+  public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {}
 
   public void onBreakpointHit(ProductMessage productMessage) {
     System.out.println("MontoDebugTarget.onBreakpointHit()");
