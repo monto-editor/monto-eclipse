@@ -13,39 +13,34 @@ public class MontoValue extends MontoDebugElement implements IValue {
     super(debugTarget);
     this.value = value;
   }
-  
+
   void _setVariables(MontoVariable[] variables) {
     this.variables = variables;
   }
 
   @Override
   public String getReferenceTypeName() throws DebugException {
-    System.out.println("MontoValue.getReferenceTypeName()");
     // never called
     return null;
   }
 
   @Override
   public String getValueString() throws DebugException {
-    System.out.println("MontoValue.getValueString()");
     return value;
   }
 
   @Override
   public boolean isAllocated() throws DebugException {
-    System.out.println("MontoValue.isAllocated()");
     return true;
   }
 
   @Override
   public IVariable[] getVariables() throws DebugException {
-    System.out.println("MontoValue.getVariables()");
     return variables;
   }
 
   @Override
   public boolean hasVariables() throws DebugException {
-    System.out.println("MontoValue.hasVariables()");
     return variables.length > 0;
   }
 

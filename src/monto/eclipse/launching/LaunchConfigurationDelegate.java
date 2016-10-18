@@ -51,7 +51,7 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
           new CommandMessage(runSessionIdCounter, 1, Commands.RUN_LAUNCH_CONFIGURATION, language,
               GsonMonto.toJsonTree(new LaunchConfiguration(source))));
 
-      launch.addProcess(createMontoProcess(launch, runSessionIdCounter, mode));
+      launch.addProcess(createMontoProcess(launch, runSessionIdCounter, mode, language));
     } else if (mode.equals("debug")) {
       debugSessionIdCounter += 1;
 
@@ -78,8 +78,8 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
           Commands.DEBUG_LAUNCH_CONFIGURATION, language,
           GsonMonto.toJsonTree(new DebugLaunchConfiguration(source, breakpoints))));
       
-      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter, mode);
-      MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, launch, process);
+      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter, mode, language);
+      MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, language, launch, process);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
           debugTarget::onBreakpointHit);
       launch.addProcess(process);
@@ -88,8 +88,8 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
     }
   }
 
-  MontoProcess createMontoProcess(ILaunch launch, int sessionId, String mode) {
-    MontoProcess process = new MontoProcess(launch, sessionId, mode);
+  MontoProcess createMontoProcess(ILaunch launch, int sessionId, String mode, Language language) {
+    MontoProcess process = new MontoProcess(launch, sessionId, mode, language);
     Activator.getDefault().getDemultiplexer().addProductListener(Products.STREAM_OUTPUT,
         process::onStreamOutputProduct);
 

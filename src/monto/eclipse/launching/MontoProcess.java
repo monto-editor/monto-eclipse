@@ -11,28 +11,35 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.IStreamsProxy;
 
 import monto.eclipse.Activator;
+import monto.service.command.CommandMessage;
+import monto.service.command.Commands;
 import monto.service.gson.GsonMonto;
 import monto.service.launching.ProcessTerminated;
 import monto.service.launching.StreamOutput;
 import monto.service.launching.StreamOutput.SourceStream;
 import monto.service.product.ProductMessage;
+import monto.service.types.Language;
 import monto.service.types.Source;
 
 public class MontoProcess extends PlatformObject implements IProcess {
 
-  private ILaunch launch;
-  private int sessionId;
-  private Source sessionSource;
-  private String mode;
-  private MontoStreamProxy streamProxy;
+  private final ILaunch launch;
+  private final int sessionId;
+  private final Source sessionSource;
+  private final String mode;
+  private final Language language;
+
+  private final MontoStreamProxy streamProxy;
   private boolean terminated;
   private int exitCode;
 
-  public MontoProcess(ILaunch launch, int sessionId, String mode) {
+
+  public MontoProcess(ILaunch launch, int sessionId, String mode, Language language) {
     this.launch = launch;
     this.sessionId = sessionId;
     this.sessionSource = new Source(String.format("session:%s:%s", mode, sessionId));
     this.mode = mode;
+    this.language = language;
 
     this.streamProxy = new MontoStreamProxy();
     this.terminated = false;
@@ -46,21 +53,19 @@ public class MontoProcess extends PlatformObject implements IProcess {
 
   @Override
   public boolean canTerminate() {
-    System.out.println("MontoProcess.canTerminate()");
-    // TODO: implement termination
-    return false;
+    return !terminated;
   }
 
   @Override
   public boolean isTerminated() {
-    System.out.println("MontoProcess.isTerminated()");
     return terminated;
   }
 
   @Override
   public void terminate() throws DebugException {
     System.out.println("MontoProcess.terminate()");
-    // TODO: send terminate CommandMessage
+    Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.TERMINATE_PROCESS,
+        language, null));
   }
 
   @Override
