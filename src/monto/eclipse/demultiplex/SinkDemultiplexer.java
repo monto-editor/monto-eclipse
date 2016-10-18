@@ -39,7 +39,7 @@ public class SinkDemultiplexer {
     productListeners.get(product).add(consumer);
   }
 
-  public void removeProductListener(Product product, Consumer<Product> consumer) {
+  public void removeProductListener(Product product, Consumer<ProductMessage> consumer) {
     if (productListeners.containsKey(product)) {
       productListeners.get(product).remove(consumer);
     }
@@ -68,11 +68,12 @@ public class SinkDemultiplexer {
               // TODO: check, if source and language of productMessage match the opened file?
 
               if (listeners == null) {
-                Activator.debug("Ignoring ProductMessage %s, because no listener wants it", productMessage);
+                Activator.debug("Ignoring ProductMessage %s, because no listener wants it",
+                    productMessage);
               } else {
                 for (Consumer<ProductMessage> consumer : listeners) {
                   consumer.accept(productMessage);
-                }                
+                }
               }
             }, discoveryResponse -> {
               Activator.debug("Received DiscoveryResponse: %s", discoveryResponse);
