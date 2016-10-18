@@ -201,6 +201,16 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     }
   }
 
+  public void onThreadsResumed(ProductMessage productMessage) {
+    System.out.println("MontoDebugTarget.onThreadsResumed()");
+
+    if (productMessage.getSource().equals(sessionSource)) {
+      isSuspended = false;
+      threads.clear();
+      fireEvent(DebugEvent.RESUME);
+    }
+  }
+
   private MontoThread convertMontoToEclipseThread(MontoDebugTarget debugTarget,
       Thread montoThread) {
     MontoThread thread = new MontoThread(debugTarget, montoThread.getName());

@@ -82,6 +82,8 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
       MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, language, launch, process);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
           debugTarget::onBreakpointHit);
+      Activator.getDefault().getDemultiplexer().addProductListener(Products.THREADS_RESUMED,
+          debugTarget::onThreadsResumed);
       launch.addProcess(process);
       launch.addDebugTarget(debugTarget);
       debugTarget.fireEvent(DebugEvent.CREATE);
