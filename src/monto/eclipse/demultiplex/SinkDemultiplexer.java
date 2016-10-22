@@ -2,9 +2,12 @@ package monto.eclipse.demultiplex;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+
+import org.javatuples.Pair;
 
 import monto.eclipse.Activator;
 import monto.ide.SinkSocket;
@@ -23,8 +26,8 @@ public class SinkDemultiplexer {
   private Thread thread;
   private boolean running;
 
-  private Map<Product, List<Consumer<ProductMessage>>> productListeners;
-  private List<Consumer<DiscoveryResponse>> discoveryListeners;
+  private Map<Product, List<Pair<Consumer<ProductMessage>, Object>>> productListeners;
+  private List<Pair<Consumer<DiscoveryResponse>, Object>> discoveryListeners;
 
   public SinkDemultiplexer(SinkSocket sink) {
     this.sink = sink;
@@ -32,25 +35,46 @@ public class SinkDemultiplexer {
     this.discoveryListeners = new ArrayList<>();
   }
 
-  public void addProductListener(Product product, Consumer<ProductMessage> consumer) {
-    if (!productListeners.containsKey(product)) {
-      productListeners.put(product, new ArrayList<>());
-    }
-    productListeners.get(product).add(consumer);
-  }
-
-  public void removeProductListener(Product product, Consumer<ProductMessage> consumer) {
-    if (productListeners.containsKey(product)) {
-      productListeners.get(product).remove(consumer);
+  public void addProductListener(Product product, Consumer<ProductMessage> consumer,
+      Object identifier) {
+    synchronized (productListeners) {
+      if (!productListeners.containsKey(product)) {
+        productListeners.put(product, new ArrayList<>());
+      }
+      productListeners.get(product).add(new Pair<>(consumer, identifier));
     }
   }
 
-  public void addDiscoveryListener(Consumer<DiscoveryResponse> consumer) {
-    discoveryListeners.add(consumer);
+  public void removeProductListener(Product product, Object identifier) {
+    synchronized (productListeners) {
+      if (productListeners.containsKey(product)) {
+        for (Iterator<Pair<Consumer<ProductMessage>, Object>> iterator =
+            productListeners.get(product).iterator(); iterator.hasNext();) {
+          Pair<Consumer<ProductMessage>, Object> pair = iterator.next();
+          if (pair.getValue1().equals(identifier)) {
+            iterator.remove();
+          }
+        }
+      }
+    }
   }
 
-  public void removeDiscoveryListener(Consumer<DiscoveryResponse> consumer) {
-    discoveryListeners.remove(consumer);
+  public void addDiscoveryListener(Consumer<DiscoveryResponse> consumer, Object identifier) {
+    synchronized (discoveryListeners) {
+      discoveryListeners.add(new Pair<>(consumer, identifier));
+    }
+  }
+
+  public void removeDiscoveryListener(Object identifier) {
+    synchronized (discoveryListeners) {
+      for (Iterator<Pair<Consumer<DiscoveryResponse>, Object>> iterator =
+          discoveryListeners.iterator(); iterator.hasNext();) {
+        Pair<Consumer<DiscoveryResponse>, Object> pair = iterator.next();
+        if (pair.getValue1().equals(identifier)) {
+          iterator.remove();
+        }
+      }
+    }
   }
 
   public SinkDemultiplexer start() {
@@ -62,23 +86,27 @@ public class SinkDemultiplexer {
         try {
           while (running) {
             sink.receive(productMessage -> {
-              Activator.debug("received ProductMessage: %s", productMessage);
-              List<Consumer<ProductMessage>> listeners =
-                  productListeners.get(productMessage.getProduct());
-              // TODO: check, if source and language of productMessage match the opened file?
+              synchronized (productListeners) {
+                Activator.debug("received ProductMessage: %s", productMessage);
+                List<Pair<Consumer<ProductMessage>, Object>> listeners =
+                    productListeners.get(productMessage.getProduct());
+                // TODO: check, if source and language of productMessage match the opened file?
 
-              if (listeners == null) {
-                Activator.debug("Ignoring ProductMessage %s, because no listener wants it",
-                    productMessage);
-              } else {
-                for (Consumer<ProductMessage> consumer : listeners) {
-                  consumer.accept(productMessage);
+                if (listeners == null) {
+                  Activator.debug("Ignoring ProductMessage %s, because no listener wants it",
+                      productMessage);
+                } else {
+                  for (Pair<Consumer<ProductMessage>, Object> consumer : listeners) {
+                    consumer.getValue0().accept(productMessage);
+                  }
                 }
               }
             }, discoveryResponse -> {
-              Activator.debug("Received DiscoveryResponse: %s", discoveryResponse);
-              for (Consumer<DiscoveryResponse> consumer : discoveryListeners) {
-                consumer.accept(discoveryResponse);
+              synchronized (discoveryListeners) {
+                Activator.debug("Received DiscoveryResponse: %s", discoveryResponse);
+                for (Pair<Consumer<DiscoveryResponse>, Object> listener : discoveryListeners) {
+                  listener.getValue0().accept(discoveryResponse);
+                }
               }
             });
           }

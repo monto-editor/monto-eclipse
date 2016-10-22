@@ -28,9 +28,9 @@ import monto.service.types.Language;
 import monto.service.types.Source;
 
 public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate {
-  private static int runSessionIdCounter = 0;
-  private static int debugSessionIdCounter = 1000000000;
-
+  
+  private static int sessionIdCounter = 0;
+  
   @Override
   public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch,
       IProgressMonitor monitor) throws CoreException {
@@ -45,15 +45,15 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
     Language language = new Language(mainClassLanguage);
 
     if (mode.equals("run")) {
-      runSessionIdCounter += 1;
+      sessionIdCounter += 1;
 
       Activator.sendCommandMessage(
-          new CommandMessage(runSessionIdCounter, 1, Commands.RUN_LAUNCH_CONFIGURATION, language,
+          new CommandMessage(sessionIdCounter, 1, Commands.RUN, language,
               GsonMonto.toJsonTree(new LaunchConfiguration(source))));
 
-      launch.addProcess(createMontoProcess(launch, runSessionIdCounter, mode, language));
+      launch.addProcess(createMontoProcess(launch, sessionIdCounter, mode, language));
     } else if (mode.equals("debug")) {
-      debugSessionIdCounter += 1;
+      sessionIdCounter += 1;
 
       IBreakpoint[] eclipseBreakpoints =
           DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(Activator.PLUGIN_ID);
@@ -74,18 +74,19 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
             return Stream.empty();
           }).collect(Collectors.toList());
 
-      Activator.sendCommandMessage(new CommandMessage(debugSessionIdCounter, 1,
-          Commands.DEBUG_LAUNCH_CONFIGURATION, language,
+      Activator.sendCommandMessage(new CommandMessage(sessionIdCounter, 1,
+          Commands.DEBUG, language,
           GsonMonto.toJsonTree(new DebugLaunchConfiguration(source, breakpoints))));
       
-      MontoProcess process = createMontoProcess(launch, debugSessionIdCounter, mode, language);
-      MontoDebugTarget debugTarget = new MontoDebugTarget(debugSessionIdCounter, language, launch, process);
+      MontoProcess process = createMontoProcess(launch, sessionIdCounter, mode, language);
+      MontoDebugTarget debugTarget = new MontoDebugTarget(sessionIdCounter, language, launch, process);
+      DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(debugTarget);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.HIT_BREAKPOINT,
-          debugTarget::onBreakpointHit);
+          debugTarget::onBreakpointHit, debugTarget);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.THREADS_RESUMED,
-          debugTarget::onThreadsResumed);
+          debugTarget::onThreadsResumed, debugTarget);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.PROCESS_TERMINATED,
-          debugTarget::onProcessTerminated);
+          debugTarget::onProcessTerminated, debugTarget);
       launch.addProcess(process);
       launch.addDebugTarget(debugTarget);
       debugTarget.fireEvent(DebugEvent.CREATE);
@@ -95,10 +96,10 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
   MontoProcess createMontoProcess(ILaunch launch, int sessionId, String mode, Language language) {
     MontoProcess process = new MontoProcess(launch, sessionId, mode, language);
     Activator.getDefault().getDemultiplexer().addProductListener(Products.STREAM_OUTPUT,
-        process::onStreamOutputProduct);
+        process::onStreamOutputProduct, process);
 
     Activator.getDefault().getDemultiplexer().addProductListener(Products.PROCESS_TERMINATED,
-        process::onProcessTerminatedProduct);
+        process::onProcessTerminatedProduct, process);
     return process;
   }
 }

@@ -65,11 +65,13 @@ public class Activator extends AbstractUIPlugin {
     sink = new SinkSocket(ctx, "tcp://localhost:5001");
     sink.connect();
 
-    discoveryResponseCache = new ProductCache<DiscoveryResponse, DiscoveryResponse>("discoveryResponse", Function.identity());
+    discoveryResponseCache = new ProductCache<DiscoveryResponse, DiscoveryResponse>(
+        "discoveryResponse", Function.identity());
     discoveryResponseCache.setTimeout(500);
 
     demultiplexer = new SinkDemultiplexer(sink);
-    demultiplexer.addDiscoveryListener(discoveryResponseCache::onProductMessage);
+    demultiplexer.addDiscoveryListener(discoveryResponseCache::onProductMessage,
+        discoveryResponseCache);
     demultiplexer.start();
 
     discover(DiscoveryRequest.create()).ifPresent(discoverResponse -> {
@@ -168,6 +170,7 @@ public class Activator extends AbstractUIPlugin {
    * @see org.eclipse.ui.plugin.AbstractUIPlugin#stop(org.osgi.framework.BundleContext)
    */
   public void stop(BundleContext bundle) throws Exception {
+    demultiplexer.removeDiscoveryListener(discoveryResponseCache);
     demultiplexer.stop();
     // demultiplexer closes sink once thread shuts down
     source.close();

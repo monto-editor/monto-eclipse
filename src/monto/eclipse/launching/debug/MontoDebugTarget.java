@@ -2,6 +2,7 @@ package monto.eclipse.launching.debug;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.Status;
@@ -50,8 +51,6 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     this.threads = new ArrayList<>();
 
     this.isSuspended = false;
-
-    DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
   }
 
 
@@ -124,8 +123,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public void resume() throws DebugException {
-    Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.RESUME_DEBUGGING,
-        language, GsonMonto.toJsonTree(null)));
+    Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.DEBUG_RESUME, language,
+        GsonMonto.toJsonTree(null)));
   }
 
   @Override
@@ -174,21 +173,21 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
     System.out.printf("MontoDebugTarget.breakpointAdded(%s)\n", breakpoint);
-//    if (breakpoint instanceof MontoLineBreakpoint) {
-//      MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
-//      Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.ADD_BREAKPOINT,
-//          language, GsonMonto.toJsonTree(montoLineBreakpoint)));
-//    }
+    // if (breakpoint instanceof MontoLineBreakpoint) {
+    // MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
+    // Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.ADD_BREAKPOINT,
+    // language, GsonMonto.toJsonTree(montoLineBreakpoint)));
+    // }
   }
 
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
     System.out.printf("MontoDebugTarget.breakpointRemoved(%s, %s)\n", breakpoint, delta);
-//    if (breakpoint instanceof MontoLineBreakpoint) {
-//      MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
-//      Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.REMOVE_BREAKPOINT,
-//          language, GsonMonto.toJsonTree(montoLineBreakpoint)));
-//    }
+    // if (breakpoint instanceof MontoLineBreakpoint) {
+    // MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
+    // Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.REMOVE_BREAKPOINT,
+    // language, GsonMonto.toJsonTree(montoLineBreakpoint)));
+    // }
   }
 
   @Override
@@ -280,14 +279,20 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   }
 
   public void onProcessTerminated(ProductMessage productMessage) {
-    System.out.println("MontoDebugTarget.onProcessTerminated()");
-
     if (productMessage.getSource().equals(sessionSource)) {
       DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
-      SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
-      demultiplexer.removeProductListener(Products.HIT_BREAKPOINT, this::onBreakpointHit);
-      demultiplexer.removeProductListener(Products.THREADS_RESUMED, this::onThreadsResumed);
-      demultiplexer.removeProductListener(Products.PROCESS_TERMINATED, this::onProcessTerminated);
+
+      // deregister product listeners
+      
+      // Deregistration needs to happen is separate thread, because removing listeners in this callback method,
+      // which is called from the SinkDemultiplexer thread, causes a ConcurrentModification exception in the SinkDemultiplexer thread,
+      // because the listener map/list is SinkDemultiplexer is modified, before all listeners are called
+      CompletableFuture.runAsync(() -> {
+        SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
+        demultiplexer.removeProductListener(Products.HIT_BREAKPOINT, this);
+        demultiplexer.removeProductListener(Products.THREADS_RESUMED, this);
+        demultiplexer.removeProductListener(Products.PROCESS_TERMINATED, this);
+      });
     }
   }
 }

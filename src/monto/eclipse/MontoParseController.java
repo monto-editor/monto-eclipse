@@ -88,12 +88,14 @@ public class MontoParseController extends ParseControllerBase {
     errorsCache.setTimeout(500);
 
     SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
-    demultiplexer.addProductListener(Products.OUTLINE, outlineCache::onProductMessage);
-    demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage);
-    demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
-    demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage);
+    demultiplexer.addProductListener(Products.OUTLINE, outlineCache::onProductMessage,
+        outlineCache);
+    demultiplexer.addProductListener(Products.TOKENS, tokensCache::onProductMessage, tokensCache);
+    demultiplexer.addProductListener(Products.COMPLETIONS, completionsCache::onProductMessage,
+        completionsCache);
+    demultiplexer.addProductListener(Products.ERRORS, errorsCache::onProductMessage, errorsCache);
     demultiplexer.addProductListener(Products.LOGICAL_SOURCE_NAME,
-        this::onLogicalSourceNameProductMessage);
+        this::onLogicalSourceNameProductMessage, this);
   }
 
   void onLogicalSourceNameProductMessage(ProductMessage productMessage) {
@@ -153,7 +155,7 @@ public class MontoParseController extends ParseControllerBase {
     IRegion region = editor.getSelectedRegion();
     // each CompletionRequest is it's own session, so the id is irrelevant (=0)
     Activator.sendCommandMessage(new CommandMessage(codeCompletionCommandSessionId++, 0,
-        Commands.CODE_COMPLETION_REQUEST, language, GsonMonto.toJsonTree(
+        Commands.COMPLETE_CODE, language, GsonMonto.toJsonTree(
             new CompletionRequest(source, new Region(region.getOffset(), region.getLength())))));
 
     return completionsCache.getProduct().orElse(new ArrayList<>());
@@ -222,11 +224,11 @@ public class MontoParseController extends ParseControllerBase {
   @Override
   public void dispose() {
     SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
-    demultiplexer.removeProductListener(Products.OUTLINE, outlineCache::onProductMessage);
-    demultiplexer.removeProductListener(Products.TOKENS, tokensCache::onProductMessage);
-    demultiplexer.removeProductListener(Products.COMPLETIONS, completionsCache::onProductMessage);
-    demultiplexer.removeProductListener(Products.ERRORS, errorsCache::onProductMessage);
-    demultiplexer.removeProductListener(Products.LOGICAL_SOURCE_NAME, this::onLogicalSourceNameProductMessage);
+    demultiplexer.removeProductListener(Products.OUTLINE, outlineCache);
+    demultiplexer.removeProductListener(Products.TOKENS, tokensCache);
+    demultiplexer.removeProductListener(Products.COMPLETIONS, completionsCache);
+    demultiplexer.removeProductListener(Products.ERRORS, errorsCache);
+    demultiplexer.removeProductListener(Products.LOGICAL_SOURCE_NAME, this);
   }
 
 }

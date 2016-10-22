@@ -1,5 +1,7 @@
 package monto.eclipse.launching;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.PlatformObject;
 import org.eclipse.core.runtime.Status;
@@ -65,8 +67,8 @@ public class MontoProcess extends PlatformObject implements IProcess {
   @Override
   public void terminate() throws DebugException {
     System.out.println("MontoProcess.terminate()");
-    Activator.sendCommandMessage(
-        new CommandMessage(sessionId, 0, Commands.TERMINATE_PROCESS, language, null));
+    Activator
+        .sendCommandMessage(new CommandMessage(sessionId, 0, Commands.TERMINATE, language, null));
   }
 
   @Override
@@ -118,10 +120,16 @@ public class MontoProcess extends PlatformObject implements IProcess {
           .fireDebugEventSet(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
 
       // deregister product listeners
-      Activator.getDefault().getDemultiplexer().removeProductListener(Products.PROCESS_TERMINATED,
-          this::onProcessTerminatedProduct);
-      Activator.getDefault().getDemultiplexer().removeProductListener(Products.STREAM_OUTPUT,
-          this::onStreamOutputProduct);
+      
+      // Deregistration needs to happen is separate thread, because removing listeners in this callback method,
+      // which is called from the SinkDemultiplexer thread, causes a ConcurrentModification exception in the SinkDemultiplexer thread,
+      // because the listener map/list is SinkDemultiplexer is modified, before all listeners are called
+      CompletableFuture.runAsync(() -> {
+        Activator.getDefault().getDemultiplexer().removeProductListener(Products.PROCESS_TERMINATED,
+            this);
+        Activator.getDefault().getDemultiplexer().removeProductListener(Products.STREAM_OUTPUT,
+            this);
+      });
     }
   }
 
