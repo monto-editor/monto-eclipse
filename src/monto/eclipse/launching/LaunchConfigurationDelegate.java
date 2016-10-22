@@ -39,7 +39,7 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
     String mainClassLogicalName =
         configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_LOGICAL_NAME, "");
     String mainClassLanguage =
-        configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_LAGUAGE, "");
+        configuration.getAttribute(MainClassLaunchConfigurationTab.ATTR_LANGUAGE, "");
 
     Source source = new Source(mainClassPhysicalName, mainClassLogicalName);
     Language language = new Language(mainClassLanguage);

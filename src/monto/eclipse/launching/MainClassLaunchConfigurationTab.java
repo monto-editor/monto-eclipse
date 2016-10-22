@@ -17,7 +17,7 @@ import org.eclipse.swt.widgets.Text;
 public class MainClassLaunchConfigurationTab extends AbstractLaunchConfigurationTab {
   public static final String ATTR_PHYSICAL_NAME = "montoMainClassPhysical";
   public static final String ATTR_LOGICAL_NAME = "montoMainClassLogical";
-  public static final String ATTR_LAGUAGE = "montoMainClassLanguage";
+  public static final String ATTR_LANGUAGE = "montoMainClassLanguage";
 
   private Text physicalNameText;
   private Text logicalNameText;
@@ -115,7 +115,7 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
   public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
     configuration.setAttribute(ATTR_PHYSICAL_NAME, "");
     configuration.setAttribute(ATTR_LOGICAL_NAME, "");
-    configuration.setAttribute(ATTR_LAGUAGE, "");
+    configuration.setAttribute(ATTR_LANGUAGE, "");
   }
 
   @Override
@@ -127,7 +127,7 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
     try {
       physicalName = configuration.getAttribute(ATTR_PHYSICAL_NAME, "");
       logicalName = configuration.getAttribute(ATTR_LOGICAL_NAME, "");
-      language = configuration.getAttribute(ATTR_LAGUAGE, "");
+      language = configuration.getAttribute(ATTR_LANGUAGE, "");
     } catch (CoreException ignored) {
     }
 
@@ -140,7 +140,7 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
     configuration.setAttribute(ATTR_PHYSICAL_NAME, physicalNameText.getText());
     configuration.setAttribute(ATTR_LOGICAL_NAME, physicalNameText.getText());
-    configuration.setAttribute(ATTR_LAGUAGE, languageText.getText());
+    configuration.setAttribute(ATTR_LANGUAGE, languageText.getText());
   }
 
   @Override
