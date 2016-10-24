@@ -74,6 +74,8 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
           debugTarget::onBreakpointHit, debugTarget);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.THREADS_RESUMED,
           debugTarget::onThreadsResumed, debugTarget);
+      Activator.getDefault().getDemultiplexer().addProductListener(Products.THREAD_STEPPED,
+          debugTarget::onThreadStepped, debugTarget);
       Activator.getDefault().getDemultiplexer().addProductListener(Products.PROCESS_TERMINATED,
           debugTarget::onProcessTerminated, debugTarget);
       launch.addProcess(process);

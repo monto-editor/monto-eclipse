@@ -1,20 +1,28 @@
 package monto.eclipse.launching.debug;
 
-import org.eclipse.core.runtime.Status;
+import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 
+import monto.eclipse.Activator;
+import monto.service.command.CommandMessage;
+import monto.service.command.Commands;
+import monto.service.gson.GsonMonto;
+import monto.service.launching.debug.StepRequest;
+import monto.service.launching.debug.StepRequest.StepRange;
+import monto.service.launching.debug.Thread;
+
 public class MontoThread extends MontoDebugElement implements IThread {
 
-  private final String name;
+  private final Thread thread;
   private MontoStackFrame[] stackFrames;
   private MontoLineBreakpoint[] suspendingBreakpoints;
 
-  public MontoThread(MontoDebugTarget debugTarget, String name) {
+  public MontoThread(MontoDebugTarget debugTarget, Thread thread) {
     super(debugTarget);
-    this.name = name;
+    this.thread = thread;
   }
 
   void _setStackFrames(MontoStackFrame[] stackFrames) {
@@ -25,8 +33,33 @@ public class MontoThread extends MontoDebugElement implements IThread {
     this.suspendingBreakpoints = suspendingBreakpoints;
   }
 
-  
-  
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((thread == null) ? 0 : thread.hashCode());
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    MontoThread other = (MontoThread) obj;
+    if (thread == null) {
+      if (other.thread != null)
+        return false;
+    } else if (!thread.equals(other.thread))
+      return false;
+    return true;
+  }
+
+
+
   /* MODEL METHODS */
 
   @Override
@@ -54,7 +87,7 @@ public class MontoThread extends MontoDebugElement implements IThread {
 
   @Override
   public String getName() throws DebugException {
-    return "MontoThread [" + name + "]";
+    return String.format("MontoThread %d [%s]", thread.getId(), thread.getName());
   }
 
   @Override
@@ -106,52 +139,59 @@ public class MontoThread extends MontoDebugElement implements IThread {
     debugTarget.terminate();
   }
 
-
-
-  /* STEPPING METHODS */
-
   @Override
   public boolean canStepInto() {
-    System.out.println("MontoThread.canStepInto()");
-    return true;
+    return debugTarget.isSuspended();
   }
 
   @Override
   public boolean canStepOver() {
-    System.out.println("MontoThread.canStepOver()");
-    return true;
+    return debugTarget.isSuspended();
   }
 
   @Override
   public boolean canStepReturn() {
-    System.out.println("MontoThread.canStepReturn()");
-    return false;
+    return debugTarget.isSuspended();
   }
 
   @Override
   public boolean isStepping() {
     System.out.println("MontoThread.isStepping()");
-    // TODO
-    return false;
+    return debugTarget.isSuspended() || debugTarget.isTerminated();
   }
+
+
+
+  /* STEPPING METHODS */
 
   @Override
   public void stepInto() throws DebugException {
-    // TODO
     System.out.println("MontoThread.stepInto()");
+    Activator.sendCommandMessage(new CommandMessage(debugTarget.getSessionId(), 0,
+        Commands.DEBUG_STEP, debugTarget.getLanguage(),
+        GsonMonto.toJsonTree(new StepRequest(thread, StepRange.INTO))));
+
+    fireEvent(DebugEvent.RESUME, DebugEvent.STEP_INTO);
   }
 
   @Override
   public void stepOver() throws DebugException {
-    // TODO
     System.out.println("MontoThread.stepOver()");
+    Activator.sendCommandMessage(new CommandMessage(debugTarget.getSessionId(), 0,
+        Commands.DEBUG_STEP, debugTarget.getLanguage(),
+        GsonMonto.toJsonTree(new StepRequest(thread, StepRange.OVER))));
+
+    fireEvent(DebugEvent.RESUME, DebugEvent.STEP_OVER);
   }
 
   @Override
   public void stepReturn() throws DebugException {
-    // TODO
-    throw new DebugException(
-        new Status(Status.ERROR, getModelIdentifier(), "MontoThread doesn't support step return"));
+    System.out.println("MontoThread.stepReturn()");
+    Activator.sendCommandMessage(new CommandMessage(debugTarget.getSessionId(), 0,
+        Commands.DEBUG_STEP, debugTarget.getLanguage(),
+        GsonMonto.toJsonTree(new StepRequest(thread, StepRange.OUT))));
+
+    fireEvent(DebugEvent.RESUME, DebugEvent.STEP_RETURN);
   }
 
 }

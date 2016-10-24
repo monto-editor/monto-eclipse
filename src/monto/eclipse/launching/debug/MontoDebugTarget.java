@@ -2,7 +2,9 @@ package monto.eclipse.launching.debug;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.runtime.Status;
@@ -53,9 +55,23 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     this.isSuspended = false;
   }
 
+  /* MONTO MODEL METHODS */
+
+  public int getSessionId() {
+    return sessionId;
+  }
+
+  public Source getSessionSource() {
+    return sessionSource;
+  }
+
+  public Language getLanguage() {
+    return language;
+  }
 
 
-  /* MODEL METHODS */
+
+  /* ECLIPSE MODEL METHODS */
 
   @Override
   public IProcess getProcess() {
@@ -173,7 +189,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
     System.out.printf("MontoDebugTarget.breakpointAdded(%s)\n", breakpoint);
-    
+
     Optional<Breakpoint> maybeBreakpoint = convertIBreakpointToBreakpoint(breakpoint);
     if (maybeBreakpoint.isPresent()) {
       Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.ADD_BREAKPOINT,
@@ -232,7 +248,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   private MontoThread convertMontoToEclipseThread(MontoDebugTarget debugTarget,
       Thread montoThread) {
-    MontoThread thread = new MontoThread(debugTarget, montoThread.getName());
+    MontoThread thread = new MontoThread(debugTarget, montoThread);
 
     MontoLineBreakpoint suspendingBreakpoint =
         findEclipseLineBreakpoint(montoThread.getSuspendingBreakpoint());
@@ -288,15 +304,32 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     return null;
   }
 
+  public void onThreadStepped(ProductMessage productMessage) {
+    if (productMessage.getSource().equals(sessionSource)) {
+      Thread thread = GsonMonto.fromJson(productMessage, Thread.class);
+      MontoThread montoThread = convertMontoToEclipseThread(debugTarget, thread);
+
+      // indexOf() works, because MontoThread implements equals() which gets forwarded to Thread
+      threads.set(threads.indexOf(montoThread), montoThread);
+
+      // children of this MontoDebugTarget changed
+      this.fireEvent(DebugEvent.CHANGE, DebugEvent.CONTENT);
+
+      // new MontoThread has finished step
+      montoThread.fireEvent(DebugEvent.SUSPEND, DebugEvent.STEP_END);
+    }
+  }
+
   public void onProcessTerminated(ProductMessage productMessage) {
     if (productMessage.getSource().equals(sessionSource)) {
       DebugPlugin.getDefault().getBreakpointManager().removeBreakpointListener(this);
 
       // deregister product listeners
-      
-      // Deregistration needs to happen is separate thread, because removing listeners in this callback method,
-      // which is called from the SinkDemultiplexer thread, causes a ConcurrentModification exception in the SinkDemultiplexer thread,
-      // because the listener map/list is SinkDemultiplexer is modified, before all listeners are called
+
+      // Deregistration needs to happen is separate thread, because removing listeners in this
+      // callback method, which is called from the SinkDemultiplexer thread, causes a
+      // ConcurrentModification exception in the SinkDemultiplexer thread, because the listener
+      // map/list is SinkDemultiplexer is modified, before all listeners are called
       CompletableFuture.runAsync(() -> {
         SinkDemultiplexer demultiplexer = Activator.getDefault().getDemultiplexer();
         demultiplexer.removeProductListener(Products.HIT_BREAKPOINT, this);
