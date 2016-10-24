@@ -62,6 +62,21 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
        */
     });
 
+    // BROWSE BUTTON
+
+    Button browseButton = createPushButton(parent, "Browse", null);
+    GridData gdBrowseButton = new GridData(SWT.TRAIL);
+    gdBrowseButton.horizontalSpan = 1;
+    gdBrowseButton.verticalSpan = 3;
+    browseButton.setLayoutData(gdBrowseButton);
+
+    browseButton.addSelectionListener(new SelectionAdapter() {
+      @Override
+      public void widgetSelected(SelectionEvent e) {
+        System.out.println("Browse class dialog should open here.");
+      }
+    });
+    
     // LOGICAL NAME UI ELEMENTS
 
     Label logicalNameLabel = new Label(parent, SWT.NONE);
@@ -93,22 +108,6 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
     languageText.addModifyListener(e -> {
       updateLaunchConfigurationDialog();
     });
-    
-    // BROWSE BUTTON
-
-    Button browseButton = createPushButton(parent, "Browse", null);
-    GridData gdBrowseButton = new GridData(SWT.TRAIL);
-    gdBrowseButton.horizontalSpan = 1;
-    gdBrowseButton.verticalSpan = 3;
-    browseButton.setLayoutData(gdBrowseButton);
-
-    browseButton.addSelectionListener(new SelectionAdapter() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        System.out.println("Browse class dialog should open here.");
-      }
-    });
-
   }
 
   @Override
@@ -139,7 +138,7 @@ public class MainClassLaunchConfigurationTab extends AbstractLaunchConfiguration
   @Override
   public void performApply(ILaunchConfigurationWorkingCopy configuration) {
     configuration.setAttribute(ATTR_PHYSICAL_NAME, physicalNameText.getText());
-    configuration.setAttribute(ATTR_LOGICAL_NAME, physicalNameText.getText());
+    configuration.setAttribute(ATTR_LOGICAL_NAME, logicalNameText.getText());
     configuration.setAttribute(ATTR_LANGUAGE, languageText.getText());
   }
 
