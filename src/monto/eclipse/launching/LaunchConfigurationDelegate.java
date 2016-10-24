@@ -3,7 +3,6 @@ package monto.eclipse.launching;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -58,21 +57,11 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
       IBreakpoint[] eclipseBreakpoints =
           DebugPlugin.getDefault().getBreakpointManager().getBreakpoints(Activator.PLUGIN_ID);
 
-      List<Breakpoint> breakpoints =
-          Arrays.stream(eclipseBreakpoints).flatMap(eclipseBreakpoint -> {
-            if (eclipseBreakpoint != null && eclipseBreakpoint instanceof MontoLineBreakpoint) {
-              MontoLineBreakpoint montoBreakpoint = (MontoLineBreakpoint) eclipseBreakpoint;
-              try {
-                return Stream.of(
-                    new Breakpoint(montoBreakpoint.getSource(), montoBreakpoint.getLineNumber()));
-              } catch (CoreException e) {
-                System.err.printf("Couldn't translate MontoLineBreakpoint to Breakpoint: %s (%s)",
-                    e.getClass().getName(), e.getMessage());
-                e.printStackTrace();
-              }
-            }
-            return Stream.empty();
-          }).collect(Collectors.toList());
+      List<Breakpoint> breakpoints = Arrays.stream(eclipseBreakpoints)
+          .filter(eclipseBreakpoint -> (eclipseBreakpoint != null && eclipseBreakpoint instanceof MontoLineBreakpoint))
+          .map(MontoLineBreakpoint.class::cast)
+          .flatMap(MontoLineBreakpoint::getBreakpointStream)
+          .collect(Collectors.toList());
 
       Activator.sendCommandMessage(new CommandMessage(sessionIdCounter, 1,
           Commands.DEBUG, language,

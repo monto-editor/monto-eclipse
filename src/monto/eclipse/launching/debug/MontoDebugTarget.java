@@ -173,21 +173,31 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public void breakpointAdded(IBreakpoint breakpoint) {
     System.out.printf("MontoDebugTarget.breakpointAdded(%s)\n", breakpoint);
-    // if (breakpoint instanceof MontoLineBreakpoint) {
-    // MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
-    // Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.ADD_BREAKPOINT,
-    // language, GsonMonto.toJsonTree(montoLineBreakpoint)));
-    // }
+    
+    Optional<Breakpoint> maybeBreakpoint = convertIBreakpointToBreakpoint(breakpoint);
+    if (maybeBreakpoint.isPresent()) {
+      Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.ADD_BREAKPOINT,
+          language, GsonMonto.toJsonTree(maybeBreakpoint.get())));
+    }
   }
 
   @Override
   public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
     System.out.printf("MontoDebugTarget.breakpointRemoved(%s, %s)\n", breakpoint, delta);
-    // if (breakpoint instanceof MontoLineBreakpoint) {
-    // MontoLineBreakpoint montoLineBreakpoint = (MontoLineBreakpoint) breakpoint;
-    // Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.REMOVE_BREAKPOINT,
-    // language, GsonMonto.toJsonTree(montoLineBreakpoint)));
-    // }
+
+    Optional<Breakpoint> maybeBreakpoint = convertIBreakpointToBreakpoint(breakpoint);
+    if (maybeBreakpoint.isPresent()) {
+      Activator.sendCommandMessage(new CommandMessage(sessionId, 0, Commands.REMOVE_BREAKPOINT,
+          language, GsonMonto.toJsonTree(maybeBreakpoint.get())));
+    }
+  }
+
+  private Optional<Breakpoint> convertIBreakpointToBreakpoint(IBreakpoint breakpoint) {
+    return Stream.of(breakpoint)
+        .filter(eclipseBreakpoint -> (eclipseBreakpoint != null
+            && eclipseBreakpoint instanceof MontoLineBreakpoint))
+        .map(MontoLineBreakpoint.class::cast).flatMap(MontoLineBreakpoint::getBreakpointStream)
+        .findFirst();
   }
 
   @Override

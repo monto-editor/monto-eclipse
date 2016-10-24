@@ -1,5 +1,7 @@
 package monto.eclipse.launching.debug;
 
+import java.util.stream.Stream;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
@@ -8,6 +10,7 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.core.model.LineBreakpoint;
 
 import monto.eclipse.Activator;
+import monto.service.launching.debug.Breakpoint;
 import monto.service.types.Source;
 
 public class MontoLineBreakpoint extends LineBreakpoint {
@@ -57,6 +60,17 @@ public class MontoLineBreakpoint extends LineBreakpoint {
 
   public int getLineNumber() throws DebugException {
     return ensureMarker().getAttribute(IMarker.LINE_NUMBER, -1);
+  }
+
+  public Stream<Breakpoint> getBreakpointStream() {
+    try {
+      return Stream.of(new Breakpoint(getSource(), getLineNumber()));
+    } catch (CoreException e) {
+      System.err.printf("Couldn't translate MontoLineBreakpoint to Breakpoint: %s (%s)",
+          e.getClass().getName(), e.getMessage());
+      e.printStackTrace();
+      return Stream.empty();
+    }
   }
 
   @Override
