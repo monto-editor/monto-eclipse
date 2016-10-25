@@ -7,15 +7,18 @@ import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.ui.IDebugModelPresentation;
 import org.eclipse.debug.ui.IValueDetailListener;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
-import monto.eclipse.outline.LabelProvider;
 import org.eclipse.ui.part.FileEditorInput;
 
 public class MontoDebugModelPresentation extends LabelProvider implements IDebugModelPresentation {
 
   @Override
-  public void setAttribute(String attribute, Object value) {}
+  public void setAttribute(String attribute, Object value) {
+    System.out.println(
+        String.format("MontoDebugModelPresentation.setAttribute(%s, %s)", attribute, value));
+  }
 
   @Override
   public Image getImage(Object element) {
@@ -31,17 +34,19 @@ public class MontoDebugModelPresentation extends LabelProvider implements IDebug
 
   @Override
   public void computeDetail(IValue value, IValueDetailListener listener) {
-//    String detail = "";
-//    try {
-//      detail = value.getValueString();
-//    } catch (DebugException e) {
-//    }
+    System.out.println("MontoDebugModelPresentation.computeDetail()");
     // Use default
-    listener.detailComputed(value, null);
+    String detail = "";
+    try {
+      detail = value.getValueString();
+    } catch (DebugException e) {
+    }
+    listener.detailComputed(value, detail);
   }
 
   @Override
   public IEditorInput getEditorInput(Object element) {
+    System.out.println("MontoDebugModelPresentation.getEditorInput()");
     if (element instanceof IFile) {
       return new FileEditorInput((IFile) element);
     }
@@ -53,6 +58,7 @@ public class MontoDebugModelPresentation extends LabelProvider implements IDebug
 
   @Override
   public String getEditorId(IEditorInput input, Object element) {
+    System.out.println("MontoDebugModelPresentation.getEditorId()");
     if (element instanceof IFile || element instanceof ILineBreakpoint) {
       return UniversalEditor.EDITOR_ID;
     }
