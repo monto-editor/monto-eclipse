@@ -261,7 +261,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     thread._setSuspendingBreakpoints(suspendingBreakpoints);
 
     MontoStackFrame[] stackFrames = montoThread.getStackFrames().stream().map(montoStackFrame -> {
-      MontoStackFrame stackFrame = new MontoStackFrame(debugTarget, montoStackFrame.getName());
+      MontoStackFrame stackFrame = new MontoStackFrame(debugTarget, montoStackFrame);
 
       MontoVariable[] variables = montoStackFrame.getVariables().stream().map(montoVariable -> {
         MontoVariable variable =

@@ -6,15 +6,18 @@ import org.eclipse.debug.core.model.IStackFrame;
 import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.core.model.IVariable;
 
+import monto.service.launching.debug.StackFrame;
+import monto.service.types.Source;
+
 public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   private MontoThread thread;
   private MontoVariable[] variables;
-  private final String name;
+  private StackFrame stackFrame;
 
-  public MontoStackFrame(MontoDebugTarget debugTarget, String name) {
+  public MontoStackFrame(MontoDebugTarget debugTarget, StackFrame stackFrame) {
     super(debugTarget);
-    this.name = name;
+    this.stackFrame = stackFrame;
   }
 
   void _setThread(MontoThread thread) {
@@ -27,7 +30,15 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
 
 
-  /* MODEL METHODS */
+  /* MONTO MODEL METHODS */
+
+  public StackFrame getStackFrame() {
+    return stackFrame;
+  }
+
+
+
+  /* ECLIPSE MODEL METHODS */
 
   @Override
   public IThread getThread() {
@@ -46,8 +57,7 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public int getLineNumber() throws DebugException {
-    // TODO
-    return -1;
+    return stackFrame.getLineNumber();
   }
 
   @Override
@@ -62,7 +72,16 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public String getName() throws DebugException {
-    return name;
+    if (stackFrame.getSource().isPresent()) {
+      Source source = stackFrame.getSource().get();
+      if (source.getLogicalName().isPresent()) {
+        return source.getLogicalName().get() + ":" + stackFrame.getLineNumber();
+      } else {
+        return source.getPhysicalName() + ":" + stackFrame.getLineNumber();
+      }
+    } else {
+      return "MontoStackFrame name not available";
+    }
   }
 
   @Override

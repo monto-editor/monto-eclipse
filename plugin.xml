@@ -99,25 +99,11 @@
 				id="monto.eclipse.launchConfig"
 				name="Monto Launch Configuration"
 				delegate="monto.eclipse.launching.LaunchConfigurationDelegate"
-				modes="run,debug">
+				modes="run,debug"
+				sourceLocatorId="monto.eclipse.launching.debug.sourceLookupDirector"
+				sourcePathComputerId="monto.eclipse.launching.debug.sourcePathComputerDelegate">
 		</launchConfigurationType>
 	</extension>
-
-<!--
-	<extension point="org.eclipse.debug.core.sourceLocators">
-		<sourceLocator
-			name="Monto Source Locator"
-			class="monto.eclipse.launching.SourceLocator"
-			id="monto.eclipse.sourceLocator">
-		</sourceLocator>
-	</extension>
-	<extension point="org.eclipse.debug.core.sourcePathComputers">
-		<sourcePathComputer
-			id="monto.eclipse.sourcePathComputer"
-			class="monto.eclipse.launching.SourcePathComputer">
-		</sourcePathComputer>
-	</extension>
-	-->
 
 	<!-- <LAUNCH CONFIGURATION STUFF> -->
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
@@ -143,10 +129,34 @@
 			</launchMode>
 		</launchConfigurationTabGroup>
 	</extension>
-	<!-- <LAUNCH CONFIGURATION STUFF> -->
+	<!-- </LAUNCH CONFIGURATION STUFF> -->
+
+
+	<!-- <SOURCE LOOKUP STUFF> -->	
+	<extension point="org.eclipse.debug.core.sourceLocators">
+		<sourceLocator
+			name="Monto Source Lookup Director"
+			class="monto.eclipse.launching.debug.MontoSourceLookupDirector"
+			id="monto.eclipse.launching.debug.sourceLookupDirector">
+		</sourceLocator>
+	</extension>
+	
+	<extension point="org.eclipse.debug.core.sourcePathComputers">
+		<sourcePathComputer
+			id="monto.eclipse.launching.debug.sourcePathComputerDelegate"
+			class="monto.eclipse.launching.debug.MontoSourcePathComputerDelegate">
+		</sourcePathComputer>
+	</extension>
+	
+	<extension point="org.eclipse.debug.ui.debugModelPresentations"> 
+		<debugModelPresentation
+				class="monto.eclipse.launching.debug.MontoDebugModelPresentation"
+				id="monto"> <!-- This id is the link to the rest of the Monto plugin (same as Activator.PLUGIN_ID) -->
+		</debugModelPresentation> 
+	</extension>
+	<!-- </SOURCE LOOKUP STUFF> -->
 
 	<!-- <BREAKPOINT STUFF> -->
-	<!-- ??? id is prefixed with plugin id (which is monto) -->
 	<extension
 			id="monto.eclipse.launching.debug.lineBreakpoint.marker"
 			point="org.eclipse.core.resources.markers">
