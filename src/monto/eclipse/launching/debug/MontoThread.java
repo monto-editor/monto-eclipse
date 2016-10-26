@@ -101,63 +101,62 @@ public class MontoThread extends MontoDebugElement implements IThread {
 
   @Override
   public boolean canResume() {
-    return debugTarget.canResume();
+    return getDebugTarget().canResume();
   }
 
   @Override
   public boolean canSuspend() {
-    return debugTarget.canSuspend();
+    return getDebugTarget().canSuspend();
   }
 
   @Override
   public boolean isSuspended() {
-    return debugTarget.isSuspended();
+    return getDebugTarget().isSuspended();
   }
 
   @Override
   public void resume() throws DebugException {
-    debugTarget.resume();
+    getDebugTarget().resume();
   }
 
   @Override
   public void suspend() throws DebugException {
-    debugTarget.suspend();
+    getDebugTarget().suspend();
   }
 
   @Override
   public boolean canTerminate() {
-    return debugTarget.canTerminate();
+    return getDebugTarget().canTerminate();
   }
 
   @Override
   public boolean isTerminated() {
-    return debugTarget.isTerminated();
+    return getDebugTarget().isTerminated();
   }
 
   @Override
   public void terminate() throws DebugException {
-    debugTarget.terminate();
+    getDebugTarget().terminate();
   }
 
   @Override
   public boolean canStepInto() {
-    return debugTarget.isSuspended();
+    return getDebugTarget().isSuspended();
   }
 
   @Override
   public boolean canStepOver() {
-    return debugTarget.isSuspended();
+    return getDebugTarget().isSuspended();
   }
 
   @Override
   public boolean canStepReturn() {
-    return debugTarget.isSuspended();
+    return getDebugTarget().isSuspended();
   }
 
   @Override
   public boolean isStepping() {
-    System.out.println("MontoThread.isStepping()");
-    return debugTarget.isSuspended() || debugTarget.isTerminated();
+    return getDebugTarget().isSuspended() || getDebugTarget().isTerminated();
   }
 
 
@@ -167,31 +166,31 @@ public class MontoThread extends MontoDebugElement implements IThread {
   @Override
   public void stepInto() throws DebugException {
     System.out.println("MontoThread.stepInto()");
-    Activator.sendCommandMessage(new CommandMessage(debugTarget.getSessionId(), 0,
-        Commands.DEBUG_STEP, debugTarget.getLanguage(),
+    Activator.sendCommandMessage(new CommandMessage(getDebugTarget().getSessionId(), 0,
+        Commands.DEBUG_STEP, getDebugTarget().getLanguage(),
         GsonMonto.toJsonTree(new StepRequest(thread, StepRange.INTO))));
 
-    fireEvent(DebugEvent.RESUME, DebugEvent.STEP_INTO);
+    fireResumeEvent(DebugEvent.STEP_INTO);
   }
 
   @Override
   public void stepOver() throws DebugException {
     System.out.println("MontoThread.stepOver()");
-    Activator.sendCommandMessage(new CommandMessage(debugTarget.getSessionId(), 0,
-        Commands.DEBUG_STEP, debugTarget.getLanguage(),
+    Activator.sendCommandMessage(new CommandMessage(getDebugTarget().getSessionId(), 0,
+        Commands.DEBUG_STEP, getDebugTarget().getLanguage(),
         GsonMonto.toJsonTree(new StepRequest(thread, StepRange.OVER))));
 
-    fireEvent(DebugEvent.RESUME, DebugEvent.STEP_OVER);
+    fireResumeEvent(DebugEvent.STEP_OVER);
   }
 
   @Override
   public void stepReturn() throws DebugException {
     System.out.println("MontoThread.stepReturn()");
-    Activator.sendCommandMessage(new CommandMessage(debugTarget.getSessionId(), 0,
-        Commands.DEBUG_STEP, debugTarget.getLanguage(),
+    Activator.sendCommandMessage(new CommandMessage(getDebugTarget().getSessionId(), 0,
+        Commands.DEBUG_STEP, getDebugTarget().getLanguage(),
         GsonMonto.toJsonTree(new StepRequest(thread, StepRange.OUT))));
 
-    fireEvent(DebugEvent.RESUME, DebugEvent.STEP_RETURN);
+    fireResumeEvent(DebugEvent.STEP_RETURN);
   }
 
 }

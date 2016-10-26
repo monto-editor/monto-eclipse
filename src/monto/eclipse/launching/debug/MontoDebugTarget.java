@@ -7,7 +7,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -43,8 +42,11 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   private boolean isSuspended;
 
   public MontoDebugTarget(int sessionId, Language language, ILaunch launch, MontoProcess process) {
+    // MontoDebugTarget is a DebugElement, but for the creation of a DebugElement a instance of a
+    // DebugTarget is needed.
+    // This can't be achieved here, so we pass null, but override getDebugTarget() so that a
+    // instance of a DebugTarget can still be retrieved.
     super(null);
-    super.debugTarget = this;
     this.sessionId = sessionId;
     this.sessionSource = new Source("session:" + sessionId);
     this.language = language;
@@ -54,6 +56,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
     this.isSuspended = false;
   }
+
+
 
   /* MONTO MODEL METHODS */
 
@@ -72,6 +76,11 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
 
   /* ECLIPSE MODEL METHODS */
+
+  @Override
+  public MontoDebugTarget getDebugTarget() {
+    return this;
+  }
 
   @Override
   public IProcess getProcess() {
@@ -146,8 +155,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   @Override
   public void suspend() throws DebugException {
     // TODO
-    throw new DebugException(new Status(Status.ERROR, getModelIdentifier(),
-        "MontoDebugTarget doesn't support suspension"));
+    notSupported("MontoDebugTarget doesn't support suspension", null);
   }
 
   @Override
@@ -157,8 +165,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public void disconnect() throws DebugException {
-    throw new DebugException(new Status(Status.ERROR, getModelIdentifier(),
-        "MontoDebugTarget doesn't support disconnecting"));
+    notSupported("MontoDebugTarget doesn't support disconnecting", null);
   }
 
   @Override
@@ -173,8 +180,8 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
 
   @Override
   public IMemoryBlock getMemoryBlock(long startAddress, long length) throws DebugException {
-    throw new DebugException(new Status(Status.ERROR, getModelIdentifier(),
-        "MontoDebugTarget does not support memory block retrieval"));
+    notSupported("MontoDebugTarget does not support memory block retrieval", null);
+    return null;
   }
 
   @Override
@@ -232,7 +239,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
       for (Thread montoThread : hitBreakpoint.getOtherThreads()) {
         threads.add(convertMontoToEclipseThread(this, montoThread));
       }
-      threads.forEach(thread -> thread.fireEvent(DebugEvent.SUSPEND, DebugEvent.BREAKPOINT));
+      threads.forEach(thread -> thread.fireSuspendEvent(DebugEvent.BREAKPOINT));
     }
   }
 
@@ -242,7 +249,7 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
     if (productMessage.getSource().equals(sessionSource)) {
       isSuspended = false;
       threads.clear();
-      fireEvent(DebugEvent.RESUME);
+      fireResumeEvent(DebugEvent.UNSPECIFIED);
     }
   }
 
@@ -307,16 +314,16 @@ public class MontoDebugTarget extends MontoDebugElement implements IDebugTarget 
   public void onThreadStepped(ProductMessage productMessage) {
     if (productMessage.getSource().equals(sessionSource)) {
       Thread thread = GsonMonto.fromJson(productMessage, Thread.class);
-      MontoThread montoThread = convertMontoToEclipseThread(debugTarget, thread);
+      MontoThread montoThread = convertMontoToEclipseThread(this, thread);
 
       // indexOf() works, because MontoThread implements equals() which gets forwarded to Thread
       threads.set(threads.indexOf(montoThread), montoThread);
 
       // children of this MontoDebugTarget changed
-      this.fireEvent(DebugEvent.CHANGE, DebugEvent.CONTENT);
+      this.fireChangeEvent(DebugEvent.CONTENT);
 
       // new MontoThread has finished step
-      montoThread.fireEvent(DebugEvent.SUSPEND, DebugEvent.STEP_END);
+      montoThread.fireSuspendEvent(DebugEvent.STEP_END);
     }
   }
 

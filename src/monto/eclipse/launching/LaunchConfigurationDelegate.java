@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
@@ -80,7 +79,7 @@ public class LaunchConfigurationDelegate implements ILaunchConfigurationDelegate
           debugTarget::onProcessTerminated, debugTarget);
       launch.addProcess(process);
       launch.addDebugTarget(debugTarget);
-      debugTarget.fireEvent(DebugEvent.CREATE);
+      debugTarget.fireCreationEvent();
     }
   }
 

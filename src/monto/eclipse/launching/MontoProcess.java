@@ -102,8 +102,9 @@ public class MontoProcess extends PlatformObject implements IProcess {
   @Override
   public int getExitValue() throws DebugException {
     if (!terminated) {
-      throw new DebugException(new Status(IStatus.ERROR, Activator.PLUGIN_ID,
-          "Can't get exit value of running Monto process"));
+      throw new DebugException(new Status(IStatus.ERROR, DebugPlugin.getUniqueIdentifier(),
+          DebugException.TARGET_REQUEST_FAILED,
+          "Can't get exit value of running Monto process, because it hasn't terminted yet", null));
     }
     return exitCode;
   }
@@ -120,10 +121,11 @@ public class MontoProcess extends PlatformObject implements IProcess {
           .fireDebugEventSet(new DebugEvent[] {new DebugEvent(this, DebugEvent.TERMINATE)});
 
       // deregister product listeners
-      
-      // Deregistration needs to happen is separate thread, because removing listeners in this callback method,
-      // which is called from the SinkDemultiplexer thread, causes a ConcurrentModification exception in the SinkDemultiplexer thread,
-      // because the listener map/list is SinkDemultiplexer is modified, before all listeners are called
+
+      // Deregistration needs to happen is separate thread, because removing listeners in this
+      // callback method, which is called from the SinkDemultiplexer thread, causes a
+      // ConcurrentModification exception in the SinkDemultiplexer thread, because the listener
+      // map/list is SinkDemultiplexer is modified, before all listeners are called
       CompletableFuture.runAsync(() -> {
         Activator.getDefault().getDemultiplexer().removeProductListener(Products.PROCESS_TERMINATED,
             this);

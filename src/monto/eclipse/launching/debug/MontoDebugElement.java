@@ -1,47 +1,22 @@
 package monto.eclipse.launching.debug;
 
-import org.eclipse.core.runtime.PlatformObject;
-import org.eclipse.debug.core.DebugEvent;
-import org.eclipse.debug.core.DebugPlugin;
-import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.model.IDebugElement;
-import org.eclipse.debug.core.model.IDebugTarget;
+import org.eclipse.debug.core.model.DebugElement;
 
 import monto.eclipse.Activator;
 
-public class MontoDebugElement extends PlatformObject implements IDebugElement {
-  protected MontoDebugTarget debugTarget;
+public class MontoDebugElement extends DebugElement {
 
   public MontoDebugElement(MontoDebugTarget debugTarget) {
-    this.debugTarget = debugTarget;
+    super(debugTarget);
   }
 
   @Override
-  public <T> T getAdapter(Class<T> adapter) {
-    return super.getAdapter(adapter);
+  public MontoDebugTarget getDebugTarget() {
+    return (MontoDebugTarget) super.getDebugTarget();
   }
 
   @Override
   public String getModelIdentifier() {
     return Activator.PLUGIN_ID;
-  }
-
-  @Override
-  public IDebugTarget getDebugTarget() {
-    return debugTarget;
-  }
-
-  @Override
-  public ILaunch getLaunch() {
-    return debugTarget.getLaunch();
-  }
-
-  public void fireEvent(int eventKindId) {
-    fireEvent(eventKindId, DebugEvent.UNSPECIFIED);
-  }
-
-  public void fireEvent(int eventKindId, int eventDetailId) {
-    DebugPlugin.getDefault()
-        .fireDebugEventSet(new DebugEvent[] {new DebugEvent(this, eventKindId, eventDetailId)});
   }
 }

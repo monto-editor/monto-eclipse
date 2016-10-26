@@ -1,11 +1,8 @@
 package monto.eclipse.launching.debug;
 
-import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.core.model.IVariable;
-
-import monto.eclipse.Activator;
 
 public class MontoVariable extends MontoDebugElement implements IVariable {
 
@@ -25,14 +22,12 @@ public class MontoVariable extends MontoDebugElement implements IVariable {
 
   @Override
   public void setValue(String expression) throws DebugException {
-    throw new DebugException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-        "MontoVariable doesn't support modification"));
+    notSupported("MontoVariable doesn't support modification", null);
   }
 
   @Override
   public void setValue(IValue value) throws DebugException {
-    throw new DebugException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-        "MontoVariable doesn't support modification"));
+    notSupported("MontoVariable doesn't support modification", null);
   }
 
   @Override

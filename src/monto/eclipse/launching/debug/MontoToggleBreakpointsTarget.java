@@ -2,6 +2,7 @@ package monto.eclipse.launching.debug;
 
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -62,8 +63,9 @@ public class MontoToggleBreakpointsTarget implements IToggleBreakpointsTarget {
   @Override
   public void toggleMethodBreakpoints(IWorkbenchPart part, ISelection selection)
       throws CoreException {
-    throw new DebugException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-        "MontoToggleBreakpointsTarget doesn't support method breakpoints"));
+    throw new DebugException(
+        new Status(IStatus.ERROR, DebugPlugin.getUniqueIdentifier(), DebugException.NOT_SUPPORTED,
+            "MontoToggleBreakpointsTarget doesn't support method breakpoints", null));
   }
 
   @Override
@@ -73,8 +75,9 @@ public class MontoToggleBreakpointsTarget implements IToggleBreakpointsTarget {
 
   @Override
   public void toggleWatchpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
-    throw new DebugException(new Status(Status.ERROR, Activator.PLUGIN_ID,
-        "MontoToggleBreakpointsTarget doesn't support watchpoints"));
+    throw new DebugException(
+        new Status(IStatus.ERROR, DebugPlugin.getUniqueIdentifier(), DebugException.NOT_SUPPORTED,
+            "MontoToggleBreakpointsTarget doesn't support watchpoints", null));
   }
 
   @Override
