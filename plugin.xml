@@ -100,8 +100,7 @@
 				name="Monto Launch Configuration"
 				delegate="monto.eclipse.launching.LaunchConfigurationDelegate"
 				modes="run,debug"
-				sourceLocatorId="monto.eclipse.launching.debug.sourceLookupDirector"
-				sourcePathComputerId="monto.eclipse.launching.debug.sourcePathComputerDelegate">
+				sourceLocatorId="monto.eclipse.launching.debug.sourceLocator">
 		</launchConfigurationType>
 	</extension>
 
@@ -135,23 +134,21 @@
 	<!-- <SOURCE LOOKUP STUFF> -->	
 	<extension point="org.eclipse.debug.core.sourceLocators">
 		<sourceLocator
-			name="Monto Source Lookup Director"
-			class="monto.eclipse.launching.debug.MontoSourceLookupDirector"
-			id="monto.eclipse.launching.debug.sourceLookupDirector">
+			name="Monto Source Locator"
+			class="monto.eclipse.launching.debug.MontoSourceLocator"
+			id="monto.eclipse.launching.debug.sourceLocator">
 		</sourceLocator>
-	</extension>
-	
-	<extension point="org.eclipse.debug.core.sourcePathComputers">
-		<sourcePathComputer
-			id="monto.eclipse.launching.debug.sourcePathComputerDelegate"
-			class="monto.eclipse.launching.debug.MontoSourcePathComputerDelegate">
-		</sourcePathComputer>
 	</extension>
 	
 	<extension point="org.eclipse.debug.ui.debugModelPresentations"> 
 		<debugModelPresentation
 				class="monto.eclipse.launching.debug.MontoDebugModelPresentation"
-				id="monto"> <!-- This id is the link to the rest of the Monto plugin (same as Activator.PLUGIN_ID) -->
+				id="monto.eclipse">
+				<!--
+					This id is the link to the rest of the Monto debug model.
+					Must be the same String as the one returned from getModelIdentifier() methods.
+				 	( = Activator.PLUGIN_ID)
+				-->
 		</debugModelPresentation> 
 	</extension>
 	<!-- </SOURCE LOOKUP STUFF> -->

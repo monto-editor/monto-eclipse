@@ -1,7 +1,6 @@
 package monto.eclipse.launching.debug;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.IValue;
 import org.eclipse.debug.ui.IDebugModelPresentation;
@@ -15,10 +14,7 @@ import org.eclipse.ui.part.FileEditorInput;
 public class MontoDebugModelPresentation extends LabelProvider implements IDebugModelPresentation {
 
   @Override
-  public void setAttribute(String attribute, Object value) {
-    System.out.println(
-        String.format("MontoDebugModelPresentation.setAttribute(%s, %s)", attribute, value));
-  }
+  public void setAttribute(String attribute, Object value) {}
 
   @Override
   public Image getImage(Object element) {
@@ -34,35 +30,32 @@ public class MontoDebugModelPresentation extends LabelProvider implements IDebug
 
   @Override
   public void computeDetail(IValue value, IValueDetailListener listener) {
-    System.out.println("MontoDebugModelPresentation.computeDetail()");
     // Use default
-    String detail = "";
-    try {
-      detail = value.getValueString();
-    } catch (DebugException e) {
-    }
-    listener.detailComputed(value, detail);
+    listener.detailComputed(value, null);
   }
 
   @Override
   public IEditorInput getEditorInput(Object element) {
-    System.out.println("MontoDebugModelPresentation.getEditorInput()");
     if (element instanceof IFile) {
       return new FileEditorInput((IFile) element);
-    }
-    if (element instanceof ILineBreakpoint) {
+    } else if (element instanceof ILineBreakpoint) {
       return new FileEditorInput((IFile) ((ILineBreakpoint) element).getMarker().getResource());
+    } else {
+      System.err.printf("Unexpected class in MontoDebugModelPresentation.getEditorInput(%s)\n",
+          element.getClass().getName());
+      return null;
     }
-    return null;
   }
 
   @Override
   public String getEditorId(IEditorInput input, Object element) {
-    System.out.println("MontoDebugModelPresentation.getEditorId()");
-    if (element instanceof IFile || element instanceof ILineBreakpoint) {
+    if (element instanceof IFile || element instanceof MontoLineBreakpoint) {
       return UniversalEditor.EDITOR_ID;
+    } else {
+      System.err.printf("Unexpected class in MontoDebugModelPresentation.getEditorId(%s, %s)\n",
+          input.getClass().getName(), element.getClass().getName());
+      return null;
     }
-    return null;
   }
 
 }
