@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-import org.javatuples.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import monto.eclipse.Activator;
 import monto.ide.SinkSocket;
@@ -41,7 +41,7 @@ public class SinkDemultiplexer {
       if (!productListeners.containsKey(product)) {
         productListeners.put(product, new ArrayList<>());
       }
-      productListeners.get(product).add(new Pair<>(consumer, identifier));
+      productListeners.get(product).add(Pair.of(consumer, identifier));
     }
   }
 
@@ -51,7 +51,7 @@ public class SinkDemultiplexer {
         for (Iterator<Pair<Consumer<ProductMessage>, Object>> iterator =
             productListeners.get(product).iterator(); iterator.hasNext();) {
           Pair<Consumer<ProductMessage>, Object> pair = iterator.next();
-          if (pair.getValue1().equals(identifier)) {
+          if (pair.getRight().equals(identifier)) {
             iterator.remove();
           }
         }
@@ -61,7 +61,7 @@ public class SinkDemultiplexer {
 
   public void addDiscoveryListener(Consumer<DiscoveryResponse> consumer, Object identifier) {
     synchronized (discoveryListeners) {
-      discoveryListeners.add(new Pair<>(consumer, identifier));
+      discoveryListeners.add(Pair.of(consumer, identifier));
     }
   }
 
@@ -70,7 +70,7 @@ public class SinkDemultiplexer {
       for (Iterator<Pair<Consumer<DiscoveryResponse>, Object>> iterator =
           discoveryListeners.iterator(); iterator.hasNext();) {
         Pair<Consumer<DiscoveryResponse>, Object> pair = iterator.next();
-        if (pair.getValue1().equals(identifier)) {
+        if (pair.getRight().equals(identifier)) {
           iterator.remove();
         }
       }
@@ -97,7 +97,7 @@ public class SinkDemultiplexer {
                       productMessage);
                 } else {
                   for (Pair<Consumer<ProductMessage>, Object> consumer : listeners) {
-                    consumer.getValue0().accept(productMessage);
+                    consumer.getLeft().accept(productMessage);
                   }
                 }
               }
@@ -105,7 +105,7 @@ public class SinkDemultiplexer {
               synchronized (discoveryListeners) {
                 Activator.debug("Received DiscoveryResponse: %s", discoveryResponse);
                 for (Pair<Consumer<DiscoveryResponse>, Object> listener : discoveryListeners) {
-                  listener.getValue0().accept(discoveryResponse);
+                  listener.getLeft().accept(discoveryResponse);
                 }
               }
             });

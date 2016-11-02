@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.RowLayout;
@@ -19,7 +20,6 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPropertyPage;
 import org.eclipse.ui.dialogs.PropertyPage;
-import org.javatuples.Pair;
 
 import monto.service.configuration.Option;
 import monto.service.discovery.DiscoveryRequest;
@@ -73,19 +73,19 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
       Button button = new Button(parent, SWT.CHECK);
       button.setText(booleanOption.getLabel());
       button.setSelection(store.getBoolean(storeKey));
-      controlPairList.add(new Pair(option, button));
+      controlPairList.add(Pair.of(option, button));
       return button;
     }, numberOption -> {
       Spinner spinner = new Spinner(parent, SWT.NONE);
       spinner.setMinimum((int) numberOption.getFrom());
       spinner.setMaximum((int) numberOption.getTo());
       spinner.setSelection(store.getInt(storeKey));
-      controlPairList.add(new Pair(option, spinner));
+      controlPairList.add(Pair.of(option, spinner));
       return spinner;
     }, textOption -> {
       Text text = new Text(parent, SWT.SINGLE | SWT.BORDER);
       text.setText(store.getString(storeKey));
-      controlPairList.add(new Pair(option, text));
+      controlPairList.add(Pair.of(option, text));
       return text;
     }, xorOption -> {
       Combo combo = new Combo(parent, SWT.DROP_DOWN);
@@ -93,7 +93,7 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
       items = xorOption.getValues().toArray(items);
       combo.setItems(items);
       combo.select(xorOption.getValues().indexOf(store.getInt(storeKey)));
-      controlPairList.add(new Pair(option, combo));
+      controlPairList.add(Pair.of(option, combo));
       return combo;
     }, optionGroup -> {
       Group group = new Group(parent, SWT.BORDER);
@@ -113,8 +113,8 @@ public class ServiceConfigurationPage extends PropertyPage implements IWorkbench
 
     controlMap.forEach((serviceId, optionControlPairs) -> {
       optionControlPairs.forEach(optionControlPair -> {
-        Option<?> option = optionControlPair.getValue0();
-        Control control = optionControlPair.getValue1();
+        Option<?> option = optionControlPair.getLeft();
+        Control control = optionControlPair.getRight();
         String storeKey = Activator.getStoreKey(serviceId, option);
 
         option.matchVoid(booleanOption -> {
