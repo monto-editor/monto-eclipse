@@ -1,7 +1,5 @@
 package monto.eclipse.launching.debug;
 
-import java.util.Optional;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -18,17 +16,15 @@ public class MontoSourceLocator implements IPersistableSourceLocator {
   public Object getSourceElement(IStackFrame stackFrame) {
     if (stackFrame instanceof MontoStackFrame) {
       MontoStackFrame montoStackFrame = (MontoStackFrame) stackFrame;
-      Optional<Source> maybeSource = montoStackFrame.getStackFrame().getSource();
-      if (maybeSource.isPresent()) {
-        IFile file = ResourcesPlugin.getWorkspace().getRoot()
-            .getFile(new Path(maybeSource.get().getPhysicalName()));
-        return file;
-      }
+      Source source = montoStackFrame.getStackFrame().getSource();
+      IFile file =
+          ResourcesPlugin.getWorkspace().getRoot().getFile(new Path(source.getPhysicalName()));
+      return file;
     } else {
       System.out.println("Unexpected stackframe class found in MontoSourceLocator: "
           + stackFrame.getClass().getName());
+      return null;
     }
-    return null;
   }
 
   @Override
