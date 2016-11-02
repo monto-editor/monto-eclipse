@@ -47,6 +47,7 @@ public class TokenColorer implements ITokenColorer {
     }
   }
 
+  @SuppressWarnings("unused")
   private Font getFont(monto.service.highlighting.Font font) {
     return fontMap.computeIfAbsent(font, fnt -> {
       if (defFont.getFontData().length == 0)
