@@ -57,31 +57,44 @@ public class MontoStackFrame extends MontoDebugElement implements IStackFrame {
 
   @Override
   public int getLineNumber() throws DebugException {
-    return stackFrame.getLineNumber();
+    // prefer region over lineNumber
+    if (stackFrame.getRegion().isPresent()) {
+      return -1;
+    } else {
+      return stackFrame.getLineNumber();
+
+    }
   }
 
   @Override
   public int getCharStart() throws DebugException {
-    return -1;
+    if (stackFrame.getRegion().isPresent()) {
+      return stackFrame.getRegion().get().getStartOffset();
+    } else {
+      return -1;
+    }
   }
 
   @Override
   public int getCharEnd() throws DebugException {
-    return -1;
+    if (stackFrame.getRegion().isPresent()) {
+      return stackFrame.getRegion().get().getEndOffset();
+    } else {
+      return -1;
+    }
   }
 
   @Override
   public String getName() throws DebugException {
-    if (stackFrame.getSource().isPresent()) {
-      Source source = stackFrame.getSource().get();
-      if (source.getLogicalName().isPresent()) {
-        return source.getLogicalName().get() + ":" + stackFrame.getLineNumber();
-      } else {
-        return source.getPhysicalName() + ":" + stackFrame.getLineNumber();
-      }
+    Source source = stackFrame.getSource();
+    String name;
+    if (source.getLogicalName().isPresent()) {
+      name = source.getLogicalName().get();
     } else {
-      return "MontoStackFrame name not available";
+      name = source.getPhysicalName();
     }
+    name += ":" + stackFrame.getLineNumber();
+    return name;
   }
 
   @Override
