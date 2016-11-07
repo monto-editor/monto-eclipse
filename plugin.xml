@@ -37,6 +37,15 @@
 		</language>
 	</extension>
 	<extension
+			point="org.eclipse.imp.runtime.languageDescription">
+		<language
+				derivedFrom="Monto"
+				description="Python"
+				extensions="py"
+				language="python">
+		</language>
+	</extension>
+	<extension
 			point="org.eclipse.imp.runtime.parser">
 		<parser
 				class="monto.eclipse.MontoParseController"
