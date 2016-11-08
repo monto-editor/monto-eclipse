@@ -20,12 +20,16 @@ public class ContentProposer implements IContentProposer {
   ImageRegistry images = new ImageRegistry(Display.getCurrent());
 
   private Image getImage(URL url) {
-    Image img = images.get(url.toString());
-    if (img == null) {
-      images.put(url.toString(), ImageDescriptor.createFromURL(url));
-      img = images.get(url.toString());
+    if (url == null) {
+      return null;
+    } else {
+      Image img = images.get(url.toString());
+      if (img == null) {
+        images.put(url.toString(), ImageDescriptor.createFromURL(url));
+        img = images.get(url.toString());
+      }
+      return img;
     }
-    return img;
   }
 
   @Override
